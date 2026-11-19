@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.ShellController"
+      styleClass="app-shell">
+
+    <!-- Sidebar -->
+    <VBox styleClass="sidebar">
+        <HBox styleClass="brand-box" alignment="CENTER_LEFT" spacing="11">
+            <StackPane styleClass="brand-logo-frame">
+                <ImageView fitWidth="36" fitHeight="36" preserveRatio="true">
+                    <image>
+                        <Image url="@../img/deihs-logo.jpg"/>
+                    </image>
+                </ImageView>
+            </StackPane>
+            <VBox spacing="1">
+                <Label text="DEIHS MMS" styleClass="brand-name"/>
+                <Label text="Maintenance System" styleClass="brand-sub"/>
+            </VBox>
+        </HBox>
+
+        <VBox fx:id="menuBox" styleClass="menu" VBox.vgrow="ALWAYS"/>
+
+        <VBox styleClass="side-foot" spacing="4">
+            <Label fx:id="scopeLabel" styleClass="side-foot-label" text="All school records"/>
+            <Label text="v1.0 · DEIHS" styleClass="side-foot-label"/>
+        </VBox>
+    </VBox>
+
+    <!-- Main -->
+    <VBox HBox.hgrow="ALWAYS">
+        <HBox styleClass="topbar">
+            <Label fx:id="pageTitle" styleClass="page-title" text="Dashboard"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Sign out" styleClass="btn-ghost" onAction="#onLogout"/>
+            <HBox styleClass="user-chip" spacing="9" alignment="CENTER_LEFT">
+                <Label fx:id="avatarLabel" styleClass="avatar" text="--"/>
+                <VBox spacing="0">
+                    <Label fx:id="userNameLabel" styleClass="user-name" text="—"/>
+                    <Label fx:id="userRoleLabel" styleClass="user-role" text="—"/>
+                </VBox>
+            </HBox>
+        </HBox>
+
+        <StackPane fx:id="contentArea" styleClass="content" alignment="TOP_LEFT"
+                   VBox.vgrow="ALWAYS"/>
+    </VBox>
+</HBox>

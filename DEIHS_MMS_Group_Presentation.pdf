@@ -1,0 +1,385 @@
+%PDF-1.4
+%‚„œ”
+1 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+2 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
+endobj
+3 0 obj
+<< /Length 558 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (DEIHS Maintenance Management System) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Group Progress Report & Task Plan) Tj
+1 0 0 1 50 733 Tm () Tj
+1 0 0 1 50 723 Tm (DasmariÒas East Integrated High School) Tj
+1 0 0 1 50 708 Tm (JavaFX 21 + MySQL \(LAN\) - Capstone Project) Tj
+1 0 0 1 50 693 Tm (Prepared for group reporting: what is done and what each part needs to do) Tj
+1 0 0 1 50 678 Tm (Generated: Nov 16, 2026) Tj
+ET
+endstream
+endobj
+4 0 obj
+<< /Length 1011 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Project Objective & Scope) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Objective:) Tj
+1 0 0 1 50 733 Tm (  - Build a feature-complete maintenance management system for DEIHS \(facility/equipment) Tj
+1 0 0 1 50 718 Tm (    issues, tracking, records, monitoring, and user management\).) Tj
+1 0 0 1 50 703 Tm () Tj
+1 0 0 1 50 693 Tm (Target Users / Roles:) Tj
+1 0 0 1 50 678 Tm (  - School Administrator - full system management & approvals) Tj
+1 0 0 1 50 663 Tm (  - Maintenance Head - oversight, assignment coordination, reports) Tj
+1 0 0 1 50 648 Tm (  - Maintenance Personnel - assigned tasks only \(My Tasks\)) Tj
+1 0 0 1 50 633 Tm (  - Teacher / School Staff - submit and track own requests \(My Requests\)) Tj
+1 0 0 1 50 618 Tm () Tj
+1 0 0 1 50 608 Tm (Deployment:) Tj
+1 0 0 1 50 593 Tm (  - Multi-PC LAN: shared MySQL \(XAMPP/MariaDB\) host + JavaFX client PCs) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Length 1101 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Technology Stack & Architecture) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Stack:) Tj
+1 0 0 1 50 733 Tm (  - Java 21, Maven, JavaFX 21.0.13 \(FXML/CSS\), MySQL Connector/J, HikariCP, jBCrypt, PDFBox,) Tj
+1 0 0 1 50 718 Tm (    Gson) Tj
+1 0 0 1 50 703 Tm () Tj
+1 0 0 1 50 693 Tm (Architecture:) Tj
+1 0 0 1 50 678 Tm (  - MVC-style: FXML Views + Controllers, Services \(permissions/validation/rules\), DAOs \(JDBC\),) Tj
+1 0 0 1 50 663 Tm (    MySQL schema) Tj
+1 0 0 1 50 648 Tm (  - Centralized config \(db.properties / -D overrides\) for LAN host, DB, and Google OAuth) Tj
+1 0 0 1 50 633 Tm (  - Session + role-based permissions enforced in service/UI flow) Tj
+1 0 0 1 50 618 Tm () Tj
+1 0 0 1 50 608 Tm (Database:) Tj
+1 0 0 1 50 593 Tm (  - Core tables: users/roles, facilities, equipment, maintenance) Tj
+1 0 0 1 50 578 Tm (    requests/categories/records/schedules,) Tj
+1 0 0 1 50 563 Tm (    comments/history/attachments, audit_logs, account_requests) Tj
+ET
+endstream
+endobj
+6 0 obj
+<< /Length 1030 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Completed Modules \(1/2\)) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Authentication & Accounts:) Tj
+1 0 0 1 50 733 Tm (  - Login \(DB role-based\), self-registration -> pending admin approval) Tj
+1 0 0 1 50 718 Tm (  - Google sign-in/sign-up scaffold \(Option A\) - config-gated, needs real OAuth) Tj
+1 0 0 1 50 703 Tm (    credentials/setup) Tj
+1 0 0 1 50 688 Tm (  - Users management: create/edit/activate/deactivate/reset + approve/reject registration) Tj
+1 0 0 1 50 673 Tm (    requests) Tj
+1 0 0 1 50 658 Tm () Tj
+1 0 0 1 50 648 Tm (Dashboard & Requests:) Tj
+1 0 0 1 50 633 Tm (  - Dashboard summaries/KPIs; Requests list/form/detail with scopes \(ALL/My Tasks/My Requests\)) Tj
+1 0 0 1 50 618 Tm (  - Status workflow & audited transitions \(PENDING->ASSIGNED->IN_PROGRESS->COMPLETED->CLOSED,) Tj
+1 0 0 1 50 603 Tm (    etc.\)) Tj
+1 0 0 1 50 588 Tm (    with role/remarks rules) Tj
+ET
+endstream
+endobj
+7 0 obj
+<< /Length 952 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Completed Modules \(2/2\)) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Assets & Operations:) Tj
+1 0 0 1 50 733 Tm (  - Facilities and Equipment: search/filter, add/edit, archive/restore, condition/status) Tj
+1 0 0 1 50 718 Tm (    tracking) Tj
+1 0 0 1 50 703 Tm (  - Schedules: maintenance scheduling and mark-done \(advances next due date\)) Tj
+1 0 0 1 50 688 Tm () Tj
+1 0 0 1 50 678 Tm (Monitoring & Reporting:) Tj
+1 0 0 1 50 663 Tm (  - Audit Log: read-only activity trail) Tj
+1 0 0 1 50 648 Tm (  - Reports: date-range summaries, breakdowns, repair cost/downtime insights, CSV & PDF export) Tj
+1 0 0 1 50 633 Tm () Tj
+1 0 0 1 50 623 Tm (UI/Branding:) Tj
+1 0 0 1 50 608 Tm (  - Green & Gold theme, sidebar + top bar layout; updated login branding \(DEIHS logo/text,) Tj
+1 0 0 1 50 593 Tm (    centered\)) Tj
+ET
+endstream
+endobj
+8 0 obj
+<< /Length 1202 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Testing & Safety Status \(as of Nov 16, 2026\)) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Build & Smoke Checks:) Tj
+1 0 0 1 50 733 Tm (  - Maven package/tests: PASS. No automated unit test suite yet \(src/test empty\).) Tj
+1 0 0 1 50 718 Tm (  - Backend smoke test \(temp DB, seeded schema\): PASS - logins for all roles, core DAO/service) Tj
+1 0 0 1 50 703 Tm (    queries,) Tj
+1 0 0 1 50 688 Tm (    reports, dashboards, auth failure handling, registration pending flow) Tj
+1 0 0 1 50 673 Tm (  - UI smoke test \(FXML load, offscreen\): PASS - Login, Shell, Dashboard, Requests/Form/Detail,) Tj
+1 0 0 1 50 658 Tm (    Facilities, Equipment, Users, Schedules, Reports, Audit Log load without runtime errors) Tj
+1 0 0 1 50 643 Tm () Tj
+1 0 0 1 50 633 Tm (Safety Measures in Place:) Tj
+1 0 0 1 50 618 Tm (  - Passwords hashed \(BCrypt/jBCrypt\); role-based access checks; parameterized DB access; audit) Tj
+1 0 0 1 50 603 Tm (    logging) Tj
+1 0 0 1 50 588 Tm (  - Config-driven DB/OAuth \(no hardcoded secrets\); Google sign-in hidden when not configured) Tj
+ET
+endstream
+endobj
+9 0 obj
+<< /Length 1238 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Known Limits & Risks \(be transparent\)) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (  - Google OAuth not end-to-end verified until real Client ID/Secret, redirect URI, and) Tj
+1 0 0 1 50 733 Tm (    internet/browser access are configured and tested.) Tj
+1 0 0 1 50 718 Tm (  - Photo attachments stored as local paths - not accessible across LAN PCs without a) Tj
+1 0 0 1 50 703 Tm (    shared/network folder strategy.) Tj
+1 0 0 1 50 688 Tm (  - No automated test suite yet; runtime behavior on real XAMPP/LAN and multiple client PCs) Tj
+1 0 0 1 50 673 Tm (    still needs full validation.) Tj
+1 0 0 1 50 658 Tm (  - Minor gaps to polish: e.g. Users edit does not prefill email/phone; report/export edge) Tj
+1 0 0 1 50 643 Tm (    cases) Tj
+1 0 0 1 50 628 Tm (    under real data volumes.) Tj
+1 0 0 1 50 613 Tm (  - Security hardening advisable for real use \(strong DB credentials, backups, least-privilege) Tj
+1 0 0 1 50 598 Tm (    DB user\).) Tj
+1 0 0 1 50 583 Tm (  - Stability depends on correct DB configuration and network connectivity to shared MySQL) Tj
+1 0 0 1 50 568 Tm (    host.) Tj
+ET
+endstream
+endobj
+10 0 obj
+<< /Length 961 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Task Plan - Part 1: Environment & Deployment) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Owner suggestion: Deployment/Infra lead) Tj
+1 0 0 1 50 733 Tm () Tj
+1 0 0 1 50 723 Tm (Tasks:) Tj
+1 0 0 1 50 708 Tm (  - Set up shared MySQL/MariaDB host \(XAMPP/server\) on LAN; import database/deihs_mms.sql) Tj
+1 0 0 1 50 693 Tm (  - Create/secure DB user & password; configure db.properties or -Ddb.* for all client PCs) Tj
+1 0 0 1 50 678 Tm (  - Prepare client run setup \(Java 21, Maven or packaged JAR\); document LAN IP/port and steps) Tj
+1 0 0 1 50 663 Tm (  - Test multi-PC connectivity \(2-3 clients simultaneously\) and fix connection/config issues) Tj
+1 0 0 1 50 648 Tm () Tj
+1 0 0 1 50 638 Tm (Deliverable:) Tj
+1 0 0 1 50 623 Tm (  - Working LAN deployment guide + verified shared-database access from client PCs) Tj
+ET
+endstream
+endobj
+11 0 obj
+<< /Length 1204 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Task Plan - Part 2: Authentication & Accounts) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Owner suggestion: Auth/Accounts lead) Tj
+1 0 0 1 50 733 Tm () Tj
+1 0 0 1 50 723 Tm (Tasks:) Tj
+1 0 0 1 50 708 Tm (  - Verify login for all roles and registration -> pending approval -> admin approve/role) Tj
+1 0 0 1 50 693 Tm (    assignment flow) Tj
+1 0 0 1 50 678 Tm (  - Finalize Google OAuth: obtain Client ID/Secret, set redirect) Tj
+1 0 0 1 50 663 Tm (    \(http://127.0.0.1:<port>/callback\),) Tj
+1 0 0 1 50 648 Tm (    test sign-in, email-match, inactive/unmatched, and new-user pending request \(Option A\)) Tj
+1 0 0 1 50 633 Tm (  - Ensure user emails/employee data correct for matching; decide required fields UX for Google) Tj
+1 0 0 1 50 618 Tm (    sign-up) Tj
+1 0 0 1 50 603 Tm (  - Reset/change default demo passwords for real use; review activation/deactivation behavior) Tj
+1 0 0 1 50 588 Tm () Tj
+1 0 0 1 50 578 Tm (Deliverable:) Tj
+1 0 0 1 50 563 Tm (  - Fully tested auth flows \(local + Google if enabled\) and documented account/admin procedures) Tj
+ET
+endstream
+endobj
+12 0 obj
+<< /Length 1096 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Task Plan - Part 3: Core Modules & Data) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Owner suggestion: Modules/Data lead\(s\)) Tj
+1 0 0 1 50 733 Tm () Tj
+1 0 0 1 50 723 Tm (Tasks:) Tj
+1 0 0 1 50 708 Tm (  - Test Requests end-to-end: create, assign, status transitions, comments/history,) Tj
+1 0 0 1 50 693 Tm (    attachments,) Tj
+1 0 0 1 50 678 Tm (    role-based scopes \(ALL/My Tasks/My Requests\)) Tj
+1 0 0 1 50 663 Tm (  - Test Facilities & Equipment: add/edit, archive/restore, filters, conditions, linkages to) Tj
+1 0 0 1 50 648 Tm (    requests) Tj
+1 0 0 1 50 633 Tm (  - Test Schedules: create/update, due tracking, mark-done updates next due date correctly) Tj
+1 0 0 1 50 618 Tm (  - Load/validate real school data \(facilities, equipment, categories, users\) and fix issues) Tj
+1 0 0 1 50 603 Tm () Tj
+1 0 0 1 50 593 Tm (Deliverable:) Tj
+1 0 0 1 50 578 Tm (  - Verified core workflows with real/representative data and resolved module bugs) Tj
+ET
+endstream
+endobj
+13 0 obj
+<< /Length 996 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Task Plan - Part 4: Reports, Audit, UI/UX & QA) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Owner suggestion: QA/UI-Reports lead) Tj
+1 0 0 1 50 733 Tm () Tj
+1 0 0 1 50 723 Tm (Tasks:) Tj
+1 0 0 1 50 708 Tm (  - Validate Reports \(date ranges, KPIs, breakdowns, totals\) and CSV/PDF exports against sample) Tj
+1 0 0 1 50 693 Tm (    data) Tj
+1 0 0 1 50 678 Tm (  - Review Audit Log coverage for key actions; confirm read-only/access behavior) Tj
+1 0 0 1 50 663 Tm (  - UI/UX pass: branding consistency, layout/alignment, labels/messages, empty states,) Tj
+1 0 0 1 50 648 Tm (    usability) Tj
+1 0 0 1 50 633 Tm (  - Runtime QA checklist per role; log and fix bugs \(no-crash focus\) before defense) Tj
+1 0 0 1 50 618 Tm () Tj
+1 0 0 1 50 608 Tm (Deliverable:) Tj
+1 0 0 1 50 593 Tm (  - QA checklist/results, fixed UI/report issues, and stable demo build) Tj
+ET
+endstream
+endobj
+14 0 obj
+<< /Length 1006 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Task Plan - Part 5: Documentation & Defense Prep) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Owner suggestion: Documentation/Presentation lead) Tj
+1 0 0 1 50 733 Tm () Tj
+1 0 0 1 50 723 Tm (Tasks:) Tj
+1 0 0 1 50 708 Tm (  - Prepare user manual/how-to \(login, roles, request flow, admin tasks\) and) Tj
+1 0 0 1 50 693 Tm (    installation/deployment guide) Tj
+1 0 0 1 50 678 Tm (  - Compile diagrams/artifacts as needed \(ERD/schema, architecture, workflows\) and final) Tj
+1 0 0 1 50 663 Tm (    screenshots) Tj
+1 0 0 1 50 648 Tm (  - Prepare defense/demo script and dataset; rehearse role-based scenarios) Tj
+1 0 0 1 50 633 Tm (  - Track remaining bugs/enhancements and decide what is in-scope now vs future upgrades) Tj
+1 0 0 1 50 618 Tm () Tj
+1 0 0 1 50 608 Tm (Deliverable:) Tj
+1 0 0 1 50 593 Tm (  - Complete documentation package and defense-ready demo) Tj
+ET
+endstream
+endobj
+15 0 obj
+<< /Length 952 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Future Enhancements \(after current plan / as agreed\)) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (  - LAN/shared photo attachment storage \(network folder or DB blob strategy\)) Tj
+1 0 0 1 50 733 Tm (  - Notifications \(email/in-app\) for assignment and status changes) Tj
+1 0 0 1 50 718 Tm (  - Advanced scheduling/reminders and preventive maintenance insights) Tj
+1 0 0 1 50 703 Tm (  - Inventory/spare parts and richer cost tracking; expanded analytics dashboards) Tj
+1 0 0 1 50 688 Tm (  - Stronger security hardening \(password policy/reset, finer audit, packaged installer\)) Tj
+1 0 0 1 50 673 Tm (  - Automated tests and performance tuning for larger datasets) Tj
+1 0 0 1 50 658 Tm () Tj
+1 0 0 1 50 648 Tm (Note: Add features only after current tasks are stable and group agrees on priority/scope.) Tj
+ET
+endstream
+endobj
+16 0 obj
+<< /Length 998 >>
+stream
+BT
+1 0 0 1 50 800 Tm /F2 18 Tf (Summary - What to Report to the Group) Tj
+1 0 0 1 50 770 Tm /F1 11 Tf (_______________________________________________________________________________________________) Tj
+1 0 0 1 50 748 Tm (Current status:) Tj
+1 0 0 1 50 733 Tm (  - Core system and main modules are implemented; build and smoke/UI load checks pass in dev) Tj
+1 0 0 1 50 718 Tm (    environment.) Tj
+1 0 0 1 50 703 Tm () Tj
+1 0 0 1 50 693 Tm (Priority now \(to finalize & ensure safe, low-runtime-error demo\):) Tj
+1 0 0 1 50 678 Tm (  1\) LAN/XAMPP deployment & DB config) Tj
+1 0 0 1 50 663 Tm (  2\) Full role-based functional QA on real data) Tj
+1 0 0 1 50 648 Tm (  3\) Auth/Google \(if used\) finalized) Tj
+1 0 0 1 50 633 Tm (  4\) Bug fixes, docs, and defense rehearsal) Tj
+1 0 0 1 50 618 Tm () Tj
+1 0 0 1 50 608 Tm (Team coordination:) Tj
+1 0 0 1 50 593 Tm (  - Assign parts 1-5, set owners/deadlines, track issues, and confirm any new features before) Tj
+1 0 0 1 50 578 Tm (    adding.) Tj
+ET
+endstream
+endobj
+17 0 obj
+<< /Type /Pages /Kids [ 18 0 R 19 0 R 20 0 R 21 0 R 22 0 R 23 0 R 24 0 R 25 0 R 26 0 R 27 0 R 28 0 R 29 0 R 30 0 R 31 0 R ] /Count 14 >>
+endobj
+18 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 3 0 R >>
+endobj
+19 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 4 0 R >>
+endobj
+20 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 5 0 R >>
+endobj
+21 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 6 0 R >>
+endobj
+22 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 7 0 R >>
+endobj
+23 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 8 0 R >>
+endobj
+24 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 9 0 R >>
+endobj
+25 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 10 0 R >>
+endobj
+26 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 11 0 R >>
+endobj
+27 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 12 0 R >>
+endobj
+28 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 13 0 R >>
+endobj
+29 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 14 0 R >>
+endobj
+30 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 15 0 R >>
+endobj
+31 0 obj
+<< /Type /Page /Parent 17 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 16 0 R >>
+endobj
+32 0 obj
+<< /Type /Catalog /Pages 17 0 R >>
+endobj
+xref
+0 33
+0000000000 65535 f 
+0000000015 00000 n 
+0000000112 00000 n 
+0000000214 00000 n 
+0000000823 00000 n 
+0000001886 00000 n 
+0000003039 00000 n 
+0000004121 00000 n 
+0000005124 00000 n 
+0000006378 00000 n 
+0000007668 00000 n 
+0000008681 00000 n 
+0000009938 00000 n 
+0000011087 00000 n 
+0000012135 00000 n 
+0000013194 00000 n 
+0000014198 00000 n 
+0000015248 00000 n 
+0000015401 00000 n 
+0000015539 00000 n 
+0000015677 00000 n 
+0000015815 00000 n 
+0000015953 00000 n 
+0000016091 00000 n 
+0000016229 00000 n 
+0000016367 00000 n 
+0000016506 00000 n 
+0000016645 00000 n 
+0000016784 00000 n 
+0000016923 00000 n 
+0000017062 00000 n 
+0000017201 00000 n 
+0000017340 00000 n 
+trailer
+<< /Size 33 /Root 32 0 R >>
+startxref
+17391
+%%EOF

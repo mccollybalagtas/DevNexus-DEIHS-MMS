@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.deihs.mms.controller.RequestDetailController"
+            styleClass="page-scroll" fitToWidth="true"
+            hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+            maxWidth="Infinity" maxHeight="Infinity"
+            fx:id="pageScroll">
+
+    <VBox styleClass="page" spacing="14" maxWidth="Infinity">
+
+        <Button fx:id="backButton" text="← Back to Requests" styleClass="btn-link, detail-back"
+                onAction="#onBack"/>
+
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label fx:id="titleLabel" styleClass="detail-title" wrapText="true"/>
+            <Label fx:id="statusBadge" styleClass="badge"/>
+            <Label fx:id="overdueBadge" text="Overdue" styleClass="badge, badge-overdue"
+                   visible="false" managed="false"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="loadingLabel" text="Loading…" styleClass="page-sub"/>
+        </HBox>
+
+        <GridPane styleClass="detail-grid" hgap="14" vgap="14" maxWidth="Infinity">
+            <columnConstraints>
+                <ColumnConstraints percentWidth="57.5"/>
+                <ColumnConstraints percentWidth="42.5"/>
+            </columnConstraints>
+
+            <!-- Request information -->
+            <VBox styleClass="card" spacing="10" GridPane.columnIndex="0"
+                  maxWidth="Infinity">
+                <Label text="Request Information" styleClass="card-title"/>
+
+                <VBox fx:id="kvBox" spacing="0"/>
+
+                <Label text="Description" styleClass="detail-subtitle"/>
+                <Label fx:id="descriptionLabel" styleClass="desc" wrapText="true"/>
+
+                <HBox fx:id="actionBox" styleClass="actions" spacing="8"/>
+
+                <Region styleClass="detail-rule"/>
+
+                <Label text="Attachments" styleClass="detail-subtitle"/>
+                <VBox fx:id="attachmentBox" spacing="6"/>
+            </VBox>
+
+            <!-- Status timeline -->
+            <VBox styleClass="card" spacing="10" GridPane.columnIndex="1"
+                  maxWidth="Infinity">
+                <Label text="Status Timeline" styleClass="card-title"/>
+                <VBox fx:id="timelineBox" styleClass="timeline" spacing="0"/>
+            </VBox>
+        </GridPane>
+
+        <!-- Comments -->
+        <VBox styleClass="card" spacing="10" maxWidth="Infinity">
+            <Label text="Comments" styleClass="card-title"/>
+            <VBox fx:id="commentBox" spacing="10"/>
+
+            <Region styleClass="detail-rule"/>
+
+            <VBox spacing="6">
+                <Label fx:id="commentError" styleClass="form-error" wrapText="true"
+                       visible="false" managed="false"/>
+                <HBox spacing="8" alignment="BOTTOM_LEFT">
+                    <TextArea fx:id="commentArea" styleClass="input, text-area-input"
+                              prefRowCount="2" wrapText="true" HBox.hgrow="ALWAYS"
+                              promptText="Add a note for everyone following this request…"/>
+                    <Button fx:id="postButton" text="Post Comment" styleClass="btn-primary"
+                            onAction="#onPostComment"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </VBox>
+</ScrollPane>

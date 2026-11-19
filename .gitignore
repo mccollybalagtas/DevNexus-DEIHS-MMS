@@ -1,0 +1,46 @@
+# ---- Build output ----
+target/
+build/
+out/
+*.class
+*.jar
+!lib/*.jar
+
+# ---- IDE / editor ----
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+nbproject/private/
+
+# ---- OS noise ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Logs and crash dumps ----
+*.log
+hs_err_pid*
+replay_pid*
+
+# ---- Local secrets and overrides ----
+# db.properties is committed as a blank template (no real password).
+# Never commit real credentials; pass them with -Ddb.password=... instead.
+db.local.properties
+.env
+.env.*
+*.pem
+*.p12
+*.jks
+*.keystore
+
+# ---- Runtime data ----
+# Request photos are copied to ~/DEIHS-MMS/attachments, but ignore any
+# local copies created inside the project folder.
+uploads/
+attachments/

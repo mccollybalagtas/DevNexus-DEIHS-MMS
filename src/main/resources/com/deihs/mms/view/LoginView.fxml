@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.LoginController"
+      styleClass="login-root" prefWidth="1180" prefHeight="720">
+
+    <!-- Brand panel -->
+    <VBox styleClass="login-brand" prefWidth="470" minWidth="360" maxWidth="560"
+          alignment="CENTER" spacing="0">
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <ImageView fitWidth="150" fitHeight="150" preserveRatio="true" smooth="true"
+                   styleClass="login-logo-image">
+            <image>
+                <Image url="@../img/deihs-logo.png"/>
+            </image>
+        </ImageView>
+
+        <Label text="DEIHS" styleClass="login-school-abbr" alignment="CENTER"
+               textAlignment="CENTER">
+            <VBox.margin>
+                <Insets top="20"/>
+            </VBox.margin>
+        </Label>
+
+        <Label text="Dasmariñas East Integrated High School" styleClass="login-school-name"
+               wrapText="true" alignment="CENTER" textAlignment="CENTER" maxWidth="340">
+            <VBox.margin>
+                <Insets top="6"/>
+            </VBox.margin>
+        </Label>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Label text="Maintenance Management System" styleClass="login-footer"
+               alignment="CENTER" textAlignment="CENTER"/>
+    </VBox>
+
+    <!-- Sign-in panel -->
+    <StackPane styleClass="login-panel" HBox.hgrow="ALWAYS">
+        <VBox styleClass="login-card" spacing="15" alignment="CENTER_LEFT">
+
+            <Label text="Welcome back" styleClass="login-heading"/>
+            <Label text="Sign in with your school account to continue." styleClass="login-sub">
+                <VBox.margin>
+                    <Insets top="-8"/>
+                </VBox.margin>
+            </Label>
+
+            <Label fx:id="errorLabel" styleClass="form-error" wrapText="true"
+                   visible="false" managed="false"/>
+
+            <VBox spacing="6">
+                <Label text="Username" styleClass="field-label"/>
+                <TextField fx:id="usernameField" styleClass="input" promptText="e.g. jcruz"/>
+            </VBox>
+
+            <VBox spacing="6">
+                <Label text="Password" styleClass="field-label"/>
+                <StackPane>
+                    <PasswordField fx:id="passwordField" styleClass="input"
+                                   promptText="Enter your password"/>
+                    <TextField fx:id="passwordVisible" styleClass="input"
+                               promptText="Enter your password"
+                               visible="false" managed="false"/>
+                </StackPane>
+            </VBox>
+
+            <CheckBox fx:id="showPassword" text="Show password" onAction="#onTogglePassword"
+                      style="-fx-font-size: 11.5px; -fx-text-fill: #46525F;"/>
+
+            <Button fx:id="signInButton" text="Sign In" styleClass="btn-primary"
+                    onAction="#onSignIn" maxWidth="Infinity"/>
+            <Button fx:id="googleButton" text="Continue with Google" styleClass="btn-ghost"
+                    onAction="#onGoogleSignIn" maxWidth="Infinity"/>
+
+            <Label text="Your role is detected automatically from your account."
+                   styleClass="form-hint" wrapText="true"/>
+            <HBox alignment="CENTER_LEFT" spacing="4">
+                <Label text="No account yet?" styleClass="form-hint"/>
+                <Hyperlink text="Create account" onAction="#onCreateAccount"/>
+            </HBox>
+            <Label text="Requests are reviewed by the School Administrator before sign-in is enabled."
+                   styleClass="form-hint" wrapText="true"/>
+        </VBox>
+    </StackPane>
+</HBox>

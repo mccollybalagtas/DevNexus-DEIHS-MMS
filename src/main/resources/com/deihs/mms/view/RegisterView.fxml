@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.RegisterController"
+      styleClass="login-root" prefWidth="1180" prefHeight="720">
+
+    <VBox styleClass="login-brand" prefWidth="420" minWidth="320" maxWidth="480">
+        <Region VBox.vgrow="ALWAYS"/>
+        <Label text="Request a&#10;DEIHS account" styleClass="login-title" wrapText="true"/>
+        <Label text="Submit your details for administrator approval. You will be able to sign in once your account is approved and assigned a role."
+               styleClass="login-tagline" wrapText="true">
+            <VBox.margin><Insets top="12"/></VBox.margin>
+        </Label>
+        <Region VBox.vgrow="ALWAYS"/>
+        <Label text="Dasmariñas East Integrated High School · 2026" styleClass="login-footer"/>
+    </VBox>
+
+    <StackPane styleClass="login-panel" HBox.hgrow="ALWAYS">
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="page-scroll" maxWidth="620">
+            <content>
+                <VBox styleClass="login-card" spacing="13" alignment="CENTER_LEFT">
+                    <padding><Insets top="22" right="26" bottom="22" left="26"/></padding>
+
+                    <Label text="Create account request" styleClass="login-heading"/>
+                    <Label text="Fill in the required fields. Your request will be reviewed by the School Administrator."
+                           styleClass="login-sub" wrapText="true">
+                        <VBox.margin><Insets top="-8"/></VBox.margin>
+                    </Label>
+
+                    <Label fx:id="messageLabel" wrapText="true" visible="false" managed="false"/>
+
+                    <HBox spacing="12">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Employee / ID number" styleClass="field-label"/>
+                            <TextField fx:id="employeeNoField" styleClass="input" promptText="e.g. EMP-0100"/>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Username" styleClass="field-label"/>
+                            <TextField fx:id="usernameField" styleClass="input" promptText="e.g. jdelacruz"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="First name" styleClass="field-label"/>
+                            <TextField fx:id="firstNameField" styleClass="input"/>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Last name" styleClass="field-label"/>
+                            <TextField fx:id="lastNameField" styleClass="input"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Email (optional)" styleClass="field-label"/>
+                            <TextField fx:id="emailField" styleClass="input" promptText="name@deihs.edu.ph"/>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Phone (optional)" styleClass="field-label"/>
+                            <TextField fx:id="phoneField" styleClass="input"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Department / Office" styleClass="field-label"/>
+                            <TextField fx:id="departmentField" styleClass="input" promptText="e.g. Science, Maintenance"/>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Requested role" styleClass="field-label"/>
+                            <ComboBox fx:id="roleBox" styleClass="combo-input" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Password" styleClass="field-label"/>
+                            <PasswordField fx:id="passwordField" styleClass="input" promptText="At least 6 characters"/>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="Confirm password" styleClass="field-label"/>
+                            <PasswordField fx:id="confirmField" styleClass="input"/>
+                        </VBox>
+                    </HBox>
+
+                    <Label text="Your account will remain pending until an administrator reviews and approves it."
+                           styleClass="form-hint" wrapText="true"/>
+
+                    <Button fx:id="submitButton" text="Submit Request" styleClass="btn-primary"
+                            onAction="#onSubmit" maxWidth="Infinity"/>
+                    <HBox alignment="CENTER_LEFT" spacing="4">
+                        <Label text="Already have an account?" styleClass="form-hint"/>
+                        <Hyperlink text="Back to Sign In" onAction="#onBack"/>
+                    </HBox>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </StackPane>
+</HBox>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.FacilityFormController"
+      styleClass="form-body" spacing="13" prefWidth="560">
+
+    <Label fx:id="errorLabel" styleClass="form-error" wrapText="true"
+           visible="false" managed="false"/>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Facility code" styleClass="field-label"/>
+            <TextField fx:id="codeField" styleClass="input"
+                       promptText="e.g. RM-101"/>
+            <Label text="Unique identifier, stored in uppercase." styleClass="form-hint"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Condition" styleClass="field-label"/>
+            <ComboBox fx:id="conditionBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="5">
+        <Label text="Facility name" styleClass="field-label"/>
+        <TextField fx:id="nameField" styleClass="input"
+                   promptText="e.g. Grade 7 - Emerald"/>
+    </VBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Building" styleClass="field-label"/>
+            <TextField fx:id="buildingField" styleClass="input"
+                       promptText="e.g. Main Building"/>
+        </VBox>
+        <VBox spacing="5" prefWidth="140">
+            <Label text="Floor" styleClass="field-label"/>
+            <TextField fx:id="floorField" styleClass="input" promptText="e.g. 2F"/>
+        </VBox>
+        <VBox spacing="5" prefWidth="140">
+            <Label text="Room no." styleClass="field-label"/>
+            <TextField fx:id="roomField" styleClass="input" promptText="e.g. 204"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="5">
+        <Label text="Facility type" styleClass="field-label"/>
+        <ComboBox fx:id="typeBox" styleClass="combo-input" maxWidth="Infinity" editable="true"
+                  promptText="Choose or type a type"/>
+        <Label text="Examples: Classroom, Laboratory, Office, Comfort Room, Covered Court, Canteen."
+               styleClass="form-hint" wrapText="true"/>
+    </VBox>
+
+    <VBox spacing="5">
+        <Label text="Notes (optional)" styleClass="field-label"/>
+        <TextArea fx:id="notesArea" styleClass="input" prefRowCount="3" wrapText="true"
+                  promptText="Any details about access, size, or special handling."/>
+    </VBox>
+</VBox>

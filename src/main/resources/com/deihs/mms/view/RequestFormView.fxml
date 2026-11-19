@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.RequestFormController"
+      styleClass="form-body" spacing="13" prefWidth="560">
+
+    <Label fx:id="errorLabel" styleClass="form-error" wrapText="true"
+           visible="false" managed="false"/>
+
+    <VBox spacing="5">
+        <Label text="Issue title" styleClass="field-label"/>
+        <TextField fx:id="titleField" styleClass="input"
+                   promptText="e.g. Ceiling fan not spinning"/>
+    </VBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Category" styleClass="field-label"/>
+            <ComboBox fx:id="categoryBox" styleClass="combo-input" maxWidth="Infinity"
+                      promptText="Select category…"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Priority" styleClass="field-label"/>
+            <ComboBox fx:id="priorityBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Facility" styleClass="field-label"/>
+            <ComboBox fx:id="facilityBox" styleClass="combo-input" maxWidth="Infinity"
+                      promptText="Select facility…"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Equipment (optional)" styleClass="field-label"/>
+            <ComboBox fx:id="equipmentBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="5">
+        <Label text="Description" styleClass="field-label"/>
+        <TextArea fx:id="descriptionArea" styleClass="input, text-area-input"
+                  prefRowCount="4" wrapText="true"
+                  promptText="What is broken, where is it, and since when?"/>
+    </VBox>
+
+    <HBox spacing="16" alignment="BOTTOM_LEFT">
+        <VBox spacing="5">
+            <Label text="Target date (optional)" styleClass="field-label"/>
+            <DatePicker fx:id="targetDatePicker" styleClass="date-input" prefWidth="190"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Photo (optional)" styleClass="field-label"/>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button text="Choose photo…" styleClass="btn-ghost" onAction="#onChoosePhoto"/>
+                <Button text="Remove" styleClass="btn-link" onAction="#onRemovePhoto"/>
+                <Label fx:id="photoLabel" styleClass="form-hint" text="No photo selected"/>
+            </HBox>
+        </VBox>
+    </HBox>
+</VBox>

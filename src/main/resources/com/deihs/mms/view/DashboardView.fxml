@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.deihs.mms.controller.DashboardController"
+            styleClass="page-scroll" fitToWidth="true"
+            hbarPolicy="NEVER" maxWidth="Infinity" maxHeight="Infinity">
+
+    <VBox styleClass="page" spacing="16">
+
+        <!-- KPI row -->
+        <HBox spacing="14">
+            <HBox styleClass="kpi-card, kpi-pending" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
+                  alignment="CENTER_LEFT">
+                <VBox spacing="1">
+                    <Label text="PENDING" styleClass="kpi-label"/>
+                    <Label fx:id="kpiPending" text="—" styleClass="kpi-value"/>
+                    <Label fx:id="kpiPendingSub" text=" " styleClass="kpi-sub"/>
+                </VBox>
+            </HBox>
+
+            <HBox styleClass="kpi-card, kpi-progress" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
+                  alignment="CENTER_LEFT">
+                <VBox spacing="1">
+                    <Label text="IN PROGRESS" styleClass="kpi-label"/>
+                    <Label fx:id="kpiInProgress" text="—" styleClass="kpi-value"/>
+                    <Label fx:id="kpiInProgressSub" text=" " styleClass="kpi-sub"/>
+                </VBox>
+            </HBox>
+
+            <HBox styleClass="kpi-card, kpi-overdue" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
+                  alignment="CENTER_LEFT">
+                <VBox spacing="1">
+                    <Label text="OVERDUE" styleClass="kpi-label"/>
+                    <Label fx:id="kpiOverdue" text="—" styleClass="kpi-value"/>
+                    <Label fx:id="kpiOverdueSub" text="Needs attention" styleClass="kpi-sub"/>
+                </VBox>
+            </HBox>
+
+            <HBox styleClass="kpi-card, kpi-completed" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
+                  alignment="CENTER_LEFT">
+                <VBox spacing="1">
+                    <Label text="COMPLETED" styleClass="kpi-label"/>
+                    <Label fx:id="kpiCompleted" text="—" styleClass="kpi-value"/>
+                    <Label fx:id="kpiCompletedSub" text="This month" styleClass="kpi-sub"/>
+                </VBox>
+            </HBox>
+        </HBox>
+
+        <!-- Charts -->
+        <HBox spacing="16">
+            <VBox styleClass="card" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="10">
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="Requests per Month" styleClass="card-title"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="yearLabel" text="2026" styleClass="card-link"/>
+                </HBox>
+                <BarChart fx:id="monthlyChart" prefHeight="238" animated="false"
+                          legendVisible="false" verticalGridLinesVisible="false"
+                          horizontalZeroLineVisible="false" styleClass="chart">
+                    <xAxis>
+                        <CategoryAxis fx:id="monthAxis"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="countAxis"/>
+                    </yAxis>
+                </BarChart>
+            </VBox>
+
+            <VBox styleClass="card" prefWidth="360" minWidth="320" maxWidth="360" spacing="10">
+                <Label text="Status Breakdown" styleClass="card-title"/>
+                <HBox fx:id="donutRow" spacing="20" alignment="CENTER_LEFT" VBox.vgrow="ALWAYS">
+                    <VBox fx:id="legendBox" spacing="8" alignment="CENTER_LEFT"/>
+                </HBox>
+            </VBox>
+        </HBox>
+
+        <!-- Recent requests -->
+        <VBox styleClass="card" spacing="8">
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label text="Recent Requests" styleClass="card-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="View all →" styleClass="card-link" onMouseClicked="#onViewAllRequests"/>
+            </HBox>
+
+            <TableView fx:id="recentTable" prefHeight="258" maxWidth="Infinity">
+                <columns>
+                    <TableColumn fx:id="colTicket" text="TICKET" prefWidth="86" minWidth="76"/>
+                    <TableColumn fx:id="colRequester" text="REQUESTER" prefWidth="130" minWidth="110"/>
+                    <TableColumn fx:id="colAsset" text="FACILITY" prefWidth="150" minWidth="120"/>
+                    <TableColumn fx:id="colIssue" text="ISSUE" prefWidth="240" minWidth="160"/>
+                    <TableColumn fx:id="colPriority" text="PRIORITY" prefWidth="88" minWidth="80"/>
+                    <TableColumn fx:id="colStatus" text="STATUS" prefWidth="104" minWidth="94"/>
+                    <TableColumn fx:id="colDate" text="DATE" prefWidth="92" minWidth="80"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </VBox>
+</ScrollPane>

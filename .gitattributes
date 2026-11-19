@@ -1,0 +1,25 @@
+* text=auto
+
+# Source and docs use normal line endings; Git normalizes on commit.
+*.java   text
+*.fxml   text
+*.css    text
+*.sql    text
+*.md     text
+*.html   text
+*.xml    text
+*.properties text
+
+# Scripts must keep working line endings per platform.
+*.sh     text eol=lf
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+
+# Binary assets: never convert.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.pdf    binary
+*.pptx   binary
+*.jar    binary

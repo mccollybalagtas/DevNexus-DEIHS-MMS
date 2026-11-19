@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.EquipmentFormController"
+      styleClass="form-body" spacing="13" prefWidth="580">
+
+    <Label fx:id="errorLabel" styleClass="form-error" wrapText="true"
+           visible="false" managed="false"/>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Property number" styleClass="field-label"/>
+            <TextField fx:id="propertyNoField" styleClass="input" promptText="e.g. PROP-2001"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Condition" styleClass="field-label"/>
+            <ComboBox fx:id="conditionBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="5">
+        <Label text="Equipment name" styleClass="field-label"/>
+        <TextField fx:id="nameField" styleClass="input" promptText="e.g. Split-Type Aircon"/>
+    </VBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Category" styleClass="field-label"/>
+            <TextField fx:id="categoryField" styleClass="input" promptText="e.g. ICT, Electrical, Appliance"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Facility" styleClass="field-label"/>
+            <ComboBox fx:id="facilityBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Brand" styleClass="field-label"/>
+            <TextField fx:id="brandField" styleClass="input"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Model" styleClass="field-label"/>
+            <TextField fx:id="modelField" styleClass="input"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Serial number" styleClass="field-label"/>
+            <TextField fx:id="serialField" styleClass="input"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Acquisition date" styleClass="field-label"/>
+            <DatePicker fx:id="acquiredPicker" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="5">
+        <Label text="Notes (optional)" styleClass="field-label"/>
+        <TextArea fx:id="notesArea" styleClass="input" prefRowCount="3" wrapText="true"/>
+    </VBox>
+</VBox>

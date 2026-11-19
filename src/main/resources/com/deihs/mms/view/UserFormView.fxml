@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.UserFormController"
+      styleClass="form-body" spacing="13" prefWidth="560">
+
+    <Label fx:id="errorLabel" styleClass="form-error" wrapText="true"
+           visible="false" managed="false"/>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Employee / ID number" styleClass="field-label"/>
+            <TextField fx:id="employeeNoField" styleClass="input"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Username" styleClass="field-label"/>
+            <TextField fx:id="usernameField" styleClass="input"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="First name" styleClass="field-label"/>
+            <TextField fx:id="firstNameField" styleClass="input"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Last name" styleClass="field-label"/>
+            <TextField fx:id="lastNameField" styleClass="input"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Email (optional)" styleClass="field-label"/>
+            <TextField fx:id="emailField" styleClass="input"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Phone (optional)" styleClass="field-label"/>
+            <TextField fx:id="phoneField" styleClass="input"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Department / Office" styleClass="field-label"/>
+            <TextField fx:id="departmentField" styleClass="input"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Role" styleClass="field-label"/>
+            <ComboBox fx:id="roleBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+
+    <VBox fx:id="passwordBox" spacing="5">
+        <Label text="Password" styleClass="field-label"/>
+        <PasswordField fx:id="passwordField" styleClass="input" promptText="At least 6 characters"/>
+        <Label text="Required when creating a new account." styleClass="form-hint"/>
+    </VBox>
+</VBox>

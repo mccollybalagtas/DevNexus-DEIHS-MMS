@@ -1,0 +1,2191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEIHS MMS — Beginner Step-by-Step Build Guide</title>
+<style>
+  :root { --green:#0E6B34; --green-dark:#0A4A24; --gold:#F5C518; --blue:#1A47B8; --bg:#F4F7F4; --text:#1F2933; --muted:#5b6773; --card:#fff; --border:#DCE5DD; --codebg:#0f172a; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Calibri,Arial,sans-serif;background:#e9efe9;color:var(--text);line-height:1.55}
+  .wrap{max-width:1200px;margin:0 auto;padding:18px}
+  header.hero{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;padding:28px 30px;border-radius:14px;margin-bottom:16px}
+  header.hero h1{margin:0 0 6px;font-size:34px} header.hero p{margin:4px 0;color:#e9f7ee}
+  .layout{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start}
+  nav.toc{position:sticky;top:12px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 14px 10px;max-height:calc(100vh - 24px);overflow:auto}
+  nav.toc h3{margin:0 0 8px;color:var(--green-dark);font-size:16px}
+  nav.toc ol{margin:0;padding-left:18px} nav.toc li{margin:4px 0;font-size:13.5px}
+  nav.toc a{color:#1f2933;text-decoration:none} nav.toc a:hover{color:var(--green);text-decoration:underline}
+  main section.part{background:#fff;border:1px solid var(--border);border-radius:12px;padding:22px 24px;margin-bottom:14px}
+  h2{color:var(--green);margin:0 0 10px;font-size:26px;border-bottom:2px solid #e6efe6;padding-bottom:6px}
+  h3{color:var(--green-dark);margin:18px 0 6px;font-size:19px}
+  h4{margin:14px 0 4px;font-size:16px;color:#24313d}
+  p,li{font-size:15.5px}
+  ul,ol{margin:6px 0 10px 22px}
+  .why{background:#f2fbf5;border-left:4px solid var(--green);padding:10px 12px;border-radius:8px;margin:10px 0}
+  .note{background:#fff8e6;border-left:4px solid var(--gold);padding:10px 12px;border-radius:8px;margin:10px 0}
+  .warn{background:#fdeceb;border-left:4px solid #b3261e;padding:10px 12px;border-radius:8px;margin:10px 0}
+  pre{background:var(--codebg);color:#e5e7eb;padding:12px 14px;border-radius:10px;overflow:auto;font-size:13px;line-height:1.45;border:1px solid #1e293b}
+  code{font-family:Consolas,"SFMono-Regular","Liberation Mono",monospace}
+  p code, li code{background:#eef4ee;color:#0a4a24;padding:1px 5px;border-radius:5px;font-size:0.95em}
+  .filetree{background:#f7faf7;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:Consolas,monospace;font-size:13.5px;white-space:pre;overflow:auto}
+  table{border-collapse:collapse;width:100%;margin:8px 0} th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:14.5px} th{background:#f3f7f3;color:#123}
+  .tag{display:inline-block;background:#e6f4ea;color:#0a4a24;border:1px solid #bfe3c9;padding:1px 8px;border-radius:999px;font-size:12px;margin-right:4px}
+  .small{color:var(--muted);font-size:13.5px}
+  @media (max-width:980px){.layout{grid-template-columns:1fr} nav.toc{position:static;max-height:none}}
+  @media print{body{background:#fff} .layout{display:block} nav.toc{display:none} header.hero,main section.part{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <h1>DEIHS Maintenance Management System</h1>
+    <p><strong>Beginner Step-by-Step Build Guide (Skeletal, Part-by-Part)</strong></p>
+    <p>How to build the entire system from start to end: process, logic/why, code, and file-structure flow for each part.</p>
+    <p>Stack: Java 21 · Maven · JavaFX 21 (FXML/CSS) · MySQL/MariaDB (LAN) · HikariCP · jBCrypt</p>
+  </header>
+  <div class="layout">
+    <nav class="toc">
+      <h3>Contents</h3>
+      <ol>
+        <li><a href="#p0">Overview &amp; Big Picture</a></li>
+        <li><a href="#p1">Prerequisites &amp; Project Setup</a></li>
+        <li><a href="#p2">Database Design &amp; SQL</a></li>
+        <li><a href="#p3">Config &amp; DB Connection</a></li>
+        <li><a href="#p4">App Bootstrap</a></li>
+        <li><a href="#p5">Models, Session &amp; Permissions</a></li>
+        <li><a href="#p6">Authentication &amp; Login</a></li>
+        <li><a href="#p7">DAO &amp; Service Pattern</a></li>
+        <li><a href="#p8">Shell &amp; UI System</a></li>
+        <li><a href="#p9">Building a Feature Module</a></li>
+        <li><a href="#p10">Registration, Users &amp; Google</a></li>
+        <li><a href="#p11">Other Modules &amp; File Map</a></li>
+        <li><a href="#p12">Run, Test &amp; LAN Deploy</a></li>
+        <li><a href="#p13">Troubleshooting &amp; Checklist</a></li>
+      </ol>
+      <p class="small" style="margin-top:10px">Tip: open in browser. Ctrl+P → “Save as PDF” to export.</p>
+    </nav>
+    <main>
+      <section class="part" id="p0"><h2>Part 0: Overview — What We Are Building and How It Fits Together</h2>
+<p><strong>Goal of this guide:</strong> explain, step by step and in beginner-friendly terms, how to build the entire DEIHS Maintenance Management System from the beginning to the end. This is <em>not</em> just a list of finished features — it is a build skeleton: what each part does, <strong>why</strong> we do it that way, the important code, and how files connect.</p>
+<div class="why"><strong>How to use this:</strong> Read parts in order (1 → 13). Each part tells you (1) what you are building, (2) the logic/reasoning, (3) the key files and code, and (4) how it flows into the next part. Use the progress presentation for status; use this guide to learn, rebuild, and explain the system to your group.</div>
+<h3>Big picture (how the whole system works)</h3>
+<ul>
+  <li><span class="tag">UI</span> JavaFX screens are defined in <strong>FXML</strong> and styled with <strong>CSS</strong>. <strong>Controllers</strong> handle button clicks and fill tables/forms.</li>
+  <li><span class="tag">Logic</span> <strong>Services</strong> enforce rules: permissions, validation, status workflow, and auditing.</li>
+  <li><span class="tag">Data</span> <strong>DAOs</strong> run SQL (JDBC) against <strong>MySQL/MariaDB</strong> through a shared <strong>HikariCP</strong> pool. <strong>Models</strong> hold data (User, Facility, Request...).</li>
+  <li><span class="tag">Flow</span> User action → Controller → Service (check/validate) → DAO (SQL) → Database → back to Controller → UI updates.</li>
+</ul>
+<div class="filetree">deihs-mms/
+├─ pom.xml                         (Maven build &amp; dependencies)
+├─ database/
+│  └─ deihs_mms.sql                (create tables + seed data)
+└─ src/main/
+   ├─ java/com/deihs/mms/
+   │  ├─ Launcher.java, Main.java  (app start)
+   │  ├─ config/AppConfig.java     (reads db.properties / -D overrides)
+   │  ├─ db/Database.java          (HikariCP pool &amp; connections)
+   │  ├─ model/                    (User, Role, Facility, Request, ...)
+   │  ├─ dao/                      (SQL queries per table/feature)
+   │  ├─ service/                  (rules, permissions, session, auth)
+   │  ├─ controller/               (screen logic, wired to FXML)
+   │  └─ util/                     (ViewLoader, alerts, format, icons...)
+   └─ resources/com/deihs/mms/
+      ├─ view/                     (FXML screens)
+      ├─ css/styles.css            (theme/colors/layout)
+      ├─ img/                      (logo/images)
+      └─ db.properties             (DB host/port/name/user/pass + Google)</div>
+<p class="small"><strong>LAN setup:</strong> one PC runs MySQL (XAMPP) and all PCs run this JavaFX app pointed at that host IP.</p>
+</section><section class="part" id="p1"><h2>Part 1: Prerequisites &amp; Project Setup (Maven, Folders, pom.xml)</h2>
+<h3>1.1 What you need (tools)</h3>
+<ul>
+  <li><strong>JDK 21</strong> — compile and run Java.</li>
+  <li><strong>Maven</strong> — downloads libraries and builds the project.</li>
+  <li><strong>MySQL/MariaDB</strong> (XAMPP) — database server.</li>
+  <li><strong>IDE</strong> (IntelliJ / VS Code + Java / NetBeans).</li>
+</ul>
+<div class="why"><strong>Why Maven?</strong> Instead of manually downloading JavaFX, MySQL driver, BCrypt, etc., Maven reads <code>pom.xml</code> and fetches exact versions for everyone — consistent for the whole team.</div>
+<h3>1.2 Standard project structure</h3>
+<div class="filetree">deihs-mms/
+├─ pom.xml
+├─ database/deihs_mms.sql
+└─ src/
+   └─ main/
+      ├─ java/        (all .java source, in packages com.deihs.mms.*)
+      └─ resources/   (FXML, CSS, images, db.properties in same package paths)</div>
+<div class="note"><strong>Important:</strong> FXML/CSS/images go under <code>src/main/resources</code> so <code>getResource(...)</code> can find them at runtime.</div>
+<h3>1.3 Build file: <code>pom.xml</code> (key parts)</h3>
+<pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+    &lt;groupId&gt;com.deihs&lt;/groupId&gt;
+    &lt;artifactId&gt;deihs-mms&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
+
+    &lt;name&gt;DEIHS Maintenance Management System&lt;/name&gt;
+    &lt;description&gt;Facility and equipment maintenance management for Dasmarinas East Integrated High School&lt;/description&gt;
+
+    &lt;properties&gt;
+        &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+        &lt;maven.compiler.release&gt;21&lt;/maven.compiler.release&gt;
+        &lt;javafx.version&gt;21.0.13&lt;/javafx.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;!-- JavaFX --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.openjfx&lt;/groupId&gt;
+            &lt;artifactId&gt;javafx-controls&lt;/artifactId&gt;
+            &lt;version&gt;${javafx.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.openjfx&lt;/groupId&gt;
+            &lt;artifactId&gt;javafx-fxml&lt;/artifactId&gt;
+            &lt;version&gt;${javafx.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- MySQL / MariaDB driver --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.mysql&lt;/groupId&gt;
+            &lt;artifactId&gt;mysql-connector-j&lt;/artifactId&gt;
+            &lt;version&gt;9.7.0&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Connection pool --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.zaxxer&lt;/groupId&gt;
+            &lt;artifactId&gt;HikariCP&lt;/artifactId&gt;
+            &lt;version&gt;5.1.0&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- Password hashing --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.mindrot&lt;/groupId&gt;
+            &lt;artifactId&gt;jbcrypt&lt;/artifactId&gt;
+            &lt;version&gt;0.4&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- PDF export --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.apache.pdfbox&lt;/groupId&gt;
+            &lt;artifactId&gt;pdfbox&lt;/artifactId&gt;
+            &lt;version&gt;3.0.3&lt;/version&gt;
+        &lt;/dependency&gt;
+
+        &lt;!-- JSON parsing for Google OAuth --&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;com.google.code.gson&lt;/groupId&gt;
+            &lt;
+... (javafx-maven-plugin to run, shade plugin to build fat jar with Launcher) ...</code></pre>
+<h3>1.4 Why these dependencies?</h3>
+<ul>
+  <li><strong>javafx-controls/fxml</strong>: UI toolkit and XML screen layouts.</li>
+  <li><strong>mysql-connector-j</strong>: JDBC driver to talk to MySQL.</li>
+  <li><strong>HikariCP</strong>: connection pool (reuses DB connections — fast/safe).</li>
+  <li><strong>jBCrypt</strong>: password hashing (never store plain passwords).</li>
+  <li><strong>PDFBox/Gson</strong>: PDF export and JSON (e.g. OAuth responses).</li>
+  <li><strong>Launcher</strong>: required indirection so a fat JAR can start JavaFX.</li>
+</ul>
+<h3>1.5 Commands</h3>
+<pre><code>mvn -q -B package -DskipTests   # compile/build
+mvn -q -B test                  # run tests (if any)
+mvn javafx:run                  # run the app (dev)</code></pre>
+</section><section class="part" id="p2"><h2>Part 2: Database Design &amp; SQL (schema, relationships, import)</h2>
+<h3>2.1 Build the data layer first</h3>
+<p>Tables store users/roles, facilities, equipment, maintenance requests (and comments/history/attachments), schedules, records, audit logs, and pending account requests.</p>
+<div class="why"><strong>Why DB first?</strong> The UI and code follow the data. Clear tables, foreign keys, and statuses prevent confusion (permissions, workflow states, relationships).</div>
+<h3>2.2 Core tables (simplified)</h3>
+<table>
+<tr><th>Table</th><th>Purpose</th></tr>
+<tr><td><code>roles</code></td><td>Fixed roles (ADMIN, MAINT_HEAD, PERSONNEL, STAFF) — codes used in Java.</td></tr>
+<tr><td><code>users</code></td><td>Accounts: username, password_hash, role FK, active flag, profile.</td></tr>
+<tr><td><code>account_requests</code></td><td>Pending self-registration/Google sign-up requests.</td></tr>
+<tr><td><code>facilities</code>, <code>equipment</code></td><td>Assets to monitor and link to requests.</td></tr>
+<tr><td><code>maintenance_requests</code></td><td>Main workflow item (status, priority, requester, assignee, asset links).</td></tr>
+<tr><td><code>request_comments/history/attachments</code></td><td>Discussion, status change trail, photo/file paths.</td></tr>
+<tr><td><code>maintenance_schedules</code>, <code>maintenance_records</code></td><td>Planned work and completed work/costs.</td></tr>
+<tr><td><code>audit_logs</code></td><td>Who did what, when.</td></tr>
+</table>
+<h3>2.3 Schema examples (from <code>database/deihs_mms.sql</code>)</h3>
+<h4>Roles</h4>
+<pre><code>CREATE TABLE roles (
+    role_id     INT AUTO_INCREMENT PRIMARY KEY,
+    role_code   VARCHAR(20)  NOT NULL UNIQUE,
+    role_name   VARCHAR(60)  NOT NULL,
+    description VARCHAR(255) NULL
+) ENGINE=InnoDB;
+
+INSERT INTO roles (role_code, role_name, description) VALUES
+('ADMIN',     'School Administrator',  'Full access: users, facilities, equipment, reports, audit log'),
+('MAINT_HEAD','Maintenance Head',      'Assigns work, manages schedules, reviews repair records and reports'),
+('PERSONNEL', 'Maintenance Personnel', 'Works on assigned tasks and files repair records'),
+('STAFF',     'Teacher / School Staff','Submits maintenance requests and tracks their status');
+
+-- ---------------------------------------------------------------------
+-- 2. users
+-- ---------------------------------------------------------------------
+CREATE TABLE users (</code></pre>
+<h4>Users (password stored as hash; role is a foreign key)</h4>
+<pre><code>CREATE TABLE users (
+    user_id       INT AUTO_INCREMENT PRIMARY KEY,
+    employee_no   VARCHAR(30)  NOT NULL UNIQUE,
+    username      VARCHAR(50)  NOT NULL UNIQUE,
+    password_hash VARCHAR(100) NOT NULL,
+    first_name    VARCHAR(60)  NOT NULL,
+    last_name     VARCHAR(60)  NOT NULL,
+    email         VARCHAR(120) NULL,
+    phone         VARCHAR(30)  NULL,
+    department    VARCHAR(80)  NULL,
+    role_id       INT          NOT NULL,
+    is_active     TINYINT(1)   NOT NULL DEFAULT 1,
+    last_login    DATETIME     NULL,
+    created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(role_id),
+    INDEX idx_users_role (role_id),
+    INDEX idx_users_active (is_active)
+) ENGINE=InnoDB;
+
+INSERT INTO users
+(employee_no, username, password_hash, first_name, last_name, email, department, role_id)
+VALUES
+('EMP-0001', 'admin',  '$2a$10$YHP7aYbKCvHO8hgPwxa/r.YkitvLocyKy9OP9CSmocsC0ZqrroJ0.', 'Juan',   'Cruz',   'admin@deihs.edu.ph',   'Administration', 1),
+('EMP-0002', 'mhead',  '$2a$10$wBYcUH1lSmy0i.9Z0p3tzO1WMdguVm/SwdVvQ6f7Sjpln6P31Onmu', 'Maria',  'Santos', 'mhead@deihs.edu.ph',   'Maintenance',    2),
+('EMP-0003', 'tech1',  '$2a$10$YDts0jcGkq6hEHC5Mnlsou50lCKkCZ0kgrKKZEjfpialjcXnSvqzy', 'Pedro',  'Reyes',  'pedro@deihs.edu.ph',   'Maintenance',    3),
+('EMP-0004', 'tech2',  '$2a$10$YDts0jcGkq6hEHC5Mnlsou50lCKkCZ0kgrKKZEjfpialjcXnSvqzy', 'Ana',    'Garcia', 'ana@deihs.edu.ph',     'Maintenance',    3),
+('EMP-0005', 'jcruz',  '$2a$10$YZhC6udSxEj.HGyCK2Li2.iLxV9xO0S7ZyVXGGY42C44gPpoJmIS.', 'Jose',   'Cruz',   'jcruz@deihs.edu.ph',   'Science',        4),
+('EMP-0006', 'msantos','$2a$10$YZhC6udSxEj.HGyCK2Li2.iLxV9xO0S7ZyVXGGY42C44gPpoJmIS.', 'Miguel', 'Santos', 'msantos@deihs.edu.ph', 'Mathematics',    4);
+
+-- ---------------------------------------------------------------------
+-- 3. maintenance_categories
+-- ---------------------------------------------------------------------
+CREATE TABLE maintenance_categories (
+    category_id      INT AUTO_INCREMENT PRIMARY KEY,
+    category_code    VARCHAR(20)  NOT NULL UNIQUE,
+    name             VARCHAR(80)  NOT NULL,
+    description      VARCHAR(255) NULL,
+    default_priority ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL DEFAULT 'MEDIUM',
+    is_active        TINYINT(1)   NOT NULL DEFAULT 1
+) ENGINE=InnoDB;
+
+INSERT INTO maintenance_categories (category_code, name, description, default_priority) VALUES
+('ELEC',  'Electrical',        'Wiring, lights, outlets, fans, breakers',        'HIGH'),
+('PLUMB', 'Plumbing',          'Pipes, faucets, toilets, drainage, leaks',       'HIGH'),
+('CARP',  'Carpentry',         'Doors, windows, desks, chairs, cabinets',        'MEDIUM'),
+('AC',    'Air Conditioning',  'Aircon units, ventilation, cooling',             'HIGH'),
+('ICT',   'Equipment / ICT',   'Computers, monitors, projectors, printers',      'MEDIUM'),
+('PAINT', 'Painting',          'Walls, ceilings, repainting works',              'LOW'),
+('ROOF',  'Roofing',           'Roof leaks, gutters, ceiling boards',            'HIGH'),
+('GEN',   'General Maintenance','Cleaning, grounds, miscellaneous repairs',      'LOW');
+
+-- ---------------------------------------------------------------------
+-- 4. facilities
+-- ---------------------------------------------------------------------
+CREATE TABLE facilities (
+    facility_id      INT AUTO_INCREMENT PRIMARY KEY,
+    facility_code    VARCHAR(20)  NOT NULL UNIQUE,
+    name             VARCHAR(120) NOT NULL,
+    building         VARCHAR(80)  NULL,
+    floor            VARCHAR(20)  NULL,
+    room_number      VARCHAR(20)  NULL,
+    facility_type    VARCHAR(60)  NULL,
+    condition_status ENUM('GOOD','FAIR','POOR','NEEDS_REPAIR','OUT_OF_ORDER') NOT NULL DEFAULT 'GOOD',
+    notes            TEXT         NULL,
+    is_active        TINYINT(1)   NOT NULL DEFAULT 1,
+    created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_fac_building (building),
+    INDEX idx_fac_condition (condition_status)
+) ENGINE=InnoDB;
+
+INSERT INTO facilities (facility_code, name, building, floor, room_number, facility_type, condition_status) VALUES
+('RM-101', 'Room 101',            'Building A', '1st', '101', 'Classroom',   'GOOD'),
+('RM-102', 'Room 102',            'Building A', '1st', '102', 'Classroom',   'GOOD'),
+('RM-201', 'Room 201',            'Building A', '2nd', '201', 'Classroom',   'FAIR'),
+('RM-204', 'Room 204',            'Building A', '2nd', '204', 'Classroom',   'FAIR'),
+('LAB-1',  'Computer Laboratory 1','Building B','1st', 'B-101','Laboratory', 'GOOD'),
+('LAB-2',  'Science Laboratory',  'Building B', '2nd', 'B-201','Laboratory',  'FAIR'),
+('LIB',    'Library',             'Building C', '1st', 'C-101','Library',     'GOOD'),
+('CR-1',   'Comfort Room 1',      'Building A', '1st', 'CR-1','Restroom',     'POOR'),
+('CR-2',   'Comfort Room 2',      'Building A', '2nd', 'CR-2','Restroom',     'NEEDS_REPAIR'),
+('GYM',    'Covered Court',       'Grounds',    '-',   '-',   'Sports Facility','GOOD'),
+('OFF-ADM','Administration Office','Building C','1st', 'C-001','Office',     'GOOD'),
+('CANTEEN','Canteen',             'Grounds',    '-',   '-',   'Canteen',     'FAIR');
+
+-- ---------------------------------------------------------------------
+-- 5. equipment
+-- ---------------------------------------------------------------------
+CREATE TABLE equipment (
+    equipment_id     INT AUTO_INCREMENT PRIMARY KEY,
+    property_no      VARCHAR(40)  NOT NULL UNIQUE,
+    name             VARCHAR(120) NOT NULL,
+    category         VARCHAR(60)  NULL,
+    brand            VARCHAR(60)  NULL,
+    model            VARCHAR(60)  NULL,
+    serial_no        VARCHAR(60)  NULL,
+    facility_id      INT          NULL,
+    condition_status ENUM('GOOD','FAIR','POOR','NEEDS_REPAIR','OUT_OF_ORDER') NOT NULL DEFAULT 'GOOD',
+    acquisition_date DATE         NULL,
+    notes            TEXT         NULL,
+    is_active        TINYINT(1)   NOT NULL DEFAULT 1,
+    created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_equip_facility FOREIGN KEY (facility_id) REFERENCES facilities(facility_id) ON DELETE SET NULL,
+    INDEX idx_equip_facility (facility_id),
+    INDEX idx_equip_condition (condition_status)
+) ENGINE=InnoDB;
+
+INSERT INTO equipment (property_no, name, category, brand, model, serial_no, facility_id, condition_status, acquisition_date) VALUES
+('PROP-1001', 'Ceiling Fan',        'Electrical', 'Kdk',      'M40',      'KDK-88341', 4, 'FAIR',         '2021-06-15'),
+('PROP-1002', 'Desktop Computer',   'ICT',        'Acer',     'Veriton',  'ACR-55210', 5, 'GOOD',         '2023-01-10'),
+('PROP-1003', 'Desktop Computer',   'ICT',        'Acer',     'Veriton',  'ACR-55211', 5, 'NEEDS_REPAIR', '2023-01-10'),
+('PROP-1004', 'LED Projector',      'ICT',        'Epson',    'EB-X06',   'EPS-11902', 1, 'GOOD',         '2022-08-20'),
+('PROP-1005', 'Split-Type Aircon',  'Air Conditioning','Carrier','CS-12', 'CAR-77310', 7, 'FAIR',         '2020-11-05'),
+('PROP-1006', 'Wall Fan',           'Electrical', 'Camel',    'CW-18',    'CML-33221', 2, 'GOOD',         '2022-03-12'),
+('PROP-1007', 'Printer',            'ICT',        'Epson',    'L3210',    'EPS-90211', 11,'GOOD',         '2023-05-18'),
+('PROP-1008', 'Water Dispenser',    'Appliance',  'Sharp',    'SWD-55',   'SHP-44501', 11,'FAIR',         '2021-09-30');
+
+-- ---------------------------------------------------------------------</code></pre>
+<h4>Maintenance requests (status/priority, links to people &amp; assets)</h4>
+<pre><code>CREATE TABLE maintenance_requests (
+    request_id       INT AUTO_INCREMENT PRIMARY KEY,
+    ticket_no        VARCHAR(20)  NOT NULL UNIQUE,
+    requester_id     INT          NOT NULL,
+    facility_id      INT          NULL,
+    equipment_id     INT          NULL,
+    category_id      INT          NOT NULL,
+    title            VARCHAR(150) NOT NULL,
+    description      TEXT         NULL,
+    priority         ENUM('LOW','MEDIUM','HIGH','CRITICAL') NOT NULL DEFAULT 'MEDIUM',
+    status           ENUM('PENDING','ASSIGNED','IN_PROGRESS','ON_HOLD','COMPLETED','CLOSED','REJECTED','CANCELLED')
+                                  NOT NULL DEFAULT 'PENDING',
+    assigned_to      INT          NULL,
+    reported_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    target_date      DATE         NULL,
+    completed_at     DATETIME     NULL,
+    closed_at        DATETIME     NULL,
+    resolution_notes TEXT         NULL,
+    created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_req_requester FOREIGN KEY (requester_id) REFERENCES users(user_id),
+    CONSTRAINT fk_req_facility  FOREIGN KEY (facility_id)  REFERENCES facilities(facility_id) ON DELETE SET NULL,
+    CONSTRAINT fk_req_equipment FOREIGN KEY (equipment_id) REFERENCES equipment(equipment_id) ON DELETE SET NULL,
+    CONSTRAINT fk_req_category  FOREIGN KEY (category_id)  REFERENCES maintenance_categories(category_id),
+    CONSTRAINT fk_req_assigned  FOREIGN KEY (assigned_to)  REFERENCES users(user_id) ON DELETE SET NULL,
+    INDEX idx_req_status (status),
+    INDEX idx_req_priority (priority),
+    INDEX idx_req_requester (requester_id),
+    INDEX idx_req_assigned (assigned_to),
+    INDEX idx_req_reported (reported_at)
+) ENGINE=InnoDB;
+
+INSERT INTO maintenance_requests
+(ticket_no, requester_id, facility_id, equipment_id, category_id, title, description, priority, status, assigned_to, reported_at, target_date, completed_at)
+VALUES
+('T-0001', 5, 4, 1, 1, 'Ceiling fan not spinning',
+ 'The ceiling fan in Room 204 stopped spinning yesterday afternoon. It hums but the blades do not rotate. Class is using stand fans temporarily.',
+ 'HIGH', 'PENDING', NULL, '2026-11-11 08:12:00', '2026-11-13', NULL),
+('T-0002', 6, 5, 3, 5, 'Computer monitor has no display',
+ 'Workstation 3 in Computer Laboratory 1 powers on but the monitor shows no signal. Tried a different cable, still nothing.',
+ 'MEDIUM', 'IN_PROGRESS', 3, '2026-11-10 09:40:00', '2026-11-12', NULL),
+('T-0003', 5, 9, NULL, 2, 'Leaking pipe under sink',
+ 'Water is pooling under the sink in CR-2. The leak appears to come from the supply line connector.',
+ 'CRITICAL', 'ASSIGNED', 4, '2026-11-08 14:05:00', '2026-11-09', NULL),
+('T-0004', 6, 7, 5, 4, 'Aircon not cooling',
+ 'The library aircon runs but does not cool. Room temperature stays around 30 degrees.',
+ 'HIGH', 'COMPLETED', 3, '2026-11-05 10:20:00', '2026-11-07', '2026-11-06 15:30:00'),
+('T-0005', 5, 3, NULL, 3, 'Broken window latch',
+ 'One window in Room 201 cannot be locked because the latch is broken. Security concern after class hours.',
+ 'MEDIUM', 'CLOSED', 4, '2026-10-28 11:15:00', '2026-10-30', '2026-10-29 16:00:00');
+
+-- ---------------------------------------------------------------------
+-- 7. request_status_history
+-- ---------------------------------------------------------------------
+CREATE TABLE request_status_history (
+    history_id  INT AUTO_INCREMENT PRIMARY KEY,
+    request_id  INT          NOT NULL,
+    from_status VARCHAR(20)  NULL,
+    to_status   VARCHAR(20)  NOT NULL,
+    changed_by  INT          NOT NULL,
+    remarks     VARCHAR(255) NULL,
+    changed_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_hist_request FOREIGN KEY (request_id) REFERENCES maintenance_requests(request_id) ON DELETE CASCADE,
+    CONSTRAINT fk_hist_user    FOREIGN KEY (changed_by) REFERENCES users(user_id),
+    INDEX idx_hist_request (request_id)
+) ENGINE=InnoDB;
+
+INSERT INTO request_status_history (request_id, from_status, to_status, changed_by, remarks, changed_at) VALUES
+(1, NULL,        'PENDING',     5, 'Request submitted',                     '2026-11-11 08:12:00'),
+(2, NULL,        'PENDING',     6, 'Request submitted',                     '2026-11-10 09:40:00'),
+(2, 'PENDING',   'ASSIGNED',    2, 'Assigned to Pedro Reyes',               '2026-11-10 10:15:00'),
+(2, 'ASSIGNED',  'IN_PROGRESS', 3, 'Started diagnostics on workstation 3',  '2026-11-10 13:00:00'),
+(3, NULL,        'PENDING',     5, 'Request submitted',                     '2026-11-08 14:05:00'),
+(3, 'PENDING',   'ASSIGNED',    2, 'Assigned to Ana Garcia - urgent',       '2026-11-08 14:30:00'),
+(4, NULL,        'PENDING',     6, 'Request submitted',                     '2026-11-05 10:20:00'),
+(4, 'PENDING',   'ASSIGNED',    2, 'Assigned to Pedro Reyes',               '2026-11-05 11:00:00'),
+(4, 'ASSIGNED',  'IN_PROGRESS', 3, 'Checked refrigerant level',             '2026-11-05 14:00:00'),
+(4, 'IN_PROGRESS','COMPLETED',  3, 'Recharged refrigerant, cleaned filter','2026-11-06 15:30:00'),
+(5, NULL,        'PENDING',     5, 'Request submitted',                     '2026-10-28 11:15:00'),
+(5, 'PENDING',   'ASSIGNED',    2, 'Assigned to Ana Garcia',                '2026-10-28 13:00:00'),
+(5, 'ASSIGNED',  'IN_PROGRESS', 4, 'Replaced latch',                        '2026-10-29 09:00:00'),
+(5, 'IN_PROGRESS','COMPLETED',  4, 'Latch replaced and tested',             '2026-10-29 16:00:00'),
+(5, 'COMPLETED', 'CLOSED',      1, 'Confirmed by requester',                '2026-10-30 08:30:00');
+
+-- ---------------------------------------------------------------------
+-- 8. maintenance_records
+-- ---------------------------------------------------------------------
+CREATE TABLE maintenance_records (
+    record_id      INT AUTO_INCREMENT PRIMARY KEY,
+    request_id     INT           NOT NULL,
+    personnel_id   INT           NOT NULL,
+    actions_taken  TEXT          NOT NULL,
+    parts_used     TEXT          NULL,
+    cost           DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    downtime_hours DECIMAL(6,2)  NULL,
+    started_at     DATETIME      NULL,
+    finished_at    DATETIME      NULL,
+    created_at     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_rec_request   FOREIGN KEY (request_id)   REFERENCES maintenance_requests(request_id) ON DELETE CASCADE,
+    CONSTRAINT fk_rec_personnel FOREIGN KEY (personnel_id) REFERENCES users(user_id),
+    INDEX idx_rec_request (request_id)
+) ENGINE=InnoDB;
+
+INSERT INTO maintenance_records
+(request_id, personnel_id, actions_taken, parts_used, cost, downtime_hours, started_at, finished_at)
+VALUES
+(4, 3, 'Checked refrigerant pressure, found low charge. Recharged refrigerant and cleaned the air filter. Tested cooling for 30 minutes.',
+ 'R-32 refrigerant 0.5kg, air filter', 1250.00, 4.50, '2026-11-05 14:00:00', '2026-11-06 15:30:00'),
+(5, 4, 'Removed the broken window latch and installed a new stainless latch. Adjusted the window frame alignment.',
+ 'Stainless window latch', 180.00, 1.50, '2026-10-29 09:00:00', '2026-10-29 16:00:00');
+
+-- ---------------------------------------------------------------------
+-- 9. attachments
+-- ---------------------------------------------------------------------
+CREATE TABLE attachments (
+    attachment_id INT AUTO_INCREMENT PRIMARY KEY,
+    request_id    INT          NOT NULL,
+    file_name     VARCHAR(255) NOT NULL,
+    file_path     VARCHAR(500) NOT NULL,
+    file_size     BIGINT       NULL,</code></pre>
+<h3>2.4 Import</h3>
+<ol>
+  <li>Start MySQL in XAMPP (or server).</li>
+  <li>Import: <code>mysql -u root -p &lt; database/deihs_mms.sql</code> or phpMyAdmin → Import.</li>
+  <li>Verify database <code>deihs_mms</code> exists with tables and seed users.</li>
+</ol>
+<div class="note"><strong>Seed accounts (demo):</strong> admin/admin123, mhead/head123, tech1/tech123, tech2/tech123, jcruz/staff123, msantos/staff123 — change for real use.</div>
+</section><section class="part" id="p3"><h2>Part 3: Configuration &amp; Database Connection (db.properties, AppConfig, HikariCP)</h2>
+<h3>3.1 Configuration: <code>db.properties</code></h3>
+<p>Holds connection info (and Google settings) so we don't hardcode values. For LAN, set <code>db.host</code> to the server PC's IP.</p>
+<pre><code>db.host=127.0.0.1
+db.port=3307
+db.name=deihs_mms
+db.user=root
+db.password=
+db.pool.size=10
+
+# Google OAuth (desktop loopback). Set these to enable "Continue with Google".
+# Obtain from Google Cloud Console (OAuth 2.0 Client ID). Leave blank to disable.
+google.clientId=
+google.clientSecret=
+google.redirectPort=8765
+</code></pre>
+<div class="why"><strong>Why properties + overrides?</strong> Different environments need different hosts. <code>-Ddb.host=...</code> overrides without editing files.</div>
+<h3>3.2 Reading config: <code>AppConfig.java</code></h3>
+<pre><code>package com.deihs.mms.config;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+/**
+ * Reads db.properties from the classpath. Any key can be overridden at
+ * launch time with -Dkey=value, which is how a client PC points at the
+ * XAMPP host on the LAN:
+ *
+ *   java -Ddb.host=192.168.1.10 -jar deihs-mms.jar
+ */
+public final class AppConfig {
+
+    private static final Properties PROPS = new Properties();
+
+    static {
+        try (InputStream in = AppConfig.class.getResourceAsStream("/db.properties")) {
+            if (in == null) {
+                throw new IllegalStateException("db.properties is missing from the classpath");
+            }
+            PROPS.load(in);
+        } catch (IOException e) {
+            throw new ExceptionInInitializerError(e);
+        }
+        for (String key : PROPS.stringPropertyNames()) {
+            String override = System.getProperty(key);
+            if (override != null) {
+                PROPS.setProperty(key, override);
+            }
+        }
+    }
+
+    private AppConfig() {
+    }
+
+    public static String get(String key) {
+        return PROPS.getProperty(key);
+    }
+
+    public static String get(String key, String fallback) {
+        return PROPS.getProperty(key, fallback);
+    }
+
+    public static int getInt(String key, int fallback) {
+        try {
+            return Integer.parseInt(PROPS.getProperty(key, String.valueOf(fallback)).trim());
+        } catch (NumberFormatException e) {
+            return fallback;
+        }
+    }
+
+    public static String jdbcUrl() {
+        String host = get("db.host", "localhost");
+        int port = getInt("db.port", 3306);
+        String name = get("db.name", "deihs_mms");
+        return "jdbc:mysql://" + host + ":" + port + "/" + name
+                + "?useSSL=false"
+                + "&amp;allowPublicKeyRetrieval=true"
+                + "&amp;serverTimezone=Asia/Manila"
+                + "&amp;characterEncoding=UTF-8"
+                + "&amp;connectTimeout=5000";
+    }
+}
+</code></pre>
+<h3>3.3 Connection pool: <code>Database.java</code> (HikariCP)</h3>
+<pre><code>package com.deihs.mms.db;
+
+import com.deihs.mms.config.AppConfig;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+
+/**
+ * Single HikariCP pool shared by the whole application.
+ */
+public final class Database {
+
+    private static HikariDataSource dataSource;
+
+    private Database() {
+    }
+
+    public static synchronized DataSource get() {
+        if (dataSource == null) {
+            HikariConfig cfg = new HikariConfig();
+            cfg.setJdbcUrl(AppConfig.jdbcUrl());
+            cfg.setUsername(AppConfig.get("db.user", "root"));
+            cfg.setPassword(AppConfig.get("db.password", ""));
+            cfg.setMaximumPoolSize(AppConfig.getInt("db.pool.size", 10));
+            cfg.setMinimumIdle(2);
+            cfg.setPoolName("deihs-pool");
+            cfg.setConnectionTimeout(5000);
+            cfg.setValidationTimeout(3000);
+            cfg.setInitializationFailTimeout(-1); // don't crash the UI if the DB is down
+            dataSource = new HikariDataSource(cfg);
+        }
+        return dataSource;
+    }
+
+    public static Connection getConnection() throws SQLException {
+        return get().getConnection();
+    }
+
+    /** Quick connectivity probe used by the login screen. */
+    public static void testConnection() throws SQLException {
+        try (Connection c = getConnection()) {
+            if (!c.isValid(3)) {
+                throw new SQLException("Database connection is not valid.");
+            }
+        }
+    }
+
+    public static synchronized void close() {
+        if (dataSource != null) {
+            dataSource.close();
+            dataSource = null;
+        }
+    }
+}
+</code></pre>
+<h3>3.4 Flow: config → connection</h3>
+<div class="filetree">src/main/resources/db.properties  (host, port, name, user, password)
+        ▼
+config/AppConfig.java             (loads props + -D overrides, jdbcUrl())
+        ▼
+db/Database.java                  (singleton HikariDataSource, getConnection())
+        ▼
+dao/*.java                        (borrow Connection via try-with-resources, run SQL)</div>
+<div class="note"><strong>Beginner tip:</strong> A "pool" keeps a few ready connections. DAOs borrow one, run SQL, and try-with-resources returns it automatically.</div>
+</section><section class="part" id="p4"><h2>Part 4: App Bootstrap (Launcher, Main, ViewLoader) — how the app starts</h2>
+<h3>4.1 Entry point</h3>
+<p><code>Launcher</code> (plain main) calls <code>Main</code> (extends JavaFX <code>Application</code>) — needed for fat/shaded JARs.</p>
+<h4><code>Launcher.java</code></h4>
+<pre><code>package com.deihs.mms;
+
+/**
+ * Plain launcher used by the shaded jar.
+ * JavaFX refuses to start when the main class extends Application and JavaFX
+ * is on the classpath, so this indirection is required for distribution.
+ */
+public final class Launcher {
+    private Launcher() {
+    }
+
+    public static void main(String[] args) {
+        Main.main(args);
+    }
+}
+</code></pre>
+<h4><code>Main.java</code></h4>
+<pre><code>package com.deihs.mms;
+
+import com.deihs.mms.db.Database;
+import com.deihs.mms.util.ViewLoader;
+import javafx.application.Application;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
+
+import java.util.Objects;
+
+/**
+ * Application entry point. Opens the login screen; the shell is loaded
+ * after a successful sign-in.
+ */
+public class Main extends Application {
+
+    public static final String APP_NAME = "DEIHS Maintenance Management System";
+    public static final String STYLESHEET = "/com/deihs/mms/css/styles.css";
+
+    private static Scene mainScene;
+
+    @Override
+    public void start(Stage stage) {
+        Parent root = ViewLoader.load("/com/deihs/mms/view/LoginView.fxml");
+        mainScene = new Scene(root, 1180, 720);
+        mainScene.getStylesheets().add(
+                Objects.requireNonNull(Main.class.getResource(STYLESHEET)).toExternalForm());
+
+        stage.setTitle(APP_NAME);
+        stage.getIcons().add(new Image(
+                Objects.requireNonNull(Main.class.getResourceAsStream("/com/deihs/mms/img/deihs-logo.jpg"))));
+        stage.setScene(mainScene);
+        stage.setMinWidth(1024);
+        stage.setMinHeight(640);
+        stage.setMaximized(true);
+        stage.show();
+    }
+
+    @Override
+    public void stop() {
+        Database.close();
+    }
+
+    /** Replaces the root of the main scene (used to switch login -&gt; shell). */
+    public static void setRoot(Parent root) {
+        mainScen</code></pre>
+<div class="why"><strong>Why this design?</strong> <code>start(Stage)</code> creates the window, loads the first view (Login), attaches global CSS, sets icon/title, and keeps a static <code>Scene</code> so <code>Main.setRoot(...)</code> can swap screens (Login ↔ Shell).</div>
+<h3>4.2 Loading FXML: <code>ViewLoader.java</code></h3>
+<pre><code>package com.deihs.mms.util;
+
+import com.deihs.mms.Main;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+
+import java.io.IOException;
+import java.util.Objects;
+
+public final class ViewLoader {
+
+    private ViewLoader() {
+    }
+
+    public static Parent load(String fxmlPath) {
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
+                    ViewLoader.class.getResource(fxmlPath),
+                    "FXML not found: " + fxmlPath));
+            return loader.load();
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot load view: " + fxmlPath, e);
+        }
+    }
+
+    public static FXMLLoader loader(String fxmlPath) {
+        return new FXMLLoader(Objects.requireNonNull(
+                ViewLoader.class.getResource(fxmlPath),
+                "FXML not found: " + fxmlPath));
+    }
+
+    /**
+     * Gives a dialog the same look as the main window. Dialogs live in their
+     * own scene, so they do not inherit the application stylesheet.
+     */
+    public static void applyAppStyles(Parent parent) {
+        String css = Objects.requireNonNull(
+                ViewLoader.class.getResource(Main.STYLESHEET),
+                "Stylesheet not found").toExternalForm();
+        if (!parent.getStylesheets().contains(css)) {
+            parent.getStylesheets().add(css);
+        }
+    }
+}
+</code></pre>
+<h3>4.3 Startup flow</h3>
+<div class="filetree">Launcher.main() → Main.main(args) → JavaFX calls Main.start(stage)
+  → ViewLoader.load("/.../view/LoginView.fxml")  (FXML → UI tree + controller)
+  → new Scene(root) + styles.css
+  → stage.show()
+
+After login: Main.setRoot(ShellView)  |  On logout: Main.setRoot(LoginView)</div>
+<div class="note"><strong>FXML + Controller:</strong> FXML describes UI; <code>fx:controller</code> names the Java class. JavaFX injects <code>@FXML</code> fields and calls <code>initialize()</code>.</div>
+</section><section class="part" id="p5"><h2>Part 5: Models, Roles, Session &amp; Permissions (who the user is and what they can do)</h2>
+<h3>5.1 Domain models</h3>
+<p>Models represent data. <code>Role</code> is an enum mapping DB codes; <code>User</code> is a record holding the signed-in user (never the password hash).</p>
+<h4><code>Role.java</code></h4>
+<pre><code>package com.deihs.mms.model;
+
+/**
+ * The four system roles. The code matches roles.role_code in the database.
+ */
+public enum Role {
+
+    ADMIN("ADMIN", "School Administrator"),
+    MAINT_HEAD("MAINT_HEAD", "Maintenance Head"),
+    PERSONNEL("PERSONNEL", "Maintenance Personnel"),
+    STAFF("STAFF", "Teacher / School Staff");
+
+    private final String code;
+    private final String displayName;
+
+    Role(String code, String displayName) {
+        this.code = code;
+        this.displayName = displayName;
+    }
+
+    public String code() {
+        return code;
+    }
+
+    public String displayName() {
+        return displayName;
+    }
+
+    public static Role fromCode(String code) {
+        if (code != null) {
+            for (Role r : values()) {
+                if (r.code.equalsIgnoreCase(code)) {
+                    return r;
+                }
+            }
+        }
+        throw new IllegalArgumentException("Unknown role code: " + code);
+    }
+}
+</code></pre>
+<h4><code>User.java</code></h4>
+<pre><code>package com.deihs.mms.model;
+
+import java.time.LocalDateTime;
+
+/**
+ * Authenticated user. Never carries the password hash.
+ */
+public record User(
+        int id,
+        String employeeNo,
+        String username,
+        String firstName,
+        String lastName,
+        Role role,
+        String department,
+        boolean active,
+        LocalDateTime lastLogin
+) {
+
+    public String fullName() {
+        return firstName + " " + lastName;
+    }
+
+    public String initials() {
+        String a = firstName == null || firstName.isBlank() ? "" : firstName.substring(0, 1);
+        String b = lastName == null || lastName.isBlank() ? "" : lastName.substring(0, 1);
+        return (a + b).toUpperCase();
+    }
+
+    public String roleName() {
+        return role.displayName();
+    }
+}
+</code></pre>
+<h3>5.2 Session (current user)</h3>
+<pre><code>package com.deihs.mms.service;
+
+import com.deihs.mms.model.User;
+
+/**
+ * Holds the signed-in user for the lifetime of the desktop client.
+ */
+public final class Session {
+
+    private static User current;
+
+    private Session() {
+    }
+
+    public static void set(User user) {
+        current = user;
+    }
+
+    public static User get() {
+        if (current == null) {
+            throw new IllegalStateException("No active session");
+        }
+        return current;
+    }
+
+    public static boolean isLoggedIn() {
+        return current != null;
+    }
+
+    public static void clear() {
+        current = null;
+    }
+}
+</code></pre>
+<h3>5.3 Permissions (single source of truth)</h3>
+<pre><code>package com.deihs.mms.service;
+
+import com.deihs.mms.model.Role;
+import com.deihs.mms.model.User;
+
+/**
+ * Single source of truth for role permissions. Controllers hide what a role
+ * cannot use; services must re-check before writing.
+ */
+public final class Permissions {
+
+    private Permissions() {
+    }
+
+    public static boolean canManageUsers(User u) {
+        return u.role() == Role.ADMIN;
+    }
+
+    public static boolean canManageFacilities(User u) {
+        return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
+    }
+
+    public static boolean canManageEquipment(User u) {
+        return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
+    }
+
+    public static boolean canManageSchedules(User u) {
+        return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
+    }
+
+    /** Assign requests to personnel. */
+    public static boolean canAssignRequests(User u) {
+        return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
+    }
+
+    /** Change status of any request (not only assigned ones). */
+    public static boolean canUpdateAnyRequestStatus(User u) {
+        return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
+    }
+
+    public static boolean canViewAllRequests(User u) {
+        return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
+    }
+
+    public static boolean canViewAuditLog(User u) {
+        return u.role() == Role.ADMIN;
+    }
+
+    public static boolean canViewReports(User u) {
+        return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
+    }
+
+    /** Teachers and staff may submit requests. */
+    public static boolean canCreateRequest(User u) {
+        return u.role() == Role.STAFF || u.role() == Role.ADMIN;
+    }
+
+    public static boolean canFileRepairRecord(User u) {
+        return u.role() == Role.PERSONNEL || u.role() == Role.MAINT_HEAD;
+    }
+}
+</code></pre>
+<div class="filetree">model/Role + model/User  →  service/Session (current User)
+        → service/Permissions (canManageUsers, canAssignRequests, ...)
+                used by controllers (hide/disable) AND services (enforce before write)</div>
+<div class="warn"><strong>Rule:</strong> Don't trust the UI alone. Hide buttons in controllers, but <strong>services must re-check permissions</strong> before saving to DB.</div>
+</section><section class="part" id="p6"><h2>Part 6: Authentication &amp; Login Flow (AuthService, Login FXML/Controller)</h2>
+<h3>6.1 Authentication logic</h3>
+<p>Find user by username, ensure active, verify password with BCrypt against stored hash, update last login, audit the login, return <code>User</code> for session. Same error for unknown user/wrong password (no account leakage).</p>
+<h4><code>AuthService.java</code> (core idea)</h4>
+<pre><code>package com.deihs.mms.service;
+
+import com.deihs.mms.dao.AuditDao;
+import com.deihs.mms.dao.UserDao;
+import com.deihs.mms.model.User;
+import com.deihs.mms.model.UserCredentials;
+import org.mindrot.jbcrypt.BCrypt;
+
+import java.sql.SQLException;
+import java.util.Optional;
+
+/**
+ * Authentication is the only place a password is ever compared. The role is
+ * read from the database — never chosen by the user at login.
+ */
+public class AuthService {
+
+    private final UserDao userDao = new UserDao();
+    private final AuditDao auditDao = new AuditDao();
+
+    public User login(String username, String password) throws AuthException, SQLException {
+        String name = username == null ? "" : username.trim();
+        if (name.isEmpty() || password == null || password.isEmpty()) {
+            throw new AuthException("Enter your username and password.");
+        }
+
+        Optional&lt;UserCredentials&gt; found = userDao.findByUsername(name);
+        if (found.isEmpty()) {
+            // Same message for unknown user and wrong password: do not leak which accounts exist.
+            throw new AuthException("Invalid username or password.");
+        }
+
+        UserCredentials creds = found.get();
+        if (!creds.user().active()) {
+            throw new AuthException("This account has been deactivated. Contact the administrator.");
+        }
+
+        if (!BCrypt.checkpw(password, creds.passwordHash())) {
+            auditDao.log(creds.user().id(), "LOGIN_FAILED", "USER",
+                    String.valueOf(creds.user().id()), "Incorrect password");
+            throw new AuthException("Invalid username or password.");
+        }
+
+        userDao.touchLastLogin(creds.user().id());
+        auditDao.log(creds.user().id(), "LOGIN", "USER",
+                String.valueOf(creds.user().id()), "Signed in");
+
+        return creds.user();
+    }
+
+    public static String hashPassword(String plain) {
+        return BCrypt.hashpw(plain, BCrypt.gensalt(10));
+    }
+}
+    // ... verify with BCrypt.checkpw(plain, hash)
+    // userDao.touchLastLogin(...); auditDao.log(..., "LOGIN", ...)
+    // return creds.user();
+}</code></pre>
+<div class="why"><strong>Why BCrypt?</strong> We store hashes, not plain passwords. <code>BCrypt.checkpw</code> safely verifies input against the hash.</div>
+<h3>6.2 Login screen</h3>
+<p>FXML defines fields/buttons; <code>LoginController</code> reads input, runs login in a background <code>Task</code> (keeps UI responsive), sets <code>Session</code> and opens Shell on success.</p>
+<h4><code>LoginView.fxml</code></h4>
+<pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+
+&lt;?import javafx.geometry.Insets?&gt;
+&lt;?import javafx.scene.control.Button?&gt;
+&lt;?import javafx.scene.control.CheckBox?&gt;
+&lt;?import javafx.scene.control.Hyperlink?&gt;
+&lt;?import javafx.scene.control.Label?&gt;
+&lt;?import javafx.scene.control.PasswordField?&gt;
+&lt;?import javafx.scene.control.TextField?&gt;
+&lt;?import javafx.scene.image.Image?&gt;
+&lt;?import javafx.scene.image.ImageView?&gt;
+&lt;?import javafx.scene.layout.HBox?&gt;
+&lt;?import javafx.scene.layout.Region?&gt;
+&lt;?import javafx.scene.layout.StackPane?&gt;
+&lt;?import javafx.scene.layout.VBox?&gt;
+
+&lt;HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.LoginController"
+      styleClass="login-root" prefWidth="1180" prefHeight="720"&gt;
+
+    &lt;!-- Brand panel --&gt;
+    &lt;VBox styleClass="login-brand" prefWidth="470" minWidth="360" maxWidth="560"
+          alignment="CENTER" spacing="0"&gt;
+        &lt;Region VBox.vgrow="ALWAYS"/&gt;
+
+        &lt;ImageView fitWidth="150" fitHeight="150" preserveRatio="true" smooth="true"
+                   styleClass="login-logo-image"&gt;
+            &lt;image&gt;
+                &lt;Image url="@../img/deihs-logo.png"/&gt;
+            &lt;/image&gt;
+        &lt;/ImageView&gt;
+
+        &lt;Label text="DEIHS" styleClass="login-school-abbr" alignment="CENTER"
+               textAlignment="CENTER"&gt;
+            &lt;VBox.margin&gt;
+                &lt;Insets top="20"/&gt;
+            &lt;/VBox.margin&gt;
+        &lt;/Label&gt;
+
+        &lt;Label text="Dasmariñas East Integrated High School" styleClass="login-school-name"
+               wrapText="true" alignment="CENTER" textAlignment="CENTER" maxWidth="340"&gt;
+            &lt;VBox.margin&gt;
+                &lt;Insets top="6"/&gt;
+            &lt;/VBox.margin&gt;
+        &lt;/Label&gt;
+
+        &lt;Region VBox.vgrow="ALWAYS"/&gt;
+
+        &lt;Label text="Maintenance Management System" styleClass="login-footer"
+               alignment="CENTER" textAlignment="CENTER"/&gt;
+    &lt;/VBox&gt;
+
+    &lt;!</code></pre>
+<h4><code>LoginController.java</code> (key parts)</h4>
+<pre><code>package com.deihs.mms.controller;
+
+import com.deihs.mms.Main;
+import com.deihs.mms.dao.AuditDao;
+import com.deihs.mms.dao.UserDao;
+import com.deihs.mms.model.Choice;
+import com.deihs.mms.model.RegistrationDraft;
+import com.deihs.mms.model.User;
+import com.deihs.mms.service.AuthException;
+import com.deihs.mms.service.AuthService;
+import com.deihs.mms.service.GoogleOAuthService;
+import com.deihs.mms.service.GoogleOAuthService.GoogleProfile;
+import com.deihs.mms.service.RegistrationService;
+import com.deihs.mms.service.Session;
+import com.deihs.mms.service.ValidationException;
+import com.deihs.mms.util.ViewLoader;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Modality;
+
+import java.io.IOException;
+import java.security.SecureRandom;
+import java.sql.SQLException;
+import java.util.Base64;
+import java.util.Optional;
+
+/**
+ * Sign-in screen. The role always comes from the database — the user never
+ * chooses it here.
+ */
+public class LoginController {
+
+    @FXML private TextField usernameField;
+    @FXML private PasswordField passwordField;
+    @FXML private TextField passwordVisible;
+    @FXML private CheckBox showPassword;
+    @FXML private Label errorLabel;
+    @FXML private Button signInButton;
+    @FXML private Button googleButton;
+
+    private final AuthService authService = new AuthService();
+    private final GoogleOAuthService googleOAuthService = new GoogleOAuthService();
+    private final UserDao userDao = new UserDao();
+    private final AuditDao auditDao = new AuditDao();
+    private final RegistrationService registrationService = new RegistrationService();
+
+    @FXML
+    private void initialize() {
+        usernameField.setOnAction(e -&gt; passwordField.requestFocus());
+        passwordField.setOnAction(e -&gt; onSignIn());
+        passwordVisible.setOnAction(e -&gt; onSignIn());
+        if (googleButton != null) {
+            boolean configured = googleOAuthService.isConfigured();
+            googleButton.setVisible(configured);
+            googleButton.setManaged(configured);
+        }
+        Platform.runLater(usernameField::requestFocus);
+    }
+
+    @FXML
+    private void onCreateAccount() {
+        try {
+            FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/RegisterView.fxml");
+            Parent register = loader.load();
+            Main.setRoot(register);
+        } catch (IOException | RuntimeException e) {
+            showError("Could not open registration: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onTogglePassword() {
+        if (showPassword.isSelected()) {
+            passwordVisible.setText(passwordField.getText());
+            passwordVisible.setVisible(true);
+            passwordVisible.setManaged(true);
+            passwordField.setVisible(false);
+            passwordField.setManaged(false);
+            passwordVisible.requestFocus();
+            passwordVisible.positionCaret(passwordVisible.getText().length());
+        } else {
+            passwordField.setText(passwordVisible.getText());
+            passwordField.setVisible(true);
+            passwordField.setManaged(true);
+            passwordVisible.setVisible(false);
+            passwordVisible.setManaged(false);
+            passwordField.requestFocus();
+            passwordField.positionCaret(passwordField.getText().length());
+        }
+    }
+
+    @FXML
+    private void onSignIn() {
+        hideError();
+
+        String username = usernameField.getText() == null ? "" : usernameField.getText().trim();
+        String password = currentPassword();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            showError("Enter your username and password.");
+            return;
+        }
+
+        setBusy(true, "Signing in…");
+
+        Task&lt;User&gt; task = new Task&lt;&gt;() {
+            @Override
+            protected User call() throws Exception {
+                return authService.login(username, password);
+            }
+        };
+
+        task.setOnSucceeded(e -&gt; {
+            User user = task.getValue();
+            Session.set(user);
+            openShell();
+        });
+
+        task.setOnFailed(e -&gt; {
+            setBusy(false, null);
+            Throwable ex = task.getException();
+            if (ex instanceof AuthException auth) {
+                showError(auth.getMessage());
+                passwordField.clear();
+                passwordVisible.clear();
+                passwordField.requestFocus();
+            } else if (ex instanceof SQLException) {
+    // onSignIn(): validate -> Task{ authService.login() } -> success: Session.set + openShell
+    // onGoogleSignIn(): OAuth flow (if configured) -> match email / pending request (Option A)
+}</code></pre>
+<h3>6.3 Flow</h3>
+<div class="filetree">LoginView.fxml + LoginController
+  → Task → AuthService.login()
+           → UserDao.findByUsername() (SQL) + BCrypt + touchLastLogin + AuditDao
+  → Session.set(user) → Main.setRoot(ShellView) → ShellController.initialize()</div>
+</section><section class="part" id="p7"><h2>Part 7: Data Access &amp; Business Logic (DAO pattern, Services, validation, audit)</h2>
+<h3>7.1 DAO pattern (Data Access Object)</h3>
+<p>A DAO contains <strong>only database code</strong> (SQL). It maps <code>ResultSet</code> rows to models. Use parameterized queries (<code>?</code>) to prevent SQL injection.</p>
+<div class="why"><strong>Why separate DAOs?</strong> Centralizes SQL, enables reuse, and keeps controllers/services clean.</div>
+<h4><code>UserDao.java</code> (excerpt)</h4>
+<pre><code>package com.deihs.mms.dao;
+
+import com.deihs.mms.db.Database;
+import com.deihs.mms.model.Role;
+import com.deihs.mms.model.User;
+import com.deihs.mms.model.UserCredentials;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+public class UserDao {
+
+    private static final String BASE_SELECT = """
+            SELECT u.user_id, u.employee_no, u.username, u.password_hash,
+                   u.first_name, u.last_name, u.department, u.is_active, u.last_login,
+                   r.role_code
+            FROM users u
+            JOIN roles r ON r.role_id = u.role_id
+            """;
+
+    public Optional&lt;UserCredentials&gt; findByUsername(String username) throws SQLException {
+        String sql = BASE_SELECT + " WHERE u.username = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(new UserCredentials(mapUser(rs), rs.getString("password_hash")));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional&lt;User&gt; findById(int id) throws SQLException {
+        String sql = BASE_SELECT + " WHERE u.user_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapUser(rs));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    /** Find active user by email (case-insensitive). */
+    public Optional&lt;User&gt; findActiveByEmail(String email) throws SQLException {
+        if (email == null || email.isBlank()) return Optional.empty();
+        String sql = BASE_SELECT + " WHERE LOWER(u.email) = LOWER(?) AND u.is_active = 1";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, email.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapUser(rs));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional&lt;User&gt; findByEmail(String email) throws SQLException {
+        if (email == null || email.isBlank()) return Optional.empty();
+        String sql = BASE_SELECT + " WHERE LOWER(u.email) = LOWER(?)";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, email.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapUser(rs));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    public List&lt;User&gt; findAll() throws SQLException {
+        String sql = BASE_SELECT + " ORDER BY u.last_name, u.first_name";
+        List&lt;User&gt; users = new ArrayList&lt;&gt;();
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                users.add(mapUser(rs));
+            }
+        }
+        return users;
+    }
+
+    public List&lt;User&gt; findByRole(Role role) throws SQLException {
+        String sql = BASE_SELECT + " WHERE r.role_code = ? AND u.is_active = 1"
+                + " ORDER BY u.last_name, u.first_name";
+        List&lt;User&gt; users = new ArrayList&lt;&gt;();
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, role.code());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    users.add(mapUser(rs));
+                }
+            }
+        }
+        return users;
+    }
+
+    public void touchLastLogin(int userId) throws SQLException {
+        String sql = "UPDATE users SET last_login = NOW() WHERE user_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+    // pattern: try (Connection c = Database.getConnection();
+    //              PreparedStatement ps = c.prepareStatement(sql)) {
+    //   ps.set...(1, value);  ResultSet rs = ps.executeQuery();  mapUser(rs)
+    // }</code></pre>
+<h4><code>FacilityDao.java</code> (excerpt)</h4>
+<pre><code>package com.deihs.mms.dao;
+
+import com.deihs.mms.db.Database;
+import com.deihs.mms.model.Facility;
+import com.deihs.mms.model.FacilityDraft;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Facility registry queries. Counters are computed with correlated subqueries
+ * so the list needs a single round trip per refresh.
+ */
+public class FacilityDao {
+
+    private static final String BASE_SELECT = """
+            SELECT f.facility_id, f.facility_code, f.name, f.building, f.floor,
+                   f.room_number, f.facility_type, f.condition_status, f.notes,
+                   f.is_active,
+                   (SELECT COUNT(*) FROM equipment e
+                     WHERE e.facility_id = f.facility_id AND e.is_active = 1)
+                       AS equipment_count,
+                   (SELECT COUNT(*) FROM maintenance_requests r
+                     WHERE r.facility_id = f.facility_id
+                       AND r.status IN ('PENDING','ASSIGNED','IN_PROGRESS','ON_HOLD'))
+                       AS open_requests
+            FROM facilities f
+            WHERE 1 = 1
+            """;
+
+    /**
+     * @param keyword        matched against code, name, building, room, type
+     * @param condition      exact condition, or null for any
+     * @param includeArchived false hides facilities where is_active = 0
+     */
+    public List&lt;Facility&gt; search(String keyword, String condition,
+                                 boolean includeArchived) throws SQLException {
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        List&lt;Object&gt; params = new ArrayList&lt;&gt;();
+
+        if (!includeArchived) {
+            sql.append(" AND f.is_active = 1");
+        }
+        if (condition != null &amp;&amp; !condition.isBlank()) {
+            sql.append(" AND f.condition_status = ?");
+            params.add(condition);
+        }
+        if (keyword != null &amp;&amp; !keyword.isBlank()) {
+            String like = "%" + keyword.trim() + "%";
+            sql.append("""
+                     AND (f.facility_code LIKE ?
+                       OR f.name LIKE ?
+                       OR f.building LIKE ?
+                       OR f.room_number LIKE ?
+                       OR f.facility_type LIKE ?)
+                    """);
+            for (int i = 0; i &lt; 5; i++) {
+                params.add(like);
+            }
+        }
+
+        sql.append(" ORDER BY f.is_active DESC, f.facility_code");
+
+        List&lt;Facility&gt; rows = new ArrayList&lt;&gt;();
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql.toString())) {
+            for (int i = 0; i &lt; params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    rows.add(map(rs));
+                }
+            }
+        }
+        return rows;
+    }
+
+    private Facility map(ResultSet rs) throws SQLException {
+        return new Facility(
+                rs.getInt("facility_id"),
+                rs.getString("facility_code"),
+                rs.getString("name"),
+                rs.getString("building"),
+                rs.getString("floor"),
+                rs.getString("room_number"),
+                rs.getString("facility_type"),
+                rs.getString("condition_status"),
+                rs.getString("notes"),
+                rs.getInt("is_active") == 1,
+                rs.getInt("equipment_count"),
+                rs.getInt("open_requests")
+        );
+    }
+
+    /**
+     * True when the code is already used by a different facility. The caller
+     * passes 0 (or the row being edited) as {@code excludeId}.
+     */
+    public boolean existsCode(String code, int excludeId) throws SQLException {
+        String sql = "SELECT 1 FROM facilities WHERE facility_code = ? AND facility_id &lt;&gt; ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, code);
+            ps.setInt(2, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    public int create(FacilityDraft draft) throws SQLException {
+        String sql = """
+                INSERT INTO facilities
+                    (facility_code, name, building, floor, room_number,</code></pre>
+<h3>7.2 Service layer (rules)</h3>
+<p>Services enforce <strong>permissions</strong>, <strong>validate/normalize</strong> input, apply <strong>business rules</strong> (uniqueness, workflow), call DAOs, and write audit logs.</p>
+<h4><code>FacilityService.java</code> (excerpt)</h4>
+<pre><code>package com.deihs.mms.service;
+
+import com.deihs.mms.dao.AuditDao;
+import com.deihs.mms.dao.FacilityDao;
+import com.deihs.mms.model.FacilityDraft;
+import com.deihs.mms.model.User;
+
+import java.sql.SQLException;
+import java.util.Locale;
+import java.util.Set;
+
+/**
+ * Rules for the facility registry. The controller collects the form; this
+ * class normalises it, checks permissions and uniqueness, and writes the
+ * audit trail.
+ */
+public class FacilityService {
+
+    private static final Set&lt;String&gt; CONDITIONS =
+            Set.of("GOOD", "FAIR", "POOR", "NEEDS_REPAIR", "OUT_OF_ORDER");
+
+    private final FacilityDao facilityDao = new FacilityDao();
+    private final AuditDao auditDao = new AuditDao();
+
+    public int create(FacilityDraft draft, User user)
+            throws ValidationException, SQLException {
+        requireManage(user);
+        FacilityDraft clean = clean(draft);
+        validate(clean);
+
+        if (facilityDao.existsCode(clean.code(), 0)) {
+            throw new ValidationException(
+                    "Facility code " + clean.code() + " is already in use. Choose another.");
+        }
+
+        int id = facilityDao.create(clean);
+        auditDao.log(user.id(), "CREATE_FACILITY", "facilities", clean.code(),
+                clean.name());
+        return id;
+    }
+
+    public void update(int id, FacilityDraft draft, User user)
+            throws ValidationException, SQLException {
+        requireManage(user);
+        FacilityDraft clean = clean(draft);
+        validate(clean);
+
+        if (facilityDao.existsCode(clean.code(), id)) {
+            throw new ValidationException(
+                    "Facility code " + clean.code() + " is already in use. Choose another.");
+        }
+
+        facilityDao.update(id, clean);
+        auditDao.log(user.id(), "UPDATE_FACILITY", "facilities", clean.code(),
+                clean.name());
+    }
+
+    public void setActive(int id, String code, boolean active, User user)
+            throws ValidationException, SQLException {
+        requireManage(user);
+        facilityDao.setActive(id, active);
+        auditDao.log(user.id(), active ? "RESTORE_FACILITY" : "ARCHIVE_FACILITY",
+                "facilities", code, active ? "Restored" : "Archived");
+    }
+
+    // ------------------------------------------------------------------
+    // Validation
+    // ------------------------------------------------------------------
+
+    private void requireManage(User user) throws ValidationException {
+        if (!Permissions.canManageFacilities(user)) {
+            throw new ValidationException(
+                    "Your role cannot change the facility registry.");
+        }
+    }
+
+    /** Trims every field, upper-cases the code, and turns blanks into null. */
+    private FacilityDraft clean(FacilityDraft draft) {
+        if (draft == null) {
+            return null;
+        }
+        return new FacilityDraft(
+                upper(draft.code()),
+                text(draft.name()),
+                text(draft.building()),
+                text(draft.floor()),
+                text(draft.roomNumber()),
+                text(draft.type()),
+                draft.condition() == null
+                        ? "GOOD" : draft.condition().trim().toUpperCase(Locale.ROOT),
+                text(draft.notes())
+        );
+    }
+
+    private void validate(FacilityDraft draft) throws ValidationException {
+        if (draft == null) {
+            throw new ValidationException("Nothing to save.");
+        }
+
+        if (draft.code() == null || draft.code().isEmpty()) {
+            throw new ValidationException("Enter a facility code, for example RM-101.");
+        }
+        if (draft.code().length() &gt; 20) {
+            throw new ValidationException("The facility code is too long. Keep it under 20 characters.");
+        }
+        if (draft.name() == null || draft.name().length() &lt; 3) {
+            throw new ValidationException("Enter the facility name (at least 3 characters).");
+        }
+        if (draft.name().length() &gt; 120) {
+            throw new ValidationException("The facility name is too long. Keep it under 120 characters.");
+        }
+        if (!CONDITIONS.contains(draft.condition())) {
+            throw new ValidationException("Choose a valid condition.");
+        }
+        if (draft.building() != null &amp;&amp; draft.building().length() &gt; 80) {
+            throw new ValidationException("The building name is too long.");
+        }
+        if (draft.floor() != null &amp;&amp; draft.floor().length() &gt; 20) {
+            throw new ValidationException("The floor is too long.");
+        }</code></pre>
+<h3>7.3 Flow</h3>
+<div class="filetree">Controller (collect form/UI) → Service (permission + validate + rules + audit)
+    → DAO (parameterized SQL) → Database pool → MySQL tables</div>
+</section><section class="part" id="p8"><h2>Part 8: The App Shell &amp; UI System (navigation, Shell, FXML, CSS)</h2>
+<h3>8.1 Shell: one frame, many screens</h3>
+<p><code>ShellView.fxml</code> provides sidebar menu, top bar (title, user chip, sign out), and a content <code>StackPane</code> where feature views are loaded.</p>
+<h4><code>ShellView.fxml</code></h4>
+<pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+
+&lt;?import javafx.scene.control.Button?&gt;
+&lt;?import javafx.scene.control.Label?&gt;
+&lt;?import javafx.scene.image.Image?&gt;
+&lt;?import javafx.scene.image.ImageView?&gt;
+&lt;?import javafx.scene.layout.HBox?&gt;
+&lt;?import javafx.scene.layout.Region?&gt;
+&lt;?import javafx.scene.layout.StackPane?&gt;
+&lt;?import javafx.scene.layout.VBox?&gt;
+
+&lt;HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.ShellController"
+      styleClass="app-shell"&gt;
+
+    &lt;!-- Sidebar --&gt;
+    &lt;VBox styleClass="sidebar"&gt;
+        &lt;HBox styleClass="brand-box" alignment="CENTER_LEFT" spacing="11"&gt;
+            &lt;StackPane styleClass="brand-logo-frame"&gt;
+                &lt;ImageView fitWidth="36" fitHeight="36" preserveRatio="true"&gt;
+                    &lt;image&gt;
+                        &lt;Image url="@../img/deihs-logo.jpg"/&gt;
+                    &lt;/image&gt;
+                &lt;/ImageView&gt;
+            &lt;/StackPane&gt;
+            &lt;VBox spacing="1"&gt;
+                &lt;Label text="DEIHS MMS" styleClass="brand-name"/&gt;
+                &lt;Label text="Maintenance System" styleClass="brand-sub"/&gt;
+            &lt;/VBox&gt;
+        &lt;/HBox&gt;
+
+        &lt;VBox fx:id="menuBox" styleClass="menu" VBox.vgrow="ALWAYS"/&gt;
+
+        &lt;VBox styleClass="side-foot" spacing="4"&gt;
+            &lt;Label fx:id="scopeLabel" styleClass="side-foot-label" text="All school records"/&gt;
+            &lt;Label text="v1.0 · DEIHS" styleClass="side-foot-label"/&gt;
+        &lt;/VBox&gt;
+    &lt;/VBox&gt;
+
+    &lt;!-- Main --&gt;
+    &lt;VBox HBox.hgrow="ALWAYS"&gt;
+        &lt;HBox styleClass="topbar"&gt;
+            &lt;Label fx:id="pageTitle" styleClass="page-title" text="Dashboard"/&gt;
+            &lt;Region HBox.hgrow="ALWAYS"/&gt;
+            &lt;Button text="Sign out" styleClass="btn-ghost" onAction="#onLogout"/&gt;
+            &lt;HBox styleClass="user-chip" spacing="9" alignment="CENTER_LEFT"&gt;
+                &lt;Label fx:id="avatarLabel" styleClass="avatar" text="--"/&gt;
+                &lt;VBox spacing="0"&gt;
+                    &lt;Label fx:id="userNameLabel" styleClass="user-name" text="—"/&gt;
+                    &lt;Label fx:id="userRoleLabel" styleClass="user-role" text="—"/&gt;
+                &lt;/VBox&gt;
+            &lt;/HBox&gt;
+        &lt;/HBox&gt;
+
+        &lt;StackPane fx:id="contentArea" styleClass="content" alignment="TOP_LEFT"
+                   VBox.vgrow="ALWAYS"/&gt;
+    &lt;/VBox&gt;
+&lt;/HBox&gt;
+</code></pre>
+<h4><code>ShellController.java</code> (navigation idea)</h4>
+<pre><code>package com.deihs.mms.controller;
+
+import com.deihs.mms.Main;
+import com.deihs.mms.model.Role;
+import com.deihs.mms.model.User;
+import com.deihs.mms.service.Permissions;
+import com.deihs.mms.service.Session;
+import com.deihs.mms.util.AlertUtil;
+import com.deihs.mms.util.Icons;
+import com.deihs.mms.util.ViewLoader;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * The application frame: sidebar navigation, top bar, and the content area
+ * where each screen is loaded.
+ */
+public class ShellController {
+
+    @FXML private VBox menuBox;
+    @FXML private StackPane contentArea;
+    @FXML private Label pageTitle;
+    @FXML private Label avatarLabel;
+    @FXML private Label userNameLabel;
+    @FXML private Label userRoleLabel;
+    @FXML private Label scopeLabel;
+
+    private final Map&lt;String, Button&gt; navButtons = new LinkedHashMap&lt;&gt;();
+    private final Map&lt;String, Nav&gt; navs = new LinkedHashMap&lt;&gt;();
+    private String currentKey = "dashboard";
+
+    private record Nav(String key, String title, String icon) {
+    }
+
+    @FXML
+    private void initialize() {
+        User user = Session.get();
+
+        avatarLabel.setText(user.initials());
+        userNameLabel.setText(user.fullName());
+        userRoleLabel.setText(user.roleName());
+        scopeLabel.setText(switch (user.role()) {
+            case PERSONNEL -&gt; "Showing my assigned tasks";
+            case STAFF -&gt; "Showing my own requests";
+            default -&gt; "All school records";
+        });
+
+        buildMenu(user);
+        navigate("dashboard");
+    }
+
+    // ------------------------------------------------------------------
+    // Navigation
+    // ------------------------------------------------------------------
+
+    private void buildMenu(User user) {
+        for (Nav nav : navFor(user)) {
+            navs.put(nav.key(), nav);
+
+            Node iconNode = Icons.of(nav.icon(), 16);
+
+            Button item = new Button(nav.title(), iconNode);
+            item.getStyleClass().add("nav-item");
+            item.setMaxWidth(Double.MAX_VALUE);
+            item.setOnAction(e -&gt; navigate(nav.key()));
+
+            navButtons.put(nav.key(), item);
+            menuBox.getChildren().add(item);
+        }
+    }
+
+    private List&lt;Nav&gt; navFor(User u) {
+        List&lt;Nav&gt; list = new ArrayList&lt;&gt;();
+        list.add(new Nav("dashboard", "Dashboard", Icons.DASHBOARD));
+
+        if (u.role() == Role.PERSONNEL) {
+            list.add(new Nav("tasks", "My Tasks", Icons.TASKS));
+        } else {
+            list.add(new Nav("requests", "Requests", Icons.REQUESTS));
+        }
+
+        if (Permissions.canManageFacilities(u)) {
+            list.add(new Nav("facilities", "Facilities", Icons.FACILITIES));
+        }
+        if (Permissions.canManageEquipment(u)) {
+            list.add(new Nav("equipment", "Equipment", Icons.EQUIPMENT));
+        }
+        if (u.role() != Role.STAFF) {
+            list.add(new Nav("schedules", "Schedules", Icons.SCHEDULES));
+        }
+        if (Permissions.canManageUsers(u)) {
+            list.add(new Nav("users", "Users", Icons.USERS));
+        }
+        if (Permissions.canViewReports(u)) {
+            list.add(new Nav("reports", "Reports", Icons.REPORTS));
+        }
+        if (Permissions.canViewAuditLog(u)) {
+            list.add(new Nav("audit", "Audit Log", Icons.AUDIT));
+        }
+        return list;
+    }
+
+    public void navigate(String key) {
+        Nav nav = navs.get(key);
+        if (nav == null) {
+            return;
+        }
+        currentKey = key;
+        pageTitle.setText(nav.title());
+
+        navButtons.forEach((k, button) -&gt; button.getStyleClass().remove("active"));
+        Button active = navButtons.get(key);
+        if (active != null &amp;&amp; !active.getStyleClass().contains("active")) {
+            active.getStyleClass().add("active");
+        }
+
+        contentArea.getChildren().setAll(loadView(nav));
+    }
+
+    private Node loadView(Nav nav) {
+        if ("dashboard".equals(nav.key())) {
+            try {
+                FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/DashboardView.fxml");
+                Parent view = loader.load();
+                DashboardController controller = loader.getController();
+                controller.setNavigator(this::navigate);
+                return view;
+            } catch (IOException | RuntimeException e) {
+                return errorView(nav.title(), e);
+            }
+        }
+        if ("requests".equals(nav.key()) || "tasks".equals(nav.key())) {
+            try {
+                FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/RequestsView.fxml");
+                Parent view = loader.load();
+                RequestsController controller = loader.getController();
+                controller.setOpenRequestHandler(id -&gt; openRequest(nav, id));
+                return view;
+            } catch (IOException | RuntimeException e) {
+                return errorView(nav.title(), e);
+            }
+        }
+        if ("facilities".equals(nav.key())) {
+            try {
+                FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/FacilitiesView.fxml");
+                Parent view = loader.load();
+                return view;
+            } catch (IOException | RuntimeException e) {
+                return errorView(nav.title(), e);
+            }
+        }
+        if ("users".equals(nav.key())) {
+            try {
+                FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/UsersView.fxml");
+                Parent view = loader.load();
+                return view;
+            } catch (IOException | RuntimeException e) {
+                return errorView(nav.title(), e);
+            }
+        }
+        if ("equipment".equals(nav.key())) {
+            try {
+                FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/EquipmentView.fxml");
+                Parent view = loader.load();
+                return view;
+            } catch (IOException | RuntimeException e) {
+    // buildMenu(): add buttons based on role/Permissions
+    // show(view, fxml, title): ViewLoader.load -> set contentArea, highlight nav
+    // onLogout(): Session.clear() -> Main.setRoot(LoginView)</code></pre>
+<div class="why"><strong>Why a shell?</strong> Consistent navigation, role-based menus, and no window clutter — controllers just swap content.</div>
+<h3>8.2 Styling (CSS)</h3>
+<pre><code>/* =====================================================================
+   DEIHS Maintenance Management System
+   Approved design: Green &amp; Gold (crest-led), sidebar layout,
+   soft 10px corners, comfortable density.
+   ---------------------------------------------------------------------
+   Palette
+     primary        #0E6B34   green ring
+     primary-dark   #0A4A24   dark green
+     primary-hover  #0B5A2C
+     accent         #F5C518   golden sun
+     info           #1A47B8   royal blue field
+     bg             #F4F7F4
+     card           #FFFFFF
+     border         #DCE5DD
+     text           #1F2933
+     muted          #6B7785
+   ===================================================================== */
+
+.root {
+    -fx-font-family: "Segoe UI", "Inter", "Noto Sans", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: #1F2933;
+}
+
+/* ------------------------------ Login ------------------------------ */
+
+.login-root {
+    -fx-background-color: #F4F7F4;
+}
+
+.login-brand {
+    -fx-background-color: linear-gradient(to bottom right, #0A4A24, #0E6B34);
+    -fx-padding: 48 44 40 44;
+    -fx-alignment: center;
+}
+
+.login-logo-frame {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.login-logo-image {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.22), 18, 0.12, 0, 6);
+}
+
+.login-school-abbr {
+    -fx-font-size: 40px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-alignment: center;
+}
+
+.login-school-name {
+    -fx-font-size: 16px;
+    -fx-font-weight: normal;
+    -fx-text-fill: rgba(255, 255, 255, 0.92);
+    -fx-wrap-text: true;
+    -fx-line-spacing: 2;
+    -fx-alignment: center;
+}
+
+.login-title {
+    -fx-font-size: 27px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #FFFFFF;
+    -fx-line-spacing: 2;
+}
+
+.login-tagline {
+    -fx-font-size: 12.5px;
+    -fx-text-fill: rgba(255, 255, 255, 0.78);
+    -fx-wrap-text: true;
+    -fx-max-width: 300;
+    -fx-line-spacing: 3;
+}
+
+.login-footer {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: rgba(255, 255, 255, 0.62);
+    -fx-alignment: center;
+}
+
+.login-panel {
+    -fx-background-color: #F4F7F4;
+    -fx-padding: 40;
+}
+
+.login-card {
+    -fx-max-width: 380;
+}
+
+.login-heading {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2933;
+}
+
+.login-sub {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6B7785;
+}
+
+.field-label {
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #46525F;
+}
+
+.input {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #C9D6CB;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 10 12 10 12;
+    -fx-font-size: 13px;
+    -fx-pref-height: 42;
+    -fx-text-fill: #1F2933;
+}
+
+.input:focused {
+/* ... tables, forms, badges, cards, sidebar, etc. ... */</code></pre>
+<div class="note">Use <code>styleClass</code> in FXML (e.g. <code>btn-primary</code>, <code>input</code>) and define in <code>styles.css</code>. Apply app styles to dialogs via <code>ViewLoader.applyAppStyles(...)</code>.</div>
+</section><section class="part" id="p9"><h2>Part 9: Building a Feature Module (repeatable DAO→Service→Controller→FXML pattern)</h2>
+<h3>9.1 Skeleton for any module</h3>
+<ol>
+  <li><strong>DB table(s)</strong> in <code>deihs_mms.sql</code>.</li>
+  <li><strong>Model</strong> (and Draft for form input if needed).</li>
+  <li><strong>DAO</strong>: findAll/create/update/helpers (parameterized SQL).</li>
+  <li><strong>Service</strong>: permissions, validation, rules, audit.</li>
+  <li><strong>FXML views</strong>: list/table + filters + form dialog/detail view.</li>
+  <li><strong>Controller</strong>: load data (often via <code>Task</code>), bind TableView, open dialogs, call service, refresh.</li>
+  <li><strong>Wire into Shell</strong>: menu entry → load view.</li>
+</ol>
+<div class="why"><strong>Why this order?</strong> Build data-up: correct table/DAO/service makes the UI straightforward and easier to debug.</div>
+<h3>9.2 Example: Facilities controller excerpt</h3>
+<pre><code>package com.deihs.mms.controller;
+
+import com.deihs.mms.dao.FacilityDao;
+import com.deihs.mms.model.Choice;
+import com.deihs.mms.model.Facility;
+import com.deihs.mms.model.FacilityDraft;
+import com.deihs.mms.model.User;
+import com.deihs.mms.service.FacilityService;
+import com.deihs.mms.service.Permissions;
+import com.deihs.mms.service.Session;
+import com.deihs.mms.service.ValidationException;
+import com.deihs.mms.util.AlertUtil;
+import com.deihs.mms.util.Format;
+import com.deihs.mms.util.ViewLoader;
+import javafx.animation.PauseTransition;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
+import javafx.stage.Window;
+import javafx.util.Duration;
+
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
+/**
+ * Facility registry: search, filter by condition, add/edit/archive/restore.
+ * Admin and Maintenance Head can manage; others would not reach this screen.
+ */
+public class FacilitiesController {
+
+    @FXML private Button addButton;
+    @FXML private TextField searchField;
+    @FXML private ComboBox&lt;Choice&gt; conditionBox;
+    @FXML private CheckBox showArchivedBox;
+    @FXML private Label countLabel;
+    @FXML private TableView&lt;Facility&gt; table;
+    @FXML private TableColumn&lt;Facility, String&gt; codeCol;
+    @FXML private TableColumn&lt;Facility, String&gt; nameCol;
+    @FXML private TableColumn&lt;Facility, String&gt; buildingCol;
+    @FXML private TableColumn&lt;Facility, String&gt; floorCol;
+    @FXML private TableColumn&lt;Facility, String&gt; roomCol;
+    @FXML private TableColumn&lt;Facility, String&gt; typeCol;
+    @FXML private TableColumn&lt;Facility, String&gt; conditionCol;
+    @FXML private TableColumn&lt;Facility, Integer&gt; equipmentCol;
+    @FXML private TableColumn&lt;Facility, Integer&gt; openCol;
+    @FXML private TableColumn&lt;Facility, Void&gt; actionsCol;
+
+    private final FacilityDao facilityDao = new FacilityDao();
+    private final FacilityService facilityService = new FacilityService();
+    private final ObservableList&lt;Facility&gt; rows = FXCollections.observableArrayList();
+
+    private int generation;
+    private boolean canManage;
+
+    @FXML
+    private void initialize() {
+        User user = Session.get();
+        canManage = Permissions.canManageFacilities(user);
+        addButton.setVisible(canManage);
+        addButton.setManaged(canManage);
+
+        setupFilters();
+        setupTable();
+
+        PauseTransition debounce = new PauseTransition(Duration.millis(250));
+        debounce.setOnFinished(e -&gt; refresh());
+        searchField.textProperty().addListener((obs, o, n) -&gt; debounce.playFromStart());
+        conditionBox.valueProperty().addListener((obs, o, n) -&gt; refresh());
+        showArchivedBox.selectedProperty().addListener((obs, o, n) -&gt; refresh());
+
+        refresh();
+    }
+
+    private void setupFilters() {
+        conditionBox.getItems().add(new Choice(null, "All conditions"));
+        for (String c : List.of("GOOD", "FAIR", "POOR", "NEEDS_REPAIR", "OUT_OF_ORDER")) {
+            conditionBox.getItems().add(new Choice(c, Format.pretty(c)));
+        }
+        conditionBox.getSelectionModel().selectFirst();
+        showArchivedBox.setSelected(false);
+    }
+
+    private void setupTable() {
+        table.setItems(rows);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        table.setPlaceholder(new Label("No facilities match the current filters."));
+
+        codeCol.setCellValueFactory(new PropertyValueFactory&lt;&gt;("code"));
+        nameCol.setCellValueFactory(new PropertyValueFactory&lt;&gt;("name"));
+        buildingCol.setCellValueFactory(c -&gt; new ReadOnlyStringWrapper(blank(c.getValue().building())));
+        floorCol.setCellValueFactory(c -&gt; new ReadOnlyStringWrapper(blank(c.getValue().floor())));
+        roomCol.setCellValueFactory(c -&gt; new ReadOnlyStringWrapper(blank(c.getValue().roomNumber())));
+        typeCol.setCellValueFactory(c -&gt; new ReadOnlyStringWrapper(blank(c.getValue().type())));
+        equipmentCol.setCellValueFactory(new PropertyValueFactory&lt;&gt;("equipmentCount"));
+        openCol.setCellValueFactory(new PropertyValueFactory&lt;&gt;("openRequests"));
+
+        conditionCol.setCellValueFactory(c -&gt; new ReadOnlyStringWrapper(c.getValue().condition()));
+        conditionCol.setCellFactory(col -&gt; new TableCell&lt;&gt;() {
+            private final Label badge = new Label();
+    // initialize(): columns/filters; load() via Task -> table items
+    // onAdd/onEdit(): dialog -> FacilityService.create/update -> reload</code></pre>
+<h3>9.3 Requests (more complex, same skeleton)</h3>
+<ul>
+  <li><strong>Scopes:</strong> ALL (admin/head), MY_TASKS (personnel), MY_REQUESTS (staff).</li>
+  <li><strong>Workflow:</strong> status transitions with role/remarks rules; history/audit recorded.</li>
+  <li><strong>Detail view:</strong> info, comments, attachments, actions, back-to-list refresh.</li>
+</ul>
+<div class="filetree">Requests flow:
+RequestsView/Controller (list) → RequestForm/Controller (create/edit)
+                            → RequestDetail/Controller (status/comments/history)
+      ↓ service/RequestService (rules/permissions/audit)
+      ↓ dao/RequestDao, CommentDao, HistoryDao, AttachmentDao
+      ↓ DB: maintenance_requests + related tables</div>
+</section><section class="part" id="p10"><h2>Part 10: Accounts: Registration, User Management &amp; Google Sign-in (Option A)</h2>
+<h3>10.1 Self-registration (pending approval)</h3>
+<ul>
+  <li>User submits form → <code>RegistrationService</code> validates and inserts into <code>account_requests</code> (hashed password, requested role, PENDING).</li>
+  <li>Admin approves (creates/activates user with chosen role) or rejects.</li>
+</ul>
+<div class="why"><strong>Why pending approval?</strong> Admin controls who gets access and which role — prevents unauthorized privileged accounts.</div>
+<h3>10.2 Users management</h3>
+<p>Admin: create/edit, activate/deactivate, reset passwords, approve/reject requests. Pattern: Controller → UserService/RegistrationService → UserDao/AccountRequestDao (+ audit).</p>
+<h3>10.3 Google sign-in (Option A, config-gated)</h3>
+<ul>
+  <li>Shown only if <code>google.clientId</code> configured (<code>GoogleOAuthService.isConfigured()</code>).</li>
+  <li>Desktop loopback+browser OAuth (PKCE) → verified email/profile.</li>
+  <li><strong>Match active user by email</strong> → sign in. <strong>Inactive</strong> → blocked message. <strong>No match</strong> → collect required fields/requested role and submit <strong>pending</strong> request.</li>
+</ul>
+<div class="note"><strong>Pending in dev:</strong> needs real Client ID/Secret, redirect URI, internet/browser, and matching emails. Keep secrets in config/<code>-D</code>, never hardcoded.</div>
+</section><section class="part" id="p11"><h2>Part 11: Remaining Modules &amp; Full File Map (Dashboard, Equipment, Schedules, Audit, Reports)</h2>
+<h3>11.1 Other modules (same architecture)</h3>
+<table>
+<tr><th>Module</th><th>Purpose</th><th>Key idea</th></tr>
+<tr><td>Dashboard</td><td>Role-based KPIs/summaries</td><td>Aggregate queries → display on Shell home</td></tr>
+<tr><td>Equipment</td><td>Track equipment/condition, link to facility, archive/restore</td><td>CRUD like Facilities</td></tr>
+<tr><td>Schedules</td><td>Plan maintenance; mark done advances next due date</td><td>Service computes next due date, records completion</td></tr>
+<tr><td>Audit Log</td><td>Read-only activity trail</td><td>Append on key actions; filterable list</td></tr>
+<tr><td>Reports</td><td>Date-range summaries, breakdowns, cost/downtime, export</td><td>Aggregate in DAO/service; render UI + CSV/PDF</td></tr>
+</table>
+<h3>11.2 Full responsibility map</h3>
+<div class="filetree">config/AppConfig.java      → settings
+db/Database.java           → connection pool
+model/*                    → data shapes (records/classes/enums/drafts)
+dao/*Dao.java              → SQL (parameterized)
+service/*                  → permissions, validation, rules, session, auth, audit
+controller/*Controller.java → screen behavior (wired to FXML)
+util/*                     → ViewLoader, AlertUtil, Format, Icons...
+resources/view/*.fxml       → screens
+resources/css/styles.css   → theme
+resources/db.properties    → config
+database/deihs_mms.sql     → schema + seed</div>
+</section><section class="part" id="p12"><h2>Part 12: Running, Testing &amp; LAN Deployment</h2>
+<h3>12.1 Run (development)</h3>
+<pre><code># Ensure MySQL running and deihs_mms imported
+# Configure src/main/resources/db.properties
+cd deihs-mms
+mvn javafx:run
+# Override example:
+# mvn javafx:run -Ddb.host=192.168.1.10 -Ddb.port=3306</code></pre>
+<h3>12.2 Build/package</h3>
+<pre><code>mvn -B package -DskipTests</code></pre>
+<h3>12.3 LAN deployment checklist</h3>
+<ol>
+  <li><strong>Server PC:</strong> run MySQL/XAMPP, import <code>database/deihs_mms.sql</code>, create secured DB user, note LAN IP.</li>
+  <li><strong>Client PCs:</strong> install Java 21, copy app, set <code>db.host=&lt;server-ip&gt;</code> (port/user/pass) via properties or <code>-D</code>.</li>
+  <li><strong>Verify:</strong> login from multiple PCs, perform CRUD, confirm shared data updates.</li>
+</ol>
+<h3>12.4 Testing approach</h3>
+<ul>
+  <li>Build/tests pass: <code>mvn -B test</code>, <code>package</code>.</li>
+  <li>Smoke per role (ADMIN, MAINT_HEAD, PERSONNEL, STAFF): menus and allowed actions.</li>
+  <li>Workflow: create → assign → progress → complete → close request; check history/audit.</li>
+  <li>Failures: wrong password, DB unreachable, invalid input → friendly errors, no crash.</li>
+</ul>
+<div class="warn"><strong>Notes:</strong> dev db.properties may point to a dev port (e.g. 3307) — set to XAMPP/LAN for deployment. Photo attachments are local paths (shared folder needed across PCs). No automated unit tests yet.</div>
+</section><section class="part" id="p13"><h2>Part 13: Troubleshooting, Debug Flow &amp; Rebuild Checklist</h2>
+<h3>13.1 Common issues</h3>
+<table>
+<tr><th>Problem</th><th>Likely cause</th><th>Check</th></tr>
+<tr><td>Can't reach DB</td><td>MySQL off, wrong host/port/creds, firewall</td><td>db.properties/<code>-D</code>, XAMPP, server IP, port 3306</td></tr>
+<tr><td>FXML load error</td><td>Bad path, missing controller, wrong <code>fx:id</code></td><td>Resource path, <code>fx:controller</code>, <code>@FXML</code> field names</td></tr>
+<tr><td>Login fails</td><td>Wrong creds/inactive/hash/seed missing</td><td>Seed users, <code>is_active</code>, BCrypt, AuthService messages</td></tr>
+<tr><td>Action blocked</td><td>Permissions/service rules</td><td>Permissions + service enforcement for role</td></tr>
+<tr><td>Dialog unstyled</td><td>Stylesheet not on dialog scene</td><td><code>ViewLoader.applyAppStyles(...)</code></td></tr>
+</table>
+<h3>13.2 Rebuild order (start to end)</h3>
+<ol>
+  <li>Maven + folders + <code>pom.xml</code>.</li>
+  <li>DB schema/import (<code>deihs_mms.sql</code>).</li>
+  <li>Config &amp; pool (<code>db.properties</code>, <code>AppConfig</code>, <code>Database</code>).</li>
+  <li>Bootstrap (<code>Launcher</code>, <code>Main</code>, <code>ViewLoader</code>, base CSS).</li>
+  <li>Models/Role/Session/Permissions.</li>
+  <li>Auth (DAO + AuthService + Login view/controller) → Shell.</li>
+  <li>Modules one by one (Facilities pattern), wire into Shell.</li>
+  <li>Registration/Users/Google (as needed), Reports/Audit/Schedules.</li>
+  <li>Test per role, fix, deploy LAN, document.</li>
+</ol>
+<div class="why"><strong>Debug flow for beginners:</strong> trace <em>Controller → Service → DAO → DB</em>. Ask: Is data in DB? Does DAO return it? Does service allow it? Does controller display it? Change one thing at a time and run often.</div>
+<p class="small">End of guide — DEIHS Maintenance Management System (JavaFX 21 + MySQL).</p>
+</section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

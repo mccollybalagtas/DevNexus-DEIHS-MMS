@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.ScheduleFormController"
+      styleClass="form-body" spacing="13" prefWidth="580">
+
+    <Label fx:id="errorLabel" styleClass="form-error" wrapText="true"
+           visible="false" managed="false"/>
+
+    <VBox spacing="5">
+        <Label text="Title" styleClass="field-label"/>
+        <TextField fx:id="titleField" styleClass="input" promptText="e.g. Monthly aircon filter cleaning"/>
+    </VBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Facility" styleClass="field-label"/>
+            <ComboBox fx:id="facilityBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Equipment" styleClass="field-label"/>
+            <ComboBox fx:id="equipmentBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+    <Label text="Select at least a facility or equipment." styleClass="form-hint"/>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Frequency" styleClass="field-label"/>
+            <ComboBox fx:id="frequencyBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Next due date" styleClass="field-label"/>
+            <DatePicker fx:id="nextDuePicker" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="5">
+        <Label text="Assign to (optional)" styleClass="field-label"/>
+        <ComboBox fx:id="assigneeBox" styleClass="combo-input" maxWidth="Infinity"/>
+    </VBox>
+
+    <VBox spacing="5">
+        <Label text="Description (optional)" styleClass="field-label"/>
+        <TextArea fx:id="descriptionArea" styleClass="input" prefRowCount="3" wrapText="true"/>
+    </VBox>
+</VBox>

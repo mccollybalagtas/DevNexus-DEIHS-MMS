@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEIHS MMS — Member Assignment Kit</title>
+<style>
+  :root { --green:#0E6B34; --green-dark:#0A4A24; --gold:#F5C518; --blue:#1A47B8; --bg:#F4F7F4; --text:#1F2933; --muted:#5b6773; --card:#fff; --border:#DCE5DD; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Calibri,Arial,sans-serif;background:#e9efe9;color:var(--text);line-height:1.55}
+  .wrap{max-width:1150px;margin:0 auto;padding:18px}
+  header.hero{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;padding:26px 30px;border-radius:14px;margin-bottom:16px}
+  header.hero h1{margin:0 0 6px;font-size:32px;line-height:1.2}
+  header.hero p{margin:4px 0;color:#e9f7ee}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .meta span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;padding:3px 10px;border-radius:999px;font-size:12.5px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px 22px;margin-bottom:14px}
+  h2{color:var(--green);margin:0 0 10px;font-size:24px;border-bottom:2px solid #e6efe6;padding-bottom:6px}
+  h3{color:var(--green-dark);margin:16px 0 6px;font-size:18px}
+  h4{color:#123b25;margin:12px 0 4px;font-size:15.5px}
+  p,li{font-size:15.5px} ul,ol{margin:6px 0 10px 22px}
+  .why{background:#f2fbf5;border-left:4px solid var(--green);padding:10px 12px;border-radius:8px;margin:10px 0}
+  .note{background:#fff8e6;border-left:4px solid var(--gold);padding:10px 12px;border-radius:8px;margin:10px 0}
+  .script{background:#0a4a24;color:#eaf7ef;border-radius:10px;padding:12px 14px;margin:10px 0;font-size:15px}
+  .script strong{color:#F5C518}
+  .member{border-left:6px solid var(--green);padding-left:14px;scroll-margin-top:12px}
+  .mhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+  .tag{display:inline-block;background:#e6f4ea;color:#0a4a24;border:1px solid #bfe3c9;padding:2px 9px;border-radius:999px;font-size:12.5px;margin:2px 4px 2px 0}
+  .tag.blue{background:#e8f0ff;color:#163ea8;border-color:#bfd1ff}
+  .tag.gold{background:#fff7d6;color:#6b5200;border-color:#f3d96b}
+  .tag.gray{background:#eef1f0;color:#42504b;border-color:#d7dedb}
+  .file{font-family:Consolas,monospace;background:#f3f7f3;border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+  code{font-family:Consolas,monospace;font-size:13.5px;background:#f3f7f3;border:1px solid #e2ebe2;border-radius:4px;padding:1px 5px}
+  .script code{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}
+  table{border-collapse:collapse;width:100%;margin:8px 0} th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;font-size:14.5px;vertical-align:top} th{background:#f3f7f3}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .small{color:var(--muted);font-size:13.5px}
+  .nav{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+  .nav a{text-decoration:none;background:#fff;border:1px solid var(--border);color:var(--green-dark);padding:6px 12px;border-radius:999px;font-size:14px}
+  .nav a:hover{border-color:var(--green);background:#f2fbf5}
+  a.guide{color:var(--blue);text-decoration:none;border-bottom:1px dotted #9db4ea}
+  a.guide:hover{border-bottom-style:solid}
+  ul.tasks{list-style:none;margin-left:0;padding-left:0}
+  ul.tasks li{position:relative;padding-left:28px;margin:7px 0}
+  ul.tasks li::before{content:"";position:absolute;left:0;top:3px;width:15px;height:15px;border:2px solid #9fb8a6;border-radius:4px;background:#fff}
+  .qa{border-top:1px dashed #d7e2d9;padding-top:8px;margin-top:8px}
+  .qa p{margin:5px 0}
+  .q{font-weight:600;color:#123b25}
+  .a{color:#33414b}
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:8px 0}
+  .kpi div{background:#f6faf7;border:1px solid #dbe9de;border-radius:10px;padding:10px;text-align:center}
+  .kpi b{display:block;font-size:22px;color:var(--green)}
+  .kpi span{font-size:12.5px;color:var(--muted)}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}.kpi{grid-template-columns:1fr 1fr}}
+  @media print{
+    body{background:#fff}
+    .wrap{max-width:none;padding:0}
+    .card{break-inside:avoid;page-break-inside:avoid;border:1px solid #ccc;margin-bottom:10px}
+    .member{break-before:page;page-break-before:always}
+    .nav{display:none}
+    header.hero{border-radius:0}
+    a.guide{color:#000;border:none}
+    .script{background:#f0f0f0;color:#000}
+    .script strong{color:#000}
+    .script code{background:#e6e6e6;color:#000}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <h1>DEIHS Maintenance Management System</h1>
+    <p><strong>Member Assignment Kit — what each member owns, explains, and demos</strong></p>
+    <p>Companion to <code>DEIHS_MMS_Build_Guide.html</code>. Every Build Guide part (0–13) is assigned to one primary owner, so nothing is left unclaimed.</p>
+    <div class="meta">
+      <span>5 members</span>
+      <span>14 Build Guide parts</span>
+      <span>Feature-complete: Nov 16, 2026</span>
+      <span>Final defense: Dec 18, 2026</span>
+      <span>JavaFX 21 + MySQL (LAN)</span>
+    </div>
+  </header>
+
+  <div class="nav">
+    <a href="#how">How to use</a>
+    <a href="#agenda">Meeting agenda</a>
+    <a href="#matrix">Coverage matrix</a>
+    <a href="#m1">Member 1</a>
+    <a href="#m2">Member 2</a>
+    <a href="#m3">Member 3</a>
+    <a href="#m4">Member 4</a>
+    <a href="#m5">Member 5</a>
+    <a href="#handoff">Handoffs</a>
+    <a href="#rules">Demo rules</a>
+    <a href="#limits">Known limits</a>
+  </div>
+
+  <section class="card" id="how">
+    <h2>How to Use This Kit</h2>
+    <ul>
+      <li><strong>One owner per part.</strong> Each member reads their assigned Build Guide sections first, then uses this page as the <em>script</em> for the meeting and the defense.</li>
+      <li><strong>Prepare in this order:</strong> read the guide section → open the listed files → run the app and perform the demo once → fill in the task checkboxes → rehearse the 60-second opening out loud.</li>
+      <li><strong>Every member must be able to do three things:</strong> explain the <em>why</em>, trace one action from screen to database, and show one rule that <em>blocks</em> a bad action.</li>
+      <li><strong>Be honest about status.</strong> Anything that depends on real credentials, the school LAN, or real data is reported as <em>“pending setup”</em>, not “finished.”</li>
+    </ul>
+    <div class="note"><strong>Before the meeting:</strong> write real names on the matrix below, open the Build Guide in a second browser tab (links here jump to <code>#p1</code> … <code>#p13</code>), and make sure the database and app run on the presenting PC.</div>
+  </section>
+
+  <section class="card" id="agenda">
+    <h2>Suggested Meeting Agenda (45 minutes)</h2>
+    <table>
+      <tr><th>Time</th><th>Segment</th><th>Who</th><th>Output</th></tr>
+      <tr><td>0–5 min</td><td>Big picture: what the system is, the 4 roles, the 5 parts</td><td>Lead</td><td>Shared context; everyone knows Part 0</td></tr>
+      <tr><td>5–11 min</td><td>Foundation: environment, schema, config, LAN</td><td>Member 1</td><td>Everyone can connect</td></tr>
+      <tr><td>11–17 min</td><td>Startup, login, session, permissions</td><td>Member 2</td><td>Role rules understood</td></tr>
+      <tr><td>17–23 min</td><td>Module pattern + Facilities/Equipment</td><td>Member 3</td><td>Everyone can build a module</td></tr>
+      <tr><td>23–29 min</td><td>Requests workflow + accounts + Google</td><td>Member 4</td><td>Core workflow understood</td></tr>
+      <tr><td>29–35 min</td><td>Reports, audit, QA, defense package</td><td>Member 5</td><td>Quality plan agreed</td></tr>
+      <tr><td>35–42 min</td><td>Dependencies and blockers (use the handoff table)</td><td>All</td><td>Each blocker has an owner and date</td></tr>
+      <tr><td>42–45 min</td><td>Confirm names, due dates, next rehearsal</td><td>All</td><td>Assignments locked</td></tr>
+    </table>
+    <p class="small">If time is short, cut each member to 4 minutes: 1 minute opening script, 2 minutes demo, 1 minute “what could go wrong.”</p>
+  </section>
+
+  <section class="card" id="matrix">
+    <h2>Coverage Matrix — Every Build Guide Part Has an Owner</h2>
+    <table>
+      <tr><th>Build Guide part</th><th>Topic</th><th>Primary</th><th>Support</th></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p0">Part 0</a></td><td>System overview and architecture</td><td><strong>Everyone</strong></td><td>—</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p1">Part 1</a></td><td>Prerequisites, Maven, project folders</td><td>Member 1</td><td>Member 5</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p2">Part 2</a></td><td>Database design and SQL import</td><td>Member 1</td><td>Member 4</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p3">Part 3</a></td><td>Configuration and connection pool</td><td>Member 1</td><td>Member 2</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p4">Part 4</a></td><td>App bootstrap (Launcher, Main, ViewLoader)</td><td>Member 2</td><td>Member 3</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p5">Part 5</a></td><td>Models, roles, session, permissions</td><td>Member 2</td><td>Member 4</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p6">Part 6</a></td><td>Authentication and login flow</td><td>Member 2</td><td>Member 5</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p7">Part 7</a></td><td>DAO pattern, services, validation, audit</td><td>Member 3</td><td>Member 4</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p8">Part 8</a></td><td>App shell, navigation, FXML, CSS</td><td>Member 2</td><td>Member 5</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p9">Part 9</a></td><td>Building a feature module (the pattern)</td><td>Member 3</td><td>Member 4</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p10">Part 10</a></td><td>Registration, user management, Google Option A</td><td>Member 4</td><td>Member 2</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p11">Part 11</a></td><td>Dashboard, equipment, schedules, audit, reports</td><td>Member 5</td><td>Members 3 &amp; 4</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p12">Part 12</a></td><td>Running, testing, LAN deployment</td><td>Member 1</td><td>Member 5</td></tr>
+      <tr><td><a class="guide" href="DEIHS_MMS_Build_Guide.html#p13">Part 13</a></td><td>Troubleshooting, debug flow, rebuild checklist</td><td>Member 5</td><td>Member 1</td></tr>
+    </table>
+    <table>
+      <tr><th>Member</th><th>Write the name</th><th>Mission (one line)</th><th>Due</th></tr>
+      <tr><td>Member 1</td><td>____________________</td><td>Make it run anywhere on the LAN</td><td>Nov 16</td></tr>
+      <tr><td>Member 2</td><td>____________________</td><td>Explain startup, identity, and access</td><td>Nov 16</td></tr>
+      <tr><td>Member 3</td><td>____________________</td><td>Own the pattern every module follows</td><td>Nov 16</td></tr>
+      <tr><td>Member 4</td><td>____________________</td><td>Own the workflow and account lifecycle</td><td>Nov 16</td></tr>
+      <tr><td>Member 5</td><td>____________________</td><td>Prove it works and package the defense</td><td>Dec 10</td></tr>
+    </table>
+  </section>
+
+  <!-- ============================ MEMBER 1 ============================ -->
+  <section class="card member" id="m1">
+    <div class="mhead">
+      <h2 style="margin:0;border:none;padding:0;font-size:22px">Member 1 — Foundation: Environment, Database &amp; LAN Deployment</h2>
+      <span class="tag">Parts 1, 2, 3, 12</span>
+      <span class="tag blue">~6 minutes</span>
+    </div>
+    <p><strong>Mission:</strong> if the database is not reachable, nothing else matters. You make the system build, connect, and run on every PC.</p>
+
+    <h3>Your 60-second opening</h3>
+    <div class="script">
+      <p>“Our system is a JavaFX desktop application that talks to <strong>one shared MySQL database over the school LAN</strong>. My part is the foundation. I own the Maven project that builds the app, the database schema that defines every table and relationship, the configuration file that tells each PC where the database lives, and the connection pool that keeps those connections healthy. If my part is correct, every other module just works on any PC in the lab — and if it is wrong, nothing works. So I will show you how it is built, how it connects, and how to prove it is connected.”</p>
+    </div>
+
+    <h3>What to understand (the logic and the why)</h3>
+    <ul>
+      <li><strong>One build definition.</strong> <code>pom.xml</code> pins Java 21, JavaFX 21.0.13, MySQL Connector/J 9.7.0, HikariCP 5.1.0, jBCrypt 0.4, PDFBox 3.0.3, Gson 2.11.0, and SLF4J. Everyone builds the same thing; no “it works on my machine” version drift.</li>
+      <li><strong>Two entry points, on purpose.</strong> <code>javafx:run</code> launches <code>com.deihs.mms.Main</code> for development. The shaded fat jar launches <code>com.deihs.mms.Launcher</code>, a plain <code>main</code> that calls <code>Main.main</code>. <em>Why:</em> when JavaFX is packaged inside a fat jar, starting the <code>Application</code> subclass directly fails with “JavaFX runtime components are missing.” The launcher avoids that.</li>
+      <li><strong>Database first.</strong> The schema is the contract between modules: <code>roles</code>, <code>users</code>, <code>maintenance_categories</code>, <code>facilities</code>, <code>equipment</code>, <code>maintenance_requests</code>, <code>request_status_history</code>, <code>maintenance_records</code>, <code>attachments</code>, <code>maintenance_schedules</code>, <code>audit_logs</code>, <code>request_comments</code>, <code>account_requests</code>. Thirteen tables, with foreign keys and status constraints.</li>
+      <li><strong>Configuration is external.</strong> <code>db.properties</code> sits on the classpath; <code>AppConfig</code> loads it once and lets <code>-Ddb.host=…</code> override any key. <code>AppConfig.jdbcUrl()</code> assembles host, port, and database name. <em>Why:</em> the developer PC and the school server have different addresses, and you should never recompile to change an IP.</li>
+      <li><strong>Pool, not raw connections.</strong> <code>Database</code> builds one HikariCP <code>DataSource</code> with <code>db.pool.size=10</code>. <em>Why:</em> opening a fresh connection on every click is slow and can exhaust MySQL; pooling reuses a small, bounded set and fails fast when the DB is down.</li>
+      <li><strong>LAN reality.</strong> Three things must all be true: MySQL listens on the network interface, the database user is allowed to connect from the client IP, and the firewall allows port 3306.</li>
+    </ul>
+
+    <h3>Code walk — what to open and what to say</h3>
+    <table>
+      <tr><th>File</th><th>What happens there</th></tr>
+      <tr><td><code>pom.xml</code></td><td>Dependencies and versions; <code>javafx-maven-plugin</code> → <code>Main</code>; <code>maven-shade-plugin</code> → <code>Launcher</code>.</td></tr>
+      <tr><td><code>database/deihs_mms.sql</code></td><td><code>CREATE TABLE</code> statements, foreign keys, status constraints, seed roles/users.</td></tr>
+      <tr><td><code>config/AppConfig.java</code></td><td>Static block loads <code>db.properties</code>; system properties win; <code>get</code>, <code>getInt</code>, <code>jdbcUrl</code>.</td></tr>
+      <tr><td><code>db/Database.java</code></td><td><code>get()</code> builds the pool lazily; <code>getConnection()</code> hands one out; <code>testConnection()</code>; <code>close()</code> on shutdown.</td></tr>
+      <tr><td><code>src/main/resources/db.properties</code></td><td><code>db.host</code>, <code>db.port</code>, <code>db.name</code>, <code>db.user</code>, <code>db.password</code>, <code>db.pool.size</code>, plus Google keys.</td></tr>
+      <tr><td><code>Launcher.java</code> / <code>Main.java</code></td><td>Jar entry → JavaFX entry; stage and scene setup.</td></tr>
+    </table>
+
+    <h3>Your tasks (tick when the acceptance test passes)</h3>
+    <ul class="tasks">
+      <li><strong>Import the schema</strong> on the server PC and confirm all 13 tables plus the seed accounts. <em>Accept:</em> <code>SHOW TABLES;</code> returns 13; <code>SELECT username, role_id FROM users;</code> returns the demo accounts.</li>
+      <li><strong>Create a dedicated database user</strong> for the app (not <code>root</code>) with privileges only on <code>deihs_mms</code>. <em>Accept:</em> the app connects with that user; root is never used.</li>
+      <li><strong>Point a second PC at the server</strong> by setting <code>db.host</code> to the server’s LAN IP. <em>Accept:</em> login from the client creates an <code>audit_logs</code> row that is visible when queried on the server.</li>
+      <li><strong>Build both ways:</strong> <code>mvn -q -B package -DskipTests</code> then <code>java -jar target/deihs-mms-1.0.0.jar</code>. <em>Accept:</em> the jar opens the login screen on a PC without Maven installed (Java 21 only).</li>
+      <li><strong>Write a one-page connect guide</strong> with the exact steps and a table of common errors (MySQL off, wrong host/port, wrong password, firewall, DB not imported). <em>Accept:</em> a classmate who has never seen the project can follow it cold.</li>
+    </ul>
+
+    <h3>Demo script (about 3 minutes)</h3>
+    <ol>
+      <li>Open <code>pom.xml</code> and point at Java 21, the JavaFX version, and the two entry points. One sentence each — do not read the XML.</li>
+      <li>Show the table list and one relationship: <code>equipment.facility_id → facilities.id</code>, and <code>maintenance_requests.requester_id → users.id</code>.</li>
+      <li>Open <code>db.properties</code>, show <code>db.host</code>, then start the app with <code>-Ddb.host=…</code> to prove configuration is external.</li>
+      <li>Log in on the client PC, then run a <code>SELECT</code> on the server showing the new audit row.</li>
+      <li>Close by showing the fat jar starting without Maven.</li>
+    </ol>
+
+    <h3>Likely questions and short answers</h3>
+    <div class="qa">
+      <p class="q">Q: Why MySQL instead of SQLite?</p>
+      <p class="a">A: Several PCs write at the same time and the data must live in one place. SQLite is a single local file and is a poor fit for concurrent LAN use.</p>
+      <p class="q">Q: Why HikariCP?</p>
+      <p class="a">A: It reuses a small pool of connections, bounds resource use, and reports a clear failure when the database is unreachable instead of hanging.</p>
+      <p class="q">Q: What if the server IP changes?</p>
+      <p class="a">A: Change <code>db.host</code> in <code>db.properties</code> or pass <code>-Ddb.host=…</code>. Better: give the server a DHCP reservation or static IP.</p>
+      <p class="q">Q: Are user passwords in the config file?</p>
+      <p class="a">A: No. The config holds only database credentials. User passwords are BCrypt hashes in the <code>users</code> table.</p>
+      <p class="q">Q: Where are photo attachments stored?</p>
+      <p class="a">A: As local file paths on the uploading PC. That is a known limitation on a LAN — a shared folder or BLOB storage is the next step.</p>
+    </div>
+
+    <h3>Definition of done</h3>
+    <div class="why"><strong>You are done when:</strong> a client PC logs in against the server database, the fat jar runs without Maven, and your one-page connect guide is accurate enough for someone else to repeat it.</div>
+  </section>
+
+  <!-- ============================ MEMBER 2 ============================ -->
+  <section class="card member" id="m2">
+    <div class="mhead">
+      <h2 style="margin:0;border:none;padding:0;font-size:22px">Member 2 — Startup, Login, Session &amp; Permissions</h2>
+      <span class="tag">Parts 4, 5, 6, 8</span>
+      <span class="tag blue">~6 minutes</span>
+    </div>
+    <p><strong>Mission:</strong> explain how the app starts, how a user proves who they are, and how the system limits what they can do.</p>
+
+    <h3>Your 60-second opening</h3>
+    <div class="script">
+      <p>“The app starts in <strong>Launcher</strong>, which hands off to <strong>Main</strong>. Main loads the login screen from FXML, applies the stylesheet, and shows it. When someone logs in, <strong>AuthService</strong> looks the user up, checks the BCrypt password hash, checks that the account is active, writes an audit entry, and returns the user. That user is stored in <strong>Session</strong>. The role comes from the database — the user never picks it at login. From that role, <strong>Permissions</strong> decides what the menu shows and, more importantly, what the services will allow. So this part answers two questions: <em>who are you</em>, and <em>what are you allowed to do</em>.”</p>
+    </div>
+
+    <h3>What to understand (the logic and the why)</h3>
+    <ul>
+      <li><strong>Bootstrap chain.</strong> <code>Launcher.main</code> → <code>Main</code> (extends <code>Application</code>) → <code>start()</code> → <code>ViewLoader.load("LoginView.fxml")</code> → scene with <code>styles.css</code> → stage. After login, <code>Main.setRoot</code> swaps in the Shell, which is the permanent frame.</li>
+      <li><strong>FXML + controller contract.</strong> FXML declares layout and <code>fx:id</code>; the controller declares matching <code>@FXML</code> fields and <code>onAction</code> handlers; <code>initialize()</code> runs after injection. <em>Why:</em> layout and behavior change independently.</li>
+      <li><strong>Authentication is the only password comparison.</strong> <code>UserDao.findByUsername</code> → account active? → <code>BCrypt.checkpw</code> → <code>touchLastLogin</code> + audit <code>LOGIN</code>. Unknown user and wrong password return the <em>same</em> message so the app does not reveal which accounts exist; a wrong password logs <code>LOGIN_FAILED</code>.</li>
+      <li><strong>Session is process-local.</strong> A static holder for the signed-in user for this client run; <code>clear()</code> on logout. <em>Why:</em> the desktop app needs the current user everywhere without passing it through every constructor.</li>
+      <li><strong>Permissions are checked twice.</strong> The Shell hides menus, and each service re-checks with a <code>Permissions</code> method. <em>Why:</em> a hidden button is not security — the rule must live where the write happens.</li>
+      <li><strong>Role codes are fixed.</strong> <code>ADMIN</code>, <code>MAINT_HEAD</code>, <code>PERSONNEL</code>, <code>STAFF</code> in <code>Role</code> must match <code>roles.role_code</code> in the database; <code>Role.fromCode</code> is the bridge.</li>
+    </ul>
+
+    <h3>Code walk — what to open and what to say</h3>
+    <table>
+      <tr><th>File</th><th>What happens there</th></tr>
+      <tr><td><code>Launcher.java</code> → <code>Main.java</code></td><td>Jar entry calls the JavaFX entry; <code>start</code> builds the first scene; <code>setRoot</code> swaps screens.</td></tr>
+      <tr><td><code>util/ViewLoader.java</code></td><td><code>load</code>, <code>loader</code>, <code>applyAppStyles</code> — one place for FXML paths and CSS.</td></tr>
+      <tr><td><code>model/Role.java</code>, <code>model/User.java</code></td><td>Four role codes + display names; <code>User</code> is the signed-in identity record.</td></tr>
+      <tr><td><code>service/Session.java</code></td><td><code>set</code>, <code>get</code>, <code>isLoggedIn</code>, <code>clear</code>.</td></tr>
+      <tr><td><code>service/Permissions.java</code></td><td>Ten static checks: manage users/facilities/equipment/schedules, assign requests, update any status, view all requests, view audit, view reports, create request, file repair record.</td></tr>
+      <tr><td><code>service/AuthService.java</code></td><td><code>login</code> (lookup → active → BCrypt → audit) and <code>hashPassword</code>.</td></tr>
+      <tr><td><code>controller/LoginController.java</code></td><td>Runs login in a background <code>Task</code>, shows the error, opens the Shell on success.</td></tr>
+      <tr><td><code>controller/ShellController.java</code></td><td><code>buildMenu</code> by role, <code>navigate</code> into the content area, request detail overlay, <code>onLogout</code>.</td></tr>
+    </table>
+
+    <h3>Your tasks (tick when the acceptance test passes)</h3>
+    <ul class="tasks">
+      <li><strong>Log in as every seed account</strong> — <code>admin</code>, <code>mhead</code>, <code>tech1</code>, <code>tech2</code>, <code>jcruz</code>, <code>msantos</code> — and record the menu each role sees. <em>Accept:</em> a role → menu table you can show.</li>
+      <li><strong>Test the failure paths:</strong> wrong password, a deactivated account, and the database stopped. <em>Accept:</em> friendly messages, no stack trace, no crash.</li>
+      <li><strong>Prove service-side enforcement:</strong> show that hiding a menu is not the only defense — point at the <code>Permissions</code> call inside a service. <em>Accept:</em> you can explain the difference in one sentence.</li>
+      <li><strong>Trace logout:</strong> <code>Session.clear()</code>, return to login, and confirm the next user does not inherit the previous identity. <em>Accept:</em> no stale name or role on screen.</li>
+      <li><strong>Verify role codes</strong> in <code>Role</code> match <code>roles.role_code</code>. <em>Accept:</em> a <code>SELECT</code> proves it.</li>
+    </ul>
+
+    <h3>Demo script (about 3 minutes)</h3>
+    <ol>
+      <li>Launch the app and point out the login branding and centered layout.</li>
+      <li>Log in as <code>admin</code>; show the full menu and the Shell layout.</li>
+      <li>Log out, log in as <code>jcruz</code> (staff); show the reduced menu.</li>
+      <li>Open the audit log and show the <code>LOGIN</code> row and one <code>LOGIN_FAILED</code> row from your negative test.</li>
+      <li>Open <code>Permissions</code> and the service call site; say “hidden in the UI, enforced in the service.”</li>
+    </ol>
+
+    <h3>Likely questions and short answers</h3>
+    <div class="qa">
+      <p class="q">Q: Why not let the user choose a role at login?</p>
+      <p class="a">A: That is privilege escalation. The role is authoritative in the database and read after authentication.</p>
+      <p class="q">Q: Why BCrypt instead of MD5 or SHA-256?</p>
+      <p class="a">A: BCrypt is deliberately slow and salted, so stolen hashes are expensive to crack. General-purpose hashes are fast and unsafe for passwords.</p>
+      <p class="q">Q: Is hiding a button enough security?</p>
+      <p class="a">A: No. Services re-check permissions before any write, so the rule holds even if the UI is bypassed.</p>
+      <p class="q">Q: Is there a “remember me” or persistent login?</p>
+      <p class="a">A: No. The session lives in memory for that run and ends when the app closes or the user logs out.</p>
+      <p class="q">Q: What happens if the database is down at startup?</p>
+      <p class="a">A: Login fails with a clear connection message; the app stays open instead of crashing.</p>
+    </div>
+
+    <h3>Definition of done</h3>
+    <div class="why"><strong>You are done when:</strong> you can show the role → menu table for all four roles, demonstrate two failure cases without a crash, and point to the exact service line that re-checks permission.</div>
+  </section>
+
+  <!-- ============================ MEMBER 3 ============================ -->
+  <section class="card member" id="m3">
+    <div class="mhead">
+      <h2 style="margin:0;border:none;padding:0;font-size:22px">Member 3 — The Module Pattern &amp; Assets (Facilities / Equipment)</h2>
+      <span class="tag">Parts 7, 9, 11 (assets)</span>
+      <span class="tag blue">~6 minutes</span>
+    </div>
+    <p><strong>Mission:</strong> own the repeatable recipe every screen follows, and prove it with Facilities and Equipment.</p>
+
+    <h3>Your 60-second opening</h3>
+    <div class="script">
+      <p>“Every module in this system follows <strong>one recipe</strong>: a table, a model, a <strong>DAO</strong> that holds the SQL, a <strong>service</strong> that holds the rules, an FXML screen, and a <strong>controller</strong> that connects them. Facilities is the cleanest example, so I use it to teach the pattern. Once you understand Facilities, Equipment is the same code with different fields. That is why we could add modules quickly, and why a bug has exactly one place to hide: either the SQL, the rule, or the screen.”</p>
+    </div>
+
+    <h3>What to understand (the logic and the why)</h3>
+    <ul>
+      <li><strong>Five layers, one direction.</strong> FXML (layout) → Controller (events, table binding) → Service (permission, validation, uniqueness, audit) → DAO (parameterized SQL) → Database. Models and Drafts carry data between layers.</li>
+      <li><strong>Why separate them.</strong> SQL changes without touching the UI; rules are testable without a screen; each rule exists in exactly one place. A controller that contains SQL becomes impossible to reuse and easy to break.</li>
+      <li><strong>Read path.</strong> <code>initialize()</code> → <code>refresh()</code> → background <code>Task&lt;List&lt;Facility&gt;&gt;</code> → <code>FacilityDao.search</code> → <code>TableView</code> items. <em>Why a Task:</em> a database call on the JavaFX thread freezes the window.</li>
+      <li><strong>Write path.</strong> dialog → <code>FacilityFormController.draft()</code> → <code>FacilityService.create/update</code> → <code>requireManage</code> + <code>validate</code> + <code>existsCode</code> + audit → <code>FacilityDao</code> → refresh.</li>
+      <li><strong>Archive, never delete.</strong> <code>setActive(false)</code> keeps the row so requests, equipment, and history still resolve. Deleting a facility would orphan every record that points at it.</li>
+      <li><strong>Drafts exist for a reason.</strong> Form input is validated before a database ID exists; the Draft keeps “what the user typed” separate from “what is stored.”</li>
+      <li><strong>Dialogs need the stylesheet too.</strong> A new <code>Scene</code> does not inherit CSS, so dialogs call <code>ViewLoader.applyAppStyles(parent)</code>.</li>
+    </ul>
+
+    <h3>Code walk — what to open and what to say</h3>
+    <table>
+      <tr><th>File</th><th>What happens there</th></tr>
+      <tr><td><code>model/Facility.java</code>, <code>FacilityDraft.java</code></td><td>Persisted row vs. form input.</td></tr>
+      <tr><td><code>dao/FacilityDao.java</code></td><td><code>search</code>, <code>existsCode</code>, <code>create</code>, <code>update</code>, <code>setActive</code>, <code>equipmentCount</code>.</td></tr>
+      <tr><td><code>service/FacilityService.java</code></td><td><code>create</code>, <code>update</code>, <code>setActive</code>, <code>requireManage</code>, <code>validate</code>.</td></tr>
+      <tr><td><code>controller/FacilitiesController.java</code></td><td><code>initialize</code>, <code>setupFilters</code>, <code>setupTable</code>, <code>refresh</code>, <code>onAdd</code>, row Edit/Archive buttons.</td></tr>
+      <tr><td><code>controller/FacilityFormController.java</code></td><td><code>setFacility</code> (prefill), <code>draft</code>, <code>showError</code>.</td></tr>
+      <tr><td><code>FacilitiesView.fxml</code>, <code>FacilityFormView.fxml</code></td><td>Table, filters, dialog fields, <code>fx:id</code> wiring.</td></tr>
+      <tr><td><code>Equipment*</code> (model/dao/service/controller/FXML)</td><td>The same recipe with equipment fields and a facility lookup.</td></tr>
+    </table>
+
+    <h3>Your tasks (tick when the acceptance test passes)</h3>
+    <ul class="tasks">
+      <li><strong>Draw the five-layer diagram</strong> for Facilities from memory after reading the code. <em>Accept:</em> you can whiteboard it without notes.</li>
+      <li><strong>Add a facility, then try a duplicate code.</strong> <em>Accept:</em> a friendly validation message, not a raw SQL exception.</li>
+      <li><strong>Edit a facility</strong> and confirm the form prefills every field. <em>Accept:</em> no blank fields on edit.</li>
+      <li><strong>Archive and restore</strong> a facility; confirm it leaves the active list and history still resolves. <em>Accept:</em> you can explain the no-delete rule.</li>
+      <li><strong>Repeat one operation on Equipment</strong> and name the differences (facility link, condition). <em>Accept:</em> same pattern, different fields.</li>
+      <li><strong>Prove a staff account cannot manage assets.</strong> <em>Accept:</em> the service refuses, not just the menu.</li>
+    </ul>
+
+    <h3>Demo script (about 3 minutes)</h3>
+    <ol>
+      <li>Show the Facilities list with search and condition filter.</li>
+      <li>Add a facility with a duplicate code → show the error → fix it → save.</li>
+      <li>Edit the new row and show the prefilled dialog.</li>
+      <li>Archive it, then restore it.</li>
+      <li>Run a <code>SELECT</code> to show the row and the audit entry.</li>
+      <li>Open Equipment and point out the identical structure.</li>
+    </ol>
+
+    <h3>Likely questions and short answers</h3>
+    <div class="qa">
+      <p class="q">Q: Why a Draft class instead of using the model directly?</p>
+      <p class="a">A: The form has no database ID yet, and validation must happen before insert. The Draft separates input from the persisted row.</p>
+      <p class="q">Q: Why not put SQL in the controller?</p>
+      <p class="a">A: It duplicates queries, risks injection, and cannot be reused or tested. The DAO is the only place SQL lives.</p>
+      <p class="q">Q: Why archive instead of delete?</p>
+      <p class="a">A: Requests, equipment, and history reference facilities. Deleting would break referential integrity and lose history.</p>
+      <p class="q">Q: How is search protected from SQL injection?</p>
+      <p class="a">A: Every value is a bound parameter in a prepared statement; the keyword becomes a <code>LIKE</code> parameter, never string concatenation.</p>
+      <p class="q">Q: Why does the table not freeze during loading?</p>
+      <p class="a">A: Queries run in a background <code>Task</code> and the UI updates on the JavaFX thread when it completes.</p>
+    </div>
+
+    <h3>Definition of done</h3>
+    <div class="why"><strong>You are done when:</strong> you can teach the five-layer recipe in under two minutes, show a validation failure and a permission failure live, and explain why archive beats delete.</div>
+  </section>
+
+  <!-- ============================ MEMBER 4 ============================ -->
+  <section class="card member" id="m4">
+    <div class="mhead">
+      <h2 style="margin:0;border:none;padding:0;font-size:22px">Member 4 — Workflow &amp; Accounts: Requests, Users, Registration, Google, Schedules</h2>
+      <span class="tag">Parts 9 (requests), 10, 11 (schedules)</span>
+      <span class="tag blue">~6 minutes</span>
+    </div>
+    <p><strong>Mission:</strong> own the core workflow — a request from report to closure — and the account lifecycle that decides who can act.</p>
+
+    <h3>Your 60-second opening</h3>
+    <div class="script">
+      <p>“The heart of the system is the <strong>request</strong>. A teacher reports a problem; the head assigns it; personnel work on it; the head closes it. Each step is a <strong>status transition</strong> with rules about who can move it and when a remark is required, and every move is recorded. The second half of my part is <strong>accounts</strong>: people can register, but they cannot log in until an admin approves them and assigns the correct role. Google sign-in follows the same rule — a verified email can match an existing active user, but a new person still becomes a pending request. Approval is never bypassed.”</p>
+    </div>
+
+    <h3>What to understand (the logic and the why)</h3>
+    <ul>
+      <li><strong>Three scopes, enforced twice.</strong> <code>ALL</code> for admin/head, <code>MY_TASKS</code> for personnel, <code>MY_REQUESTS</code> for staff. The list query is scoped, and <code>RequestDetailService.canView</code> re-checks before showing a detail page.</li>
+      <li><strong>Statuses.</strong> <code>PENDING → ASSIGNED → IN_PROGRESS → COMPLETED → CLOSED</code>, plus <code>ON_HOLD</code>, <code>REJECTED</code>, <code>CANCELLED</code>. The active rules live in <code>StatusFlow</code>: <code>allowed</code>, <code>canMove</code>, <code>requiresRemarks</code>, <code>isTerminal</code>. Personnel get a restricted subset. <em>Why:</em> the workflow cannot be skipped, and negative decisions must be explained.</li>
+      <li><strong>Remarks are mandatory</strong> for <code>REJECTED</code>, <code>ON_HOLD</code>, and <code>CANCELLED</code>. <em>Why:</em> accountability for stopping or blocking work.</li>
+      <li><strong>Assignment is a head action.</strong> <code>PENDING</code> becomes <code>ASSIGNED</code>; an assigned request can be reassigned. Only <code>Permissions.canAssignRequests</code> passes.</li>
+      <li><strong>Detail page</strong> shows info, status actions, comments, history, and attachments; “back” returns to the list and refreshes it.</li>
+      <li><strong>Registration is a request, not an account.</strong> <code>RegistrationService.submit</code> writes to <code>account_requests</code> with a BCrypt hash, the requested role, and <code>PENDING</code>. <code>UserService.approveRequest</code> creates the real user with the role the admin chooses; <code>rejectRequest</code> closes the request.</li>
+      <li><strong>Google Option A is config-gated.</strong> The button appears only when <code>GoogleOAuthService.isConfigured()</code>. Flow: PKCE + loopback browser → verified email → active match signs in; inactive is blocked; no match becomes a pending request. Secrets come from config or <code>-D</code>, never code.</li>
+      <li><strong>Schedules</strong> plan recurring maintenance; <code>markDone</code> records completion and computes the next due date.</li>
+    </ul>
+
+    <h3>Code walk — what to open and what to say</h3>
+    <table>
+      <tr><th>File</th><th>What happens there</th></tr>
+      <tr><td><code>controller/RequestsController.java</code></td><td><code>scopeFor</code> maps role → scope; <code>applyScope</code>; <code>load</code> in a Task; row opens detail.</td></tr>
+      <tr><td><code>service/RequestService.java</code></td><td><code>submit</code>, <code>validate</code>, and the photo copy (safe name, MIME, unique prefix).</td></tr>
+      <tr><td><code>dao/RequestDao.java</code></td><td><code>search</code> (scoped filters), <code>create</code>, <code>countActive</code>.</td></tr>
+      <tr><td><code>service/StatusFlow.java</code></td><td>Status constants, <code>allowed</code>, <code>canMove</code>, <code>requiresRemarks</code>, <code>isTerminal</code>.</td></tr>
+      <tr><td><code>service/RequestDetailService.java</code></td><td><code>load</code>, <code>canView</code>, <code>assign</code>, <code>changeStatus</code>, <code>addComment</code>, <code>nextStatuses</code>.</td></tr>
+      <tr><td><code>controller/RequestDetailController.java</code></td><td><code>render</code>, <code>renderActions</code>, assign dialog, status dialog with remark validation.</td></tr>
+      <tr><td><code>service/RegistrationService.java</code>, <code>dao/AccountRequestDao.java</code></td><td><code>submit</code>; <code>create</code>, <code>findPending</code>, <code>markReviewed</code>, <code>findForApproval</code>.</td></tr>
+      <tr><td><code>service/UserService.java</code></td><td><code>create</code>, <code>update</code>, <code>setActive</code>, <code>resetPassword</code>, <code>approveRequest</code>, <code>rejectRequest</code>.</td></tr>
+      <tr><td><code>service/GoogleOAuthService.java</code></td><td><code>isConfigured</code>, <code>signIn</code> (PKCE, loopback, profile).</td></tr>
+      <tr><td><code>dao/UserDao.java</code></td><td><code>findByUsername</code>, <code>findActiveByEmail</code>, <code>findByEmail</code>, <code>touchLastLogin</code>.</td></tr>
+      <tr><td><code>controller/SchedulesController.java</code>, <code>service/ScheduleService.java</code></td><td>Create/edit/archive; <code>markDone</code> advances the next due date.</td></tr>
+    </table>
+    <div class="note"><strong>Do not get caught by this:</strong> the active workflow rules are in <code>service/StatusFlow.java</code>. There is also a <code>service/Workflow.java</code> left from an earlier draft that nothing calls. If a panelist opens it, say plainly: “That is a legacy duplicate; the wired-in rules are <code>StatusFlow</code>.”</div>
+
+    <h3>Your tasks (tick when the acceptance test passes)</h3>
+    <ul class="tasks">
+      <li><strong>Run a full lifecycle</strong> with three accounts (staff → head → personnel). <em>Accept:</em> history shows every transition with actor and timestamp.</li>
+      <li><strong>Try two illegal actions:</strong> a skipped transition (for example <code>PENDING → CLOSED</code>) and a negative status with no remark. <em>Accept:</em> both are blocked with clear messages.</li>
+      <li><strong>Verify the three scopes:</strong> staff sees only their own, personnel only assigned, head/admin everything. <em>Accept:</em> three screenshots, same database.</li>
+      <li><strong>Register → approve → log in</strong> with a new account; then reject another request. <em>Accept:</em> pending row disappears, user appears with the chosen role.</li>
+      <li><strong>Google:</strong> if credentials exist, test the match / inactive / new-user cases; otherwise document the exact config steps and mark it “pending setup.” <em>Accept:</em> no false claim of “working.”</li>
+      <li><strong>Schedule:</strong> create, mark done, verify the next due date advanced. <em>Accept:</em> before/after rows.</li>
+    </ul>
+
+    <h3>Demo script (about 3 minutes)</h3>
+    <ol>
+      <li>As staff, create a request with a photo attachment.</li>
+      <li>As head, assign it to personnel.</li>
+      <li>As personnel, move it to <code>IN_PROGRESS</code>, then <code>COMPLETED</code> with a remark.</li>
+      <li>As head, close it and open the history to show every step.</li>
+      <li>As admin, approve a pending registration and choose the role; show the new user can log in.</li>
+      <li>Show the Google button state and explain the three cases without pretending it is live if it is not configured.</li>
+    </ol>
+
+    <h3>Likely questions and short answers</h3>
+    <div class="qa">
+      <p class="q">Q: Why require admin approval for registration?</p>
+      <p class="a">A: Otherwise anyone could self-assign a privileged role. Approval keeps role assignment under administrative control.</p>
+      <p class="q">Q: Why are remarks required on some statuses?</p>
+      <p class="a">A: Rejecting, holding, or cancelling work needs a recorded reason for accountability and follow-up.</p>
+      <p class="q">Q: What stops personnel from closing a request?</p>
+      <p class="a">A: <code>StatusFlow</code> gives personnel a restricted transition set, and <code>RequestDetailService.changeStatus</code> re-checks it.</p>
+      <p class="q">Q: Does Google sign-in skip approval?</p>
+      <p class="a">A: No. It only signs in an existing active user by verified email. A new email still creates a pending request.</p>
+      <p class="q">Q: Where are request photos stored?</p>
+      <p class="a">A: In the local uploads folder, with the path saved in the database. On a LAN that means each PC has its own files — a known limitation.</p>
+    </div>
+
+    <h3>Definition of done</h3>
+    <div class="why"><strong>You are done when:</strong> you can run the full lifecycle live, show two blocked actions, and state clearly which account flows are verified and which are pending credentials.</div>
+  </section>
+
+  <!-- ============================ MEMBER 5 ============================ -->
+  <section class="card member" id="m5">
+    <div class="mhead">
+      <h2 style="margin:0;border:none;padding:0;font-size:22px">Member 5 — Reporting, Audit, Quality &amp; Defense</h2>
+      <span class="tag">Parts 11 (reports/audit), 12 (testing), 13</span>
+      <span class="tag blue">~6 minutes</span>
+    </div>
+    <p><strong>Mission:</strong> prove the system is correct, visible, and explainable — then package it for the defense.</p>
+
+    <h3>Your 60-second opening</h3>
+    <div class="script">
+      <p>“My part is <strong>trust</strong>. Reports turn the data into decisions: how many requests, by status, by category, with cost and downtime, over a date range. <strong>Audit</strong> gives accountability: who did what and when. Then I run the <strong>quality pass</strong> across all four roles, document what works and what is still limited, and prepare the defense package. I also own the debug method: follow <em>Controller → Service → DAO → Database</em> and change one thing at a time. If something looks wrong on screen, those four layers tell you where it actually broke.”</p>
+    </div>
+
+    <h3>What to understand (the logic and the why)</h3>
+    <ul>
+      <li><strong>Reports are period-based.</strong> <code>ReportDao.summarize(from, to)</code> returns a <code>ReportSummary</code>; the controller renders counts, breakdowns, and charts. <em>Why a date range:</em> “all time” hides trends and makes totals meaningless for a term.</li>
+      <li><strong>Exports must match the screen.</strong> CSV and PDF are generated from the same summary the UI displays, so a mismatch is a bug, not a formatting choice. PDF uses PDFBox.</li>
+      <li><strong>Audit is append-only.</strong> <code>AuditDao.log</code> writes; <code>search</code> reads; there is no edit or delete path. <em>Why:</em> an audit trail you can change is not evidence.</li>
+      <li><strong>Dashboard is role-aware.</strong> <code>DashboardDao.load</code> aggregates; personnel see their own workload. <code>applyMonthlyChart</code> and <code>applyDonut</code> render the summary.</li>
+      <li><strong>QA is a matrix, not a vibe.</strong> Four roles × menus, CRUD, workflow, and error paths; each cell is pass/fail with a note.</li>
+      <li><strong>Debug flow.</strong> Is the row in the database? Does the DAO return it? Does the service allow it? Does the controller display it? That order isolates almost every bug.</li>
+    </ul>
+
+    <h3>Code walk — what to open and what to say</h3>
+    <table>
+      <tr><th>File</th><th>What happens there</th></tr>
+      <tr><td><code>dao/ReportDao.java</code></td><td><code>summarize(LocalDate from, LocalDate to)</code> — the single aggregate query.</td></tr>
+      <tr><td><code>controller/ReportsController.java</code></td><td><code>onGenerate</code>, <code>apply</code>, <code>onExportCsv</code>, <code>onExportPdf</code>.</td></tr>
+      <tr><td><code>dao/AuditDao.java</code></td><td><code>log</code> (append) and <code>search</code> (read-only filter).</td></tr>
+      <tr><td><code>controller/AuditLogController.java</code></td><td>Filtered read-only table.</td></tr>
+      <tr><td><code>dao/DashboardDao.java</code>, <code>controller/DashboardController.java</code></td><td><code>load</code>; <code>apply</code>, <code>applyMonthlyChart</code>, <code>applyDonut</code>, database-error state.</td></tr>
+      <tr><td><code>src/main/resources/com/deihs/mms/css/styles.css</code></td><td>Green &amp; Gold theme, badges, table styling, dialogs.</td></tr>
+      <tr><td><code>DEIHS_MMS_Build_Guide.html</code>, <code>DEIHS_MMS_Group_Presentation.html</code></td><td>The teaching and defense materials you maintain.</td></tr>
+    </table>
+
+    <h3>Your tasks (tick when the acceptance test passes)</h3>
+    <ul class="tasks">
+      <li><strong>Generate two date ranges</strong> and reconcile the totals against direct SQL counts. <em>Accept:</em> numbers match exactly.</li>
+      <li><strong>Export CSV and PDF,</strong> open both, and compare rows and totals to the screen. <em>Accept:</em> identical content.</li>
+      <li><strong>Audit review:</strong> perform five known actions, then confirm five entries with actor, time, entity, and details. <em>Accept:</em> you can point at each one.</li>
+      <li><strong>Run the role QA matrix</strong> (4 roles × menus, CRUD, workflow, errors). <em>Accept:</em> a filled table with pass/fail and notes.</li>
+      <li><strong>Negative tests:</strong> invalid input, duplicate code, illegal transition, database down. <em>Accept:</em> no crash; every case has a clear message.</li>
+      <li><strong>Prepare the defense package:</strong> demo order, known-limits slide, and a 10-minute run-through. <em>Accept:</em> someone else can present from your notes.</li>
+    </ul>
+
+    <h3>Demo script (about 3 minutes)</h3>
+    <ol>
+      <li>Generate a report for a date range; change the range and show the totals change.</li>
+      <li>Export CSV and PDF; open both next to the screen.</li>
+      <li>Open the audit log filtered to one request and show the full trail.</li>
+      <li>Show the QA matrix results and name one bug you found and fixed.</li>
+      <li>Close with the known-limits slide — honest status builds credibility.</li>
+    </ol>
+
+    <h3>Likely questions and short answers</h3>
+    <div class="qa">
+      <p class="q">Q: How do you know the report is correct?</p>
+      <p class="a">A: I reconciled the totals against direct SQL counts for the same date range, and the CSV/PDF match the screen.</p>
+      <p class="q">Q: Can the audit log be edited or deleted?</p>
+      <p class="a">A: There is no UI or DAO path for it. Entries are appended and only searched.</p>
+      <p class="q">Q: What is not finished?</p>
+      <p class="a">A: Google sign-in needs real credentials; the LAN setup needs the school host; photos are local-only; and there is no automated test suite yet.</p>
+      <p class="q">Q: A screen is blank. How do you debug it?</p>
+      <p class="a">A: Check the database row, then the DAO result, then the service permission/validation, then the controller binding — in that order.</p>
+      <p class="q">Q: What would you do with more time?</p>
+      <p class="a">A: Automated tests, shared photo storage, and a packaged installer for the client PCs.</p>
+    </div>
+
+    <h3>Definition of done</h3>
+    <div class="why"><strong>You are done when:</strong> reports reconcile, exports match, the audit trail is demonstrated, the QA matrix is filled, and the defense package can be presented by someone else without you.</div>
+  </section>
+
+  <!-- ============================ HANDOFFS ============================ -->
+  <section class="card" id="handoff">
+    <h2>Handoffs — Who Needs What From Whom</h2>
+    <table>
+      <tr><th>From</th><th>To</th><th>What must be ready</th><th>Why it blocks them</th></tr>
+      <tr><td>Member 1</td><td>Everyone</td><td>Imported schema + working <code>db.properties</code></td><td>No database means no login, no module, no demo.</td></tr>
+      <tr><td>Member 2</td><td>Members 3, 4, 5</td><td><code>Session</code>, <code>Permissions</code>, role → menu behavior</td><td>Every module checks permissions and reads the current user.</td></tr>
+      <tr><td>Member 3</td><td>Member 4</td><td>Facility/equipment lookups and the module pattern</td><td>The request form selects a facility and equipment.</td></tr>
+      <tr><td>Member 4</td><td>Member 5</td><td>Completed request/account flows and audit events</td><td>Reports and QA need real workflow data to test.</td></tr>
+      <tr><td>Member 5</td><td>Everyone</td><td>QA findings, known limits, defense package</td><td>Fixes and the final demo order depend on the QA results.</td></tr>
+    </table>
+    <div class="note"><strong>Rule for the meeting:</strong> a handoff is not “done” because someone said so. It is done when the receiver has run it once on their own machine.</div>
+  </section>
+
+  <!-- ============================ RULES ============================ -->
+  <section class="card" id="rules">
+    <h2>Five Rules for Every Demo</h2>
+    <ol>
+      <li><strong>Follow the script, not your memory.</strong> Rehearse the exact clicks; improvising is where demos break.</li>
+      <li><strong>Show the database behind the screen.</strong> One <code>SELECT</code> proves the UI is not faking it.</li>
+      <li><strong>Show one guard.</strong> Every member demonstrates a permission or validation rule that <em>blocks</em> something.</li>
+      <li><strong>Show one failure.</strong> A wrong password, a duplicate code, or an illegal transition — handled without a crash.</li>
+      <li><strong>Say “pending setup” when it is pending.</strong> Real credentials, the school LAN, and real data are environment items, not finished features.</li>
+    </ol>
+    <div class="why"><strong>Why this matters:</strong> panels rarely fail a team for a missing optional feature. They fail teams that cannot explain their own code or that overclaim what works.</div>
+  </section>
+
+  <!-- ============================ CHECKLIST ============================ -->
+  <section class="card">
+    <h2>Shared Checklist (All Members)</h2>
+    <ul class="tasks">
+      <li>I can build and run: <code>mvn -q -B package -DskipTests</code> and <code>mvn -q javafx:run</code>.</li>
+      <li>I can explain my part’s <strong>logic and why</strong>, not just the buttons.</li>
+      <li>I can trace one action from my screen to the database row and back.</li>
+      <li>I can name the exact files I own and the methods that matter.</li>
+      <li>I have run my demo once, start to finish, without notes.</li>
+      <li>I know which of my items are <strong>pending setup</strong> and can say why.</li>
+      <li>I have read Part 0 so I can connect my part to the whole system.</li>
+      <li>I know who I hand off to and who hands off to me.</li>
+    </ul>
+  </section>
+
+  <!-- ============================ LIMITS ============================ -->
+  <section class="card" id="limits">
+    <h2>Known Limits — Report These Honestly</h2>
+    <table>
+      <tr><th>Item</th><th>Current status</th><th>Owner</th><th>What is needed</th></tr>
+      <tr><td>Google sign-in</td><td>Scaffolded and config-gated; not validated end to end</td><td>Member 4</td><td>Real client ID/secret, redirect URI, internet and browser, matching Google emails</td></tr>
+      <tr><td>LAN multi-PC</td><td>Configurable; not yet validated on the school network</td><td>Member 1</td><td>Server LAN IP, dedicated DB user, firewall rule, client test</td></tr>
+      <tr><td>Photo attachments</td><td>Stored as local file paths</td><td>Members 1 &amp; 4</td><td>Shared folder or database BLOB storage for cross-PC access</td></tr>
+      <tr><td>Automated tests</td><td>Build and smoke checks only</td><td>Member 5</td><td>JUnit/TestFX suite for services and key flows</td></tr>
+      <tr><td>Real school data</td><td>Seed/demo data</td><td>Members 1 &amp; 5</td><td>Actual facilities, equipment, users, and categories</td></tr>
+    </table>
+    <div class="note"><strong>How to phrase it:</strong> “The feature is implemented and configurable; it is pending environment validation because we do not yet have the credentials/network.” That is accurate and defensible.</div>
+  </section>
+
+  <section class="card">
+    <h2>Printing and Sharing</h2>
+    <ul>
+      <li><strong>Browser:</strong> open this file directly; all links to the Build Guide work when both files are in the same folder.</li>
+      <li><strong>PDF:</strong> <kbd>Ctrl</kbd>+<kbd>P</kbd> → A4 → enable “Background graphics” → save as PDF. Each member starts on a new page.</li>
+      <li><strong>Meeting handout:</strong> print pages for the matrix, handoffs, and the five demo rules; give each member their own page.</li>
+    </ul>
+    <p class="small">Reference set: <code>DEIHS_MMS_Build_Guide.html</code> (step-by-step build) · <code>DEIHS_MMS_Group_Presentation.html</code> (progress deck) · <code>DEIHS_MMS_Member_Parts.html</code> (this kit) · <code>database/deihs_mms.sql</code> · <code>src/main/resources/db.properties</code></p>
+  </section>
+
+</div>
+</body>
+</html>
