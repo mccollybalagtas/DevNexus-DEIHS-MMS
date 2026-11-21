@@ -29,12 +29,6 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -152,19 +146,12 @@ public class LoginController {
             buildingLayer.setManaged(false);
             return;
         }
-        Image image = new Image(photo.toExternalForm(), true);
-        if (image.isError()) {
-            buildingLayer.setVisible(false);
-            buildingLayer.setManaged(false);
-            return;
-        }
-        buildingLayer.setBackground(new Background(new BackgroundImage(
-                image,
-                BackgroundRepeat.NO_REPEAT,
-                BackgroundRepeat.NO_REPEAT,
-                BackgroundPosition.CENTER,
-                new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO,
-                        false, false, false, true))));
+        // Inline style wins over the stylesheet, and loading is synchronous so
+        // the photo is present on the very first pulse (no blank flash).
+        buildingLayer.setStyle("-fx-background-image: url('" + photo.toExternalForm() + "');"
+                + "-fx-background-size: cover;"
+                + "-fx-background-position: center center;"
+                + "-fx-background-repeat: no-repeat;");
         buildingLayer.setVisible(true);
         buildingLayer.setManaged(true);
     }
