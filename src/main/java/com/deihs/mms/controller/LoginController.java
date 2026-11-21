@@ -20,6 +20,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -28,14 +29,28 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundPosition;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.SVGPath;
+import javafx.scene.text.Font;
 import javafx.stage.Modality;
 
 import java.io.IOException;
+import java.net.URL;
 import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.prefs.Preferences;
 
 /**
  * Sign-in screen. The role always comes from the database — the user never
@@ -43,12 +58,26 @@ import java.util.Optional;
  */
 public class LoginController {
 
+    private static final String PREF_NODE = "com/deihs/mms/login";
+    private static final String PREF_USERNAME = "rememberedUsername";
+
+    @FXML private StackPane brandPane;
+    @FXML private StackPane signInPane;
+    @FXML private Region buildingLayer;
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
     @FXML private TextField passwordVisible;
-    @FXML private CheckBox showPassword;
+    @FXML private Button togglePasswordButton;
+    @FXML private SVGPath eyeOpenIcon;
+    @FXML private SVGPath eyeClosedIcon;
+    @FXML private CheckBox rememberMe;
     @FXML private Label errorLabel;
+    @FXML private Label headingLabel;
+    @FXML private Label schoolLine1;
+    @FXML private Label schoolLine2;
+    @FXML private Label locationLabel;
     @FXML private Button signInButton;
+    @FXML private VBox googleBox;
     @FXML private Button googleButton;
 
     private final AuthService authService = new AuthService();
@@ -57,17 +86,142 @@ public class LoginController {
     private final AuditDao auditDao = new AuditDao();
     private final RegistrationService registrationService = new RegistrationService();
 
+    private boolean passwordShown;
+
     @FXML
     private void initialize() {
+        clipDecorativeLayers();
+        applyBuildingPhoto();
+        applyDisplayFont();
+        restoreRememberedUsername();
+
         usernameField.setOnAction(e -> passwordField.requestFocus());
         passwordField.setOnAction(e -> onSignIn());
         passwordVisible.setOnAction(e -> onSignIn());
+
+        boolean configured = googleOAuthService.isConfigured();
+        if (googleBox != null) {
+            googleBox.setVisible(configured);
+            googleBox.setManaged(configured);
+        }
         if (googleButton != null) {
-            boolean configured = googleOAuthService.isConfigured();
             googleButton.setVisible(configured);
             googleButton.setManaged(configured);
         }
-        Platform.runLater(usernameField::requestFocus);
+
+        Platform.runLater(() -> {
+            if (usernameField.getText() == null || usernameField.getText().isBlank()) {
+                usernameField.requestFocus();
+            } else {
+                passwordField.requestFocus();
+            }
+        });
+    }
+
+    /**
+     * The decorative circles and light beams deliberately extend past the
+     * panel edges. Without a clip they would paint over the opposite panel.
+     */
+    private void clipDecorativeLayers() {
+        if (brandPane != null) {
+            Rectangle clip = new Rectangle();
+            clip.widthProperty().bind(brandPane.widthProperty());
+            clip.heightProperty().bind(brandPane.heightProperty());
+            brandPane.setClip(clip);
+        }
+        if (signInPane != null) {
+            Rectangle clip = new Rectangle();
+            clip.widthProperty().bind(signInPane.widthProperty());
+            clip.heightProperty().bind(signInPane.heightProperty());
+            signInPane.setClip(clip);
+        }
+    }
+
+    /**
+     * Uses a real campus photo when one is bundled at
+     * /com/deihs/mms/img/login-building.jpg. Otherwise the navy gradient
+     * defined in styles.css remains visible.
+     */
+    private void applyBuildingPhoto() {
+        if (buildingLayer == null) {
+            return;
+        }
+        URL photo = LoginController.class.getResource("/com/deihs/mms/img/login-building.jpg");
+        if (photo == null) {
+            buildingLayer.setVisible(false);
+            buildingLayer.setManaged(false);
+            return;
+        }
+        Image image = new Image(photo.toExternalForm(), true);
+        if (image.isError()) {
+            buildingLayer.setVisible(false);
+            buildingLayer.setManaged(false);
+            return;
+        }
+        buildingLayer.setBackground(new Background(new BackgroundImage(
+                image,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO,
+                        false, false, false, true))));
+        buildingLayer.setVisible(true);
+        buildingLayer.setManaged(true);
+    }
+
+    /**
+     * JavaFX CSS accepts a single font family, not a fallback list. Pick the
+     * best serif the host actually has so the display type looks right on
+     * Windows (Georgia) and on Linux (FreeSerif / Serif).
+     */
+    private void applyDisplayFont() {
+        String family = pickDisplayFamily();
+        if (family == null) {
+            return;
+        }
+        String css = "-fx-font-family: \"" + family + "\";";
+        for (Label label : new Label[]{headingLabel, schoolLine1, schoolLine2, locationLabel}) {
+            if (label != null) {
+                label.setStyle(css);
+            }
+        }
+    }
+
+    private static String pickDisplayFamily() {
+        var families = Font.getFamilies();
+        for (String candidate : new String[]{"Georgia", "Times New Roman", "FreeSerif", "Serif"}) {
+            if (families.contains(candidate)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private void restoreRememberedUsername() {
+        try {
+            String saved = Preferences.userRoot().node(PREF_NODE).get(PREF_USERNAME, "");
+            if (saved != null && !saved.isBlank()) {
+                usernameField.setText(saved);
+                rememberMe.setSelected(true);
+            }
+        } catch (RuntimeException ignored) {
+            // A locked-down preferences store must never block sign-in.
+        }
+    }
+
+    private void persistRememberedUsername() {
+        try {
+            Preferences prefs = Preferences.userRoot().node(PREF_NODE);
+            String name = usernameField.getText() == null ? "" : usernameField.getText().trim();
+            if (rememberMe.isSelected() && !name.isEmpty()) {
+                prefs.put(PREF_USERNAME, name);
+            } else {
+                prefs.remove(PREF_USERNAME);
+            }
+            prefs.flush();
+        } catch (Exception ignored) {
+            // Preferences are a convenience only; never fail a sign-in over them.
+        }
     }
 
     @FXML
@@ -82,13 +236,35 @@ public class LoginController {
     }
 
     @FXML
+    private void onForgotPassword() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        if (signInButton.getScene() != null) {
+            alert.initOwner(signInButton.getScene().getWindow());
+        }
+        alert.setTitle("Forgot Password");
+        alert.setHeaderText("Password resets are handled by the School Administrator");
+        alert.setContentText("For security, passwords cannot be reset from this screen.\n\n"
+                + "Please contact the School Administrator (or the Maintenance Head) to request a reset. "
+                + "You will receive a temporary password and can change it after signing in.");
+        ViewLoader.applyAppStyles(alert.getDialogPane());
+        alert.showAndWait();
+    }
+
+    @FXML
     private void onTogglePassword() {
-        if (showPassword.isSelected()) {
+        passwordShown = !passwordShown;
+
+        if (passwordShown) {
             passwordVisible.setText(passwordField.getText());
             passwordVisible.setVisible(true);
             passwordVisible.setManaged(true);
             passwordField.setVisible(false);
             passwordField.setManaged(false);
+
+            eyeOpenIcon.setVisible(false);
+            eyeClosedIcon.setVisible(true);
+            togglePasswordButton.setAccessibleText("Hide password");
+
             passwordVisible.requestFocus();
             passwordVisible.positionCaret(passwordVisible.getText().length());
         } else {
@@ -97,6 +273,11 @@ public class LoginController {
             passwordField.setManaged(true);
             passwordVisible.setVisible(false);
             passwordVisible.setManaged(false);
+
+            eyeOpenIcon.setVisible(true);
+            eyeClosedIcon.setVisible(false);
+            togglePasswordButton.setAccessibleText("Show password");
+
             passwordField.requestFocus();
             passwordField.positionCaret(passwordField.getText().length());
         }
@@ -125,6 +306,7 @@ public class LoginController {
 
         task.setOnSucceeded(e -> {
             User user = task.getValue();
+            persistRememberedUsername();
             Session.set(user);
             openShell();
         });
@@ -134,9 +316,8 @@ public class LoginController {
             Throwable ex = task.getException();
             if (ex instanceof AuthException auth) {
                 showError(auth.getMessage());
-                passwordField.clear();
-                passwordVisible.clear();
-                passwordField.requestFocus();
+                clearPassword();
+                focusPassword();
             } else if (ex instanceof SQLException) {
                 showError("Cannot reach the database. Make sure MySQL is running in XAMPP "
                         + "and the server address is correct.");
@@ -337,6 +518,8 @@ public class LoginController {
     private void setBusy(boolean busy, String signInText) {
         signInButton.setDisable(busy);
         if (googleButton != null) googleButton.setDisable(busy);
+        if (rememberMe != null) rememberMe.setDisable(busy);
+        if (togglePasswordButton != null) togglePasswordButton.setDisable(busy);
         signInButton.setText(busy ? (signInText == null ? "Please wait…" : signInText) : "Sign In");
         if (busy && "Opening Google…".equals(signInText) && googleButton != null) {
             googleButton.setText("Waiting for Google…");
@@ -346,7 +529,20 @@ public class LoginController {
     }
 
     private String currentPassword() {
-        return showPassword.isSelected() ? passwordVisible.getText() : passwordField.getText();
+        return passwordShown ? passwordVisible.getText() : passwordField.getText();
+    }
+
+    private void clearPassword() {
+        passwordField.clear();
+        passwordVisible.clear();
+    }
+
+    private void focusPassword() {
+        if (passwordShown) {
+            passwordVisible.requestFocus();
+        } else {
+            passwordField.requestFocus();
+        }
     }
 
     private void openShell() {

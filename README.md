@@ -35,6 +35,12 @@ Teachers report facility and equipment problems, the maintenance head assigns wo
 
 Roles are stored in the database and read after login — users never choose a role at sign-in.
 
+### Sign-in screen
+
+![Sign-in screen](docs/login-screen.png)
+
+A split navy branding panel (school logo, name, location) beside a white sign-in card. The password field has an eye toggle, **Remember Me** stores only the username, **Forgot Password** explains the administrator reset process, and the Google button appears only when OAuth is configured. A real campus photo can be dropped in at `src/main/resources/com/deihs/mms/img/login-building.jpg`; otherwise the navy gradient is used.
+
 ---
 
 ## Tech stack
@@ -100,12 +106,13 @@ deihs-mms/
 ├── src/main/resources/
 │   ├── db.properties                # blank template (no secrets)
 │   ├── com/deihs/mms/view/*.fxml    # 18 screens/dialogs
-│   ├── com/deihs/mms/css/styles.css # Green & Gold theme
-│   └── com/deihs/mms/img/           # logo
+│   ├── com/deihs/mms/css/styles.css # navy login + Green & Gold app shell
+│   └── com/deihs/mms/img/           # logo (optional login-building.jpg)
 └── docs (HTML, at repo root)
     ├── DEIHS_MMS_Build_Guide.html
     ├── DEIHS_MMS_Group_Presentation.html
-    └── DEIHS_MMS_Member_Parts.html
+    ├── DEIHS_MMS_Member_Parts.html
+    └── docs/login-screen.png          # sign-in screenshot
 ```
 
 ---
