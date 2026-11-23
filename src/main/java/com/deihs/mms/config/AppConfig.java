@@ -53,7 +53,7 @@ public final class AppConfig {
 
     public static String jdbcUrl() {
         String host = get("db.host", "localhost");
-        int port = getInt("db.port", 3306);
+        int port = getInt("db.port", 3307);
         String name = get("db.name", "deihs_mms");
         return "jdbc:mysql://" + host + ":" + port + "/" + name
                 + "?useSSL=false"
