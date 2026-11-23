@@ -1,0 +1,407 @@
+1
+00:00:00,700 --> 00:00:01,660
+Welcome.
+
+2
+00:00:01,840 --> 00:00:09,472
+This tutorial shows you how to access the
+DEIHS Maintenance Management System source
+code on GitHub.
+
+3
+00:00:09,652 --> 00:00:17,140
+We will cover downloading the project, cloning
+it with Git, getting write access, and pushing
+your changes.
+
+4
+00:00:17,320 --> 00:00:22,288
+By the end, you will be able to work on the
+project like a team member.
+
+5
+00:00:23,888 --> 00:00:33,128
+The repository contains the complete JavaFX
+application, the MySQL schema, the launchers,
+and the documentation.
+
+6
+00:00:33,308 --> 00:00:37,916
+Everything you need to build and run the
+system is in one place.
+
+7
+00:00:38,096 --> 00:00:45,296
+You can use the code to study the project, to
+run it on your own computer, or to contribute
+improvements.
+
+8
+00:00:46,896 --> 00:00:50,736
+Before you start, decide what kind of access
+you need.
+
+9
+00:00:50,916 --> 00:00:54,708
+Everyone can read and download a public
+repository.
+
+10
+00:00:54,888 --> 00:01:01,392
+To push changes, you need a GitHub account and
+an invitation from the repository owner.
+
+11
+00:01:01,572 --> 00:01:07,260
+You also need a browser, and optionally Git,
+which we will install in a moment.
+
+12
+00:01:08,860 --> 00:01:18,460
+Open your browser and go to github dot com
+slash mccollybalagtas slash DevNexus dash
+DEIHS dash MMS.
+
+13
+00:01:18,640 --> 00:01:23,608
+The repository is public, so you can view it
+without signing in.
+
+14
+00:01:23,788 --> 00:01:27,364
+The main branch contains the latest working
+version.
+
+15
+00:01:27,544 --> 00:01:33,520
+Take a moment to read the README, because it
+explains the setup and the demo accounts.
+
+16
+00:01:35,120 --> 00:01:39,320
+The simplest way to get the files is to
+download a ZIP.
+
+17
+00:01:39,500 --> 00:01:43,244
+Click the green Code button, then choose
+Download ZIP.
+
+18
+00:01:43,424 --> 00:01:47,480
+Extract the archive into a folder you can find
+easily.
+
+19
+00:01:47,660 --> 00:01:57,860
+This gives you a snapshot of the code, but it
+does not include Git history and it is not
+connected to the repository, so you cannot push changes this way.
+
+20
+00:01:59,460 --> 00:02:02,412
+If you want to contribute, install Git.
+
+21
+00:02:02,592 --> 00:02:09,792
+Download it from git dash s c m dot com and
+run the installer, keeping the default
+options.
+
+22
+00:02:09,972 --> 00:02:16,092
+On macOS, Git is usually available after
+installing the command line tools.
+
+23
+00:02:16,272 --> 00:02:19,800
+On Linux, install it with your package
+manager.
+
+24
+00:02:19,980 --> 00:02:25,668
+Then open a terminal and run git dash dash
+version to confirm it works.
+
+25
+00:02:27,268 --> 00:02:30,652
+Before your first commit, tell Git who you
+are.
+
+26
+00:02:30,832 --> 00:02:35,800
+Set your name and the email address associated
+with your GitHub account.
+
+27
+00:02:35,980 --> 00:02:39,268
+These details appear in every commit you
+create.
+
+28
+00:02:39,448 --> 00:02:45,688
+Use the same email you use on GitHub so your
+contributions are linked to your profile.
+
+29
+00:02:45,868 --> 00:02:49,084
+You only need to do this once per computer.
+
+30
+00:02:50,684 --> 00:02:52,868
+Now clone the repository.
+
+31
+00:02:53,048 --> 00:02:57,800
+In a terminal, move to the folder where you
+keep your projects.
+
+32
+00:02:57,980 --> 00:03:02,708
+Run git clone followed by the HTTPS URL.
+
+33
+00:03:02,888 --> 00:03:10,640
+Git creates a folder named DevNexus dash DEIHS
+dash MMS and downloads the full history.
+
+34
+00:03:10,820 --> 00:03:13,748
+Then move into that folder with cd.
+
+35
+00:03:15,348 --> 00:03:17,796
+Here is what you will find inside.
+
+36
+00:03:17,976 --> 00:03:23,736
+The src folder contains the Java source and
+the FXML views.
+
+37
+00:03:23,916 --> 00:03:27,468
+The database folder contains the SQL script.
+
+38
+00:03:27,648 --> 00:03:32,064
+The docs folder contains screenshots and these
+tutorials.
+
+39
+00:03:32,244 --> 00:03:37,428
+The README explains setup, and the run scripts
+start the application.
+
+40
+00:03:37,608 --> 00:03:41,712
+The pom dot x m l file lists the dependencies.
+
+41
+00:03:43,312 --> 00:03:46,168
+Read the README before running anything.
+
+42
+00:03:46,348 --> 00:03:53,716
+It lists the prerequisites, the database
+import steps, the connection settings, and the
+demo accounts.
+
+43
+00:03:53,896 --> 00:03:58,144
+The first tutorial video covers the database
+in detail.
+
+44
+00:03:58,324 --> 00:04:02,668
+Following the README in order avoids most
+setup problems.
+
+45
+00:04:04,268 --> 00:04:10,076
+Reading a public repository does not require
+permission, but pushing does.
+
+46
+00:04:10,256 --> 00:04:13,424
+Ask the owner to add you as a collaborator.
+
+47
+00:04:13,604 --> 00:04:23,156
+The owner opens the repository settings, goes
+to Collaborators, clicks Add people, and
+enters your GitHub username with the Write role.
+
+48
+00:04:23,336 --> 00:04:28,952
+You then accept the invitation from your email
+or from the repository page.
+
+49
+00:04:30,552 --> 00:04:37,416
+GitHub no longer accepts your account password
+for Git operations over HTTPS.
+
+50
+00:04:37,596 --> 00:04:40,740
+Create a personal access token instead.
+
+51
+00:04:40,920 --> 00:04:47,496
+Open your GitHub settings, go to Developer
+settings, then Personal access tokens.
+
+52
+00:04:47,676 --> 00:04:54,732
+Create a fine-grained token limited to this
+repository with read and write access to
+contents.
+
+53
+00:04:54,912 --> 00:04:58,488
+Use the token as the password when Git asks.
+
+54
+00:05:00,088 --> 00:05:03,520
+As an alternative, use an SSH key.
+
+55
+00:05:03,700 --> 00:05:11,356
+Generate a key with ssh dash keygen, using the
+ed25519 algorithm.
+
+56
+00:05:11,536 --> 00:05:18,400
+Copy the public key and add it to GitHub under
+Settings, SSH and GPG keys.
+
+57
+00:05:18,580 --> 00:05:23,884
+Test the connection with ssh dash T git at
+github dot com.
+
+58
+00:05:24,064 --> 00:05:30,400
+Once it works, clone with the SSH URL instead
+of HTTPS.
+
+59
+00:05:32,000 --> 00:05:34,184
+Here is the daily workflow.
+
+60
+00:05:34,364 --> 00:05:37,868
+Start by pulling the latest changes with git
+pull.
+
+61
+00:05:38,048 --> 00:05:41,912
+Create a branch for your work with git switch
+dash c.
+
+62
+00:05:42,092 --> 00:05:46,916
+Make your edits, then review them with git
+status and git diff.
+
+63
+00:05:47,096 --> 00:05:53,672
+Stage the files with git add, commit with a
+clear message, and push the branch to GitHub.
+
+64
+00:05:53,852 --> 00:05:57,428
+Never work directly on main for team changes.
+
+65
+00:05:59,028 --> 00:06:02,508
+After pushing a branch, open a pull request.
+
+66
+00:06:02,688 --> 00:06:06,096
+GitHub shows a Compare and pull request
+button.
+
+67
+00:06:06,276 --> 00:06:10,404
+Describe what you changed and why, then
+request a review.
+
+68
+00:06:10,584 --> 00:06:17,352
+The owner or another member reviews the code,
+discusses any issues, and merges it into main.
+
+69
+00:06:17,532 --> 00:06:23,076
+Pull requests keep the main branch stable and
+give everyone a chance to review.
+
+70
+00:06:24,676 --> 00:06:27,796
+These are the errors you are most likely to
+meet.
+
+71
+00:06:27,976 --> 00:06:35,656
+Repository not found usually means the URL is
+wrong or you are not signed in to a private
+repository.
+
+72
+00:06:35,836 --> 00:06:40,252
+Authentication failed means your token is
+missing or expired.
+
+73
+00:06:40,432 --> 00:06:45,856
+Permission denied publickey means your SSH key
+is not registered.
+
+74
+00:06:46,036 --> 00:06:52,012
+A rejected push means someone else pushed
+first, so pull before you push again.
+
+75
+00:06:53,612 --> 00:06:56,852
+A few rules keep the repository healthy.
+
+76
+00:06:57,032 --> 00:07:01,832
+Never commit database passwords, tokens, or
+personal data.
+
+77
+00:07:02,012 --> 00:07:05,972
+Keep db dot properties free of real
+credentials.
+
+78
+00:07:06,152 --> 00:07:12,872
+Do not commit the target folder or IDE files;
+the gitignore file already excludes them.
+
+79
+00:07:13,052 --> 00:07:19,196
+Pull before you start, use clear commit
+messages, and never force push to main.
+
+80
+00:07:20,796 --> 00:07:25,836
+That is everything you need to access and
+contribute to the repository.
+
+81
+00:07:26,016 --> 00:07:33,432
+You can download the ZIP to explore, clone
+with Git to develop, and open a pull request
+to share your work.
+
+82
+00:07:33,612 --> 00:07:36,804
+The links are in the description and in the
+README.
+
+83
+00:07:36,984 --> 00:07:39,888
+Thanks for watching, and happy building.

@@ -108,11 +108,12 @@ deihs-mms/
 │   ├── com/deihs/mms/view/*.fxml    # 18 screens/dialogs
 │   ├── com/deihs/mms/css/styles.css # navy login + Green & Gold app shell
 │   └── com/deihs/mms/img/           # logo + login-building.jpg
-└── docs (HTML, at repo root)
-    ├── DEIHS_MMS_Build_Guide.html
-    ├── DEIHS_MMS_Group_Presentation.html
-    ├── DEIHS_MMS_Member_Parts.html
-    └── docs/login-screen.png          # sign-in screenshot
+├── docs/
+│   ├── login-screen.png             # sign-in screenshot
+│   └── videos/                      # two narrated setup tutorials (MP4 + SRT)
+├── DEIHS_MMS_Build_Guide.html       # beginner rebuild guide
+├── DEIHS_MMS_Member_Parts.html      # per-member ownership guide
+└── DEIHS_MMS_Group_Presentation.pdf # progress deck
 ```
 
 ---
@@ -229,9 +230,10 @@ Artifacts:
 
 | Document | Purpose |
 |---|---|
+| [`docs/videos/`](docs/videos/README.md) | Two narrated video tutorials: database setup (9:14) and GitHub access (7:41) |
 | [`DEIHS_MMS_Build_Guide.html`](DEIHS_MMS_Build_Guide.html) | Beginner step-by-step rebuild guide (14 parts, logic + code + file flow) |
 | [`DEIHS_MMS_Member_Parts.html`](DEIHS_MMS_Member_Parts.html) | Per-member ownership: tasks, code walk, demo script, Q&A |
-| [`DEIHS_MMS_Group_Presentation.html`](DEIHS_MMS_Group_Presentation.html) | Progress and task-plan deck (also `.pdf` / `.pptx`) |
+| [`DEIHS_MMS_Group_Presentation.pdf`](DEIHS_MMS_Group_Presentation.pdf) | Progress and task-plan deck |
 
 Open the HTML files directly in a browser; no server needed.
 

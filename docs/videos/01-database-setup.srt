@@ -1,0 +1,455 @@
+1
+00:00:00,700 --> 00:00:01,660
+Welcome.
+
+2
+00:00:01,840 --> 00:00:11,848
+In this tutorial you will learn which database
+to install for the DEIHS Maintenance
+Management System, and how to connect the application to it.
+
+3
+00:00:12,028 --> 00:00:20,428
+We will use XAMPP, import the included SQL
+script, edit the connection settings, and run
+the app.
+
+4
+00:00:20,608 --> 00:00:21,808
+Let's begin.
+
+5
+00:00:23,408 --> 00:00:26,480
+Here is the whole setup in five steps.
+
+6
+00:00:26,660 --> 00:00:33,356
+First, install XAMPP so you have a
+MySQL-compatible database server.
+
+7
+00:00:33,536 --> 00:00:37,280
+Second, import the schema that comes with the
+project.
+
+8
+00:00:37,460 --> 00:00:40,340
+Third, point the app at your database.
+
+9
+00:00:40,520 --> 00:00:43,328
+Fourth, build and run the application.
+
+10
+00:00:43,508 --> 00:00:49,964
+And fifth, if you are on a local network,
+connect the other computers to the same
+database.
+
+11
+00:00:51,564 --> 00:00:54,996
+Before you start, prepare these four things.
+
+12
+00:00:55,176 --> 00:00:59,376
+A computer running Windows, macOS, or Linux.
+
+13
+00:00:59,556 --> 00:01:02,940
+The Java Development Kit version twenty-one.
+
+14
+00:01:03,120 --> 00:01:07,152
+Apache Maven, which is only needed to build
+the project.
+
+15
+00:01:07,332 --> 00:01:12,852
+And the project folder itself, which you can
+download or clone from GitHub.
+
+16
+00:01:13,032 --> 00:01:16,896
+You will also need a web browser for
+phpMyAdmin.
+
+17
+00:01:18,496 --> 00:01:22,480
+The application works with MySQL or MariaDB.
+
+18
+00:01:22,660 --> 00:01:32,644
+The easiest choice for members is XAMPP,
+because it bundles MariaDB, Apache, and
+phpMyAdmin in one installer.
+
+19
+00:01:32,824 --> 00:01:42,160
+MariaDB speaks the same protocol as MySQL, so
+the MySQL Connector included in the project
+works without changes.
+
+20
+00:01:42,340 --> 00:01:48,004
+If your school already runs MySQL 8 or WAMP,
+you can use that instead.
+
+21
+00:01:49,604 --> 00:01:56,948
+Download XAMPP from apachefriends dot org and
+choose the version for your operating system.
+
+22
+00:01:57,128 --> 00:02:05,072
+Run the installer and keep the default
+location, which is C colon backslash xampp on
+Windows.
+
+23
+00:02:05,252 --> 00:02:12,740
+You do not need every component, but keep
+Apache, MySQL, and phpMyAdmin selected.
+
+24
+00:02:12,920 --> 00:02:18,296
+When installation finishes, open the XAMPP
+Control Panel.
+
+25
+00:02:19,896 --> 00:02:27,120
+In the XAMPP Control Panel, click Start next
+to Apache and Start next to MySQL.
+
+26
+00:02:27,300 --> 00:02:30,444
+Both should turn green and show a port number.
+
+27
+00:02:30,624 --> 00:02:35,040
+MySQL normally listens on port three three
+zero six.
+
+28
+00:02:35,220 --> 00:02:42,540
+If the port is already in use, another
+database is running, and you will need to stop
+it or change the port.
+
+29
+00:02:42,720 --> 00:02:45,768
+Leave both services running while you work.
+
+30
+00:02:47,368 --> 00:02:51,784
+If you do not have the project yet, clone it
+from GitHub.
+
+31
+00:02:51,964 --> 00:03:00,364
+Open a terminal in the folder where you keep
+your projects and run git clone with the
+repository URL shown on screen.
+
+32
+00:03:00,544 --> 00:03:06,568
+If Git is not installed, you can download the
+repository as a ZIP file instead.
+
+33
+00:03:06,748 --> 00:03:10,564
+The next video covers GitHub access in detail.
+
+34
+00:03:12,164 --> 00:03:17,468
+phpMyAdmin is the web interface that comes
+with XAMPP.
+
+35
+00:03:17,648 --> 00:03:25,160
+With Apache and MySQL running, open your
+browser and go to localhost slash phpmyadmin.
+
+36
+00:03:25,340 --> 00:03:28,676
+You should see the phpMyAdmin home page.
+
+37
+00:03:28,856 --> 00:03:36,584
+On a fresh XAMPP install, the user is root and
+the password is blank, so you can log in
+directly.
+
+38
+00:03:38,184 --> 00:03:41,712
+In phpMyAdmin, click the Import tab.
+
+39
+00:03:41,892 --> 00:03:51,156
+Choose the file database slash deihs mms dot s
+q l from the project folder, leave the default
+options, and click Go.
+
+40
+00:03:51,336 --> 00:03:57,192
+The script creates the database, all thirteen
+tables, and the demo accounts.
+
+41
+00:03:57,372 --> 00:03:59,820
+Please read the warning on screen.
+
+42
+00:04:00,000 --> 00:04:07,056
+The script begins with drop database, so it
+replaces any existing database with the same
+name.
+
+43
+00:04:08,656 --> 00:04:14,296
+After the import, phpMyAdmin should show the
+new database on the left.
+
+44
+00:04:14,476 --> 00:04:17,572
+Open it and confirm that the tables are there.
+
+45
+00:04:17,752 --> 00:04:26,896
+You should see tables for users, requests,
+facilities, equipment, schedules, and the
+audit log, among others.
+
+46
+00:04:27,076 --> 00:04:33,196
+If the import failed, check the error message
+at the top of the page before continuing.
+
+47
+00:04:34,796 --> 00:04:38,492
+Now tell the application how to reach the
+database.
+
+48
+00:04:38,672 --> 00:04:46,064
+Open src slash main slash resources slash db
+dot properties in any text editor.
+
+49
+00:04:46,244 --> 00:04:57,596
+Set the host to one two seven dot zero dot
+zero dot one, the port to three three zero
+six, the database name to deihs mms, and the user to root.
+
+50
+00:04:57,776 --> 00:05:02,960
+Leave the password blank only for a local
+XAMPP install.
+
+51
+00:05:04,560 --> 00:05:08,760
+This step causes the most confusion, so pay
+attention.
+
+52
+00:05:08,940 --> 00:05:18,732
+The copy of db dot properties stored in the
+repository uses port three three zero seven,
+because that was the developer's local setup.
+
+53
+00:05:18,912 --> 00:05:24,216
+XAMPP uses port three three zero six by
+default.
+
+54
+00:05:24,396 --> 00:05:29,580
+If you keep three three zero seven, the
+application cannot connect.
+
+55
+00:05:29,760 --> 00:05:35,856
+Change the port to three three zero six unless
+you deliberately configured a different one.
+
+56
+00:05:37,456 --> 00:05:43,888
+Using root with a blank password is fine for a
+quick test, but not for a shared deployment.
+
+57
+00:05:44,068 --> 00:05:49,204
+Create a dedicated database user that can
+access only this database.
+
+58
+00:05:49,384 --> 00:05:52,360
+The SQL commands are shown on screen.
+
+59
+00:05:52,540 --> 00:06:00,556
+Replace the password with a strong one, and
+put the same credentials in db dot properties
+or pass them at launch.
+
+60
+00:06:02,156 --> 00:06:05,132
+Open a terminal in the project folder.
+
+61
+00:06:05,312 --> 00:06:10,592
+Run mvn clean package to compile and package
+the application.
+
+62
+00:06:10,772 --> 00:06:20,372
+When the build finishes, start it with java
+dash jar target slash deihs dash mms dash one
+dot zero dot zero dot jar.
+
+63
+00:06:20,552 --> 00:06:28,832
+On Linux or macOS you can also run the
+provided run dot s h script, and on Windows
+use run dot b a t.
+
+64
+00:06:30,432 --> 00:06:34,224
+When the login screen appears, the connection
+is working.
+
+65
+00:06:34,404 --> 00:06:42,444
+Sign in with one of the demo accounts listed
+in the README, for example admin with password
+admin one two three.
+
+66
+00:06:42,624 --> 00:06:47,016
+Change the demo passwords before anyone else
+uses the system.
+
+67
+00:06:47,196 --> 00:06:55,764
+If the login screen shows a connection error,
+the problem is almost always the host, port,
+user, or password.
+
+68
+00:06:57,364 --> 00:07:03,316
+To share one database across several
+computers, start with the server PC.
+
+69
+00:07:03,496 --> 00:07:10,024
+Find its local IP address with ipconfig on
+Windows or ip address on Linux.
+
+70
+00:07:10,204 --> 00:07:15,820
+Allow inbound TCP port three three zero six
+through the firewall.
+
+71
+00:07:16,000 --> 00:07:23,224
+In MySQL, make sure the user is allowed to
+connect from the network, not only from
+localhost.
+
+72
+00:07:23,404 --> 00:07:26,260
+Then import the schema on that machine.
+
+73
+00:07:27,860 --> 00:07:33,980
+On each client PC, install Java twenty-one and
+copy the packaged jar.
+
+74
+00:07:34,160 --> 00:07:42,896
+Start it with db dot host set to the server's
+IP address and db dot port set to three three
+zero six, as shown.
+
+75
+00:07:43,076 --> 00:07:47,396
+Alternatively, edit db dot properties on that
+PC.
+
+76
+00:07:47,576 --> 00:07:53,360
+All computers then read and write the same
+data, so changes appear everywhere.
+
+77
+00:07:54,960 --> 00:07:58,392
+Here are the four errors you are most likely
+to see.
+
+78
+00:07:58,572 --> 00:08:05,724
+Access denied means the username or password
+is wrong, or the user is not allowed from that
+host.
+
+79
+00:08:05,904 --> 00:08:12,648
+Communications link failure means the host or
+port is wrong, or MySQL is not running.
+
+80
+00:08:12,828 --> 00:08:16,596
+Unknown database means the import did not
+complete.
+
+81
+00:08:16,776 --> 00:08:22,920
+And a port conflict means another service is
+already using three three zero six.
+
+82
+00:08:24,520 --> 00:08:27,904
+Before real use, do these four things.
+
+83
+00:08:28,084 --> 00:08:30,292
+Change every demo password.
+
+84
+00:08:30,472 --> 00:08:34,600
+Create a dedicated database user instead of
+using root.
+
+85
+00:08:34,780 --> 00:08:39,460
+Never expose port three three zero six
+directly to the internet.
+
+86
+00:08:39,640 --> 00:08:42,904
+And never commit real passwords to GitHub.
+
+87
+00:08:43,084 --> 00:08:48,028
+Pass them at launch, or keep them in a local
+file that is not tracked.
+
+88
+00:08:49,628 --> 00:08:52,292
+That completes the database setup.
+
+89
+00:08:52,472 --> 00:09:00,248
+You installed XAMPP, imported the schema,
+configured the connection, and ran the
+application.
+
+90
+00:09:00,428 --> 00:09:07,964
+If something did not work, revisit the
+troubleshooting slide, and check the README
+for the same steps in writing.
+
+91
+00:09:08,144 --> 00:09:13,664
+In the next video, we will cover how to access
+the GitHub repository.
