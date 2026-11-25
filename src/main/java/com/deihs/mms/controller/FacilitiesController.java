@@ -13,6 +13,7 @@ import com.deihs.mms.util.AlertUtil;
 import com.deihs.mms.util.Format;
 import com.deihs.mms.util.ViewLoader;
 import javafx.animation.PauseTransition;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,7 +34,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Window;
@@ -106,14 +106,16 @@ public class FacilitiesController {
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         table.setPlaceholder(new Label("No facilities match the current filters."));
 
-        codeCol.setCellValueFactory(new PropertyValueFactory<>("code"));
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        // Records expose accessors (code()), not JavaFX bean getters, so the
+        // columns use lambdas instead of PropertyValueFactory.
+        codeCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().code())));
+        nameCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().name()));
         buildingCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().building())));
         floorCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().floor())));
         roomCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().roomNumber())));
         typeCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().type())));
-        equipmentCol.setCellValueFactory(new PropertyValueFactory<>("equipmentCount"));
-        openCol.setCellValueFactory(new PropertyValueFactory<>("openRequests"));
+        equipmentCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().equipmentCount()));
+        openCol.setCellValueFactory(c -> new ReadOnlyObjectWrapper<>(c.getValue().openRequests()));
 
         conditionCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().condition()));
         conditionCol.setCellFactory(col -> new TableCell<>() {

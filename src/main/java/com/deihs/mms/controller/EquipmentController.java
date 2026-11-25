@@ -33,7 +33,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Window;
@@ -114,8 +113,9 @@ public class EquipmentController {
         table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
         table.setPlaceholder(new Label("No equipment matches the current filters."));
 
-        propertyCol.setCellValueFactory(new PropertyValueFactory<>("propertyNo"));
-        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        // Records expose accessors (propertyNo()), not JavaFX bean getters.
+        propertyCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().propertyNo())));
+        nameCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().name()));
         categoryCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().category())));
         brandCol.setCellValueFactory(c -> {
             Equipment e = c.getValue();

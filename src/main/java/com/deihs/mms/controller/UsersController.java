@@ -35,7 +35,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
@@ -102,8 +101,9 @@ public class UsersController {
         requestsTable.setPlaceholder(new Label("No pending account requests."));
         requestsTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
-        reqEmpCol.setCellValueFactory(new PropertyValueFactory<>("employeeNo"));
-        reqUsernameCol.setCellValueFactory(new PropertyValueFactory<>("username"));
+        // Records expose accessors (employeeNo()), not JavaFX bean getters.
+        reqEmpCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().employeeNo())));
+        reqUsernameCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().username()));
         reqNameCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().fullName()));
         reqDeptCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().department())));
         reqRoleCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(roleLabel(c.getValue().requestedRole())));
@@ -142,8 +142,8 @@ public class UsersController {
         usersTable.setPlaceholder(new Label("No users found."));
         usersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
-        empCol.setCellValueFactory(new PropertyValueFactory<>("employeeNo"));
-        usernameCol.setCellValueFactory(new PropertyValueFactory<>("username"));
+        empCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().employeeNo())));
+        usernameCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().username()));
         nameCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().fullName()));
         roleCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().role().displayName()));
         deptCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().department())));
