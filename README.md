@@ -144,7 +144,7 @@ Edit `src/main/resources/db.properties`:
 
 ```properties
 db.host=127.0.0.1
-db.port=3307
+db.port=3306
 db.name=deihs_mms
 db.user=root
 db.password=
@@ -153,8 +153,8 @@ db.pool.size=10
 
 | Situation | Value |
 |---|---|
-| XAMPP / MySQL on the default port | `db.port=3306` |
-| Development instance used by this repo | `db.port=3307` (the committed default) |
+| XAMPP / MySQL on the default port | `db.port=3306` (the committed default) |
+| Developer instance on another port | put `db.port=3307` in `db.local.properties` |
 | Client PC on the LAN | `db.host=<server LAN IP>`, `db.port=3306` |
 
 Every key can be overridden at launch without editing the file:
@@ -162,6 +162,10 @@ Every key can be overridden at launch without editing the file:
 ```bash
 mvn javafx:run -Ddb.host=192.168.1.10 -Ddb.port=3306
 ```
+
+> **Local overrides:** create `db.local.properties` next to the project (or
+> `~/.deihs-mms/db.local.properties`) to change any key for one machine. It is
+> git-ignored, so the committed defaults stay on XAMPP's 3306 for everyone else.
 
 > **Security:** commit only blank credentials. Pass real passwords with `-Ddb.password=...` or a local, untracked override — never commit them.
 

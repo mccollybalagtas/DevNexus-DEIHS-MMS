@@ -55,12 +55,13 @@ written steps in the main [`README.md`](../../README.md).
 
 **The one setting people get wrong**
 
-The committed `src/main/resources/db.properties` uses `db.port=3307`, because
-that is the developer's local setup. XAMPP listens on **3306** by default.
-Change the value before your first run:
+The committed `src/main/resources/db.properties` now uses `db.port=3306`,
+which is what XAMPP listens on. If your MySQL runs on another port (for
+example a separate development instance on 3307), put the override in an
+untracked `db.local.properties` instead of editing the committed file:
 
 ```properties
-db.port=3306
+db.port=3307
 ```
 
 **Quick fixes**

@@ -1,6 +1,7 @@
 package com.deihs.mms.controller;
 
 import com.deihs.mms.Main;
+import com.deihs.mms.config.AppConfig;
 import com.deihs.mms.dao.AuditDao;
 import com.deihs.mms.dao.UserDao;
 import com.deihs.mms.db.Database;
@@ -309,8 +310,11 @@ public class LoginController {
             } else if (ex instanceof SQLException sql) {
                 Database.reset(); // let the user start MySQL and retry without restarting
                 sql.printStackTrace(System.err);
-                showError("Cannot reach the database. Make sure MySQL is running in XAMPP "
-                        + "and the server address is correct. (" + compact(sql) + ")");
+                showError("Cannot reach the database at "
+                        + AppConfig.get("db.host", "127.0.0.1") + ":"
+                        + AppConfig.get("db.port", "3306")
+                        + ". Start MySQL (XAMPP) and check the server address. ("
+                        + compact(sql) + ")");
                 clearPassword();
                 focusPassword();
             } else {
