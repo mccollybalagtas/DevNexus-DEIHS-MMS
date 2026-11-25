@@ -308,7 +308,9 @@ public class ShellController {
 
     @FXML
     private void onLogout() {
-        boolean ok = AlertUtil.confirm(contentArea.getScene().getWindow(),
+        javafx.stage.Window owner = contentArea.getScene() == null
+                ? null : contentArea.getScene().getWindow();
+        boolean ok = AlertUtil.confirm(owner,
                 "Sign out", "Sign out of the DEIHS Maintenance Management System?");
         if (!ok) {
             return;

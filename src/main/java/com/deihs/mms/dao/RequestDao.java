@@ -191,7 +191,8 @@ public class RequestDao {
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', NOW(), ?)
                 """;
         try (PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, "TMP-" + UUID.randomUUID());
+            // Placeholder must fit ticket_no VARCHAR(20); the real number is set below.
+            ps.setString(1, "TMP-" + UUID.randomUUID().toString().replace("-", "").substring(0, 15));
             ps.setInt(2, requesterId);
             setNullableInt(ps, 3, draft.facilityId());
             setNullableInt(ps, 4, draft.equipmentId());

@@ -343,7 +343,11 @@ public class UsersController {
         });
 
         dialog.setResultConverter(bt -> bt == ButtonType.OK ? pw.getText() : null);
-        dialog.showAndWait();
+        String newPassword = dialog.showAndWait().orElse(null);
+        if (newPassword != null) {
+            AlertUtil.info(ownerWindow(), "Password reset",
+                    "The password for " + u.username() + " has been updated.");
+        }
     }
 
     private void onApprove(AccountRequest r) {

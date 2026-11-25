@@ -57,10 +57,10 @@ public final class Format {
 
     /** Human readable status: IN_PROGRESS -> In Progress */
     public static String pretty(String enumValue) {
-        if (enumValue == null) {
+        if (enumValue == null || enumValue.isBlank()) {
             return "—";
         }
-        String lower = enumValue.toLowerCase(Locale.ROOT).replace('_', ' ');
+        String lower = enumValue.trim().toLowerCase(Locale.ROOT).replace('_', ' ');
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
     }
 

@@ -100,8 +100,10 @@ public class SchedulesController {
             private final Label badge = new Label();
             @Override protected void updateItem(String value, boolean empty) {
                 super.updateItem(value, empty);
-                Schedule s = empty ? null : getTableView().getItems().get(getIndex());
-                if (empty || s == null) { setGraphic(null); return; }
+                int i = getIndex();
+                Schedule s = (empty || i < 0 || i >= getTableView().getItems().size())
+                        ? null : getTableView().getItems().get(i);
+                if (s == null) { setGraphic(null); setText(null); return; }
                 badge.getStyleClass().setAll("badge", statusBadge(s));
                 badge.setText(statusLabel(s));
                 setGraphic(badge);
@@ -113,9 +115,12 @@ public class SchedulesController {
             @Override protected void updateItem(String value, boolean empty) {
                 super.updateItem(value, empty);
                 if (empty) { setText(null); setStyle(""); return; }
-                Schedule s = getTableView().getItems().get(getIndex());
+                int i = getIndex();
+                Schedule s = (i < 0 || i >= getTableView().getItems().size())
+                        ? null : getTableView().getItems().get(i);
                 setText(value);
-                if (s.active() && s.nextDueDate() != null && !s.nextDueDate().isAfter(LocalDate.now())) {
+                if (s != null && s.active() && s.nextDueDate() != null
+                        && !s.nextDueDate().isAfter(LocalDate.now())) {
                     setStyle("-fx-text-fill: #A12B22; -fx-font-weight: bold;");
                 } else {
                     setStyle("");

@@ -14,6 +14,7 @@ import com.deihs.mms.util.Format;
 import com.deihs.mms.util.RequestCells;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.chart.BarChart;
@@ -81,12 +82,30 @@ public class DashboardController {
         countAxis.setForceZeroInRange(true);
 
         configureTable();
+        loadAsync(scope);
+    }
 
-        try {
-            apply(new DashboardDao().load(scope));
-        } catch (SQLException e) {
-            showDatabaseError(e);
-        }
+    /** Loads dashboard metrics off the FX thread so the window never freezes. */
+    private void loadAsync(Integer scope) {
+        Task<DashboardData> task = new Task<>() {
+            @Override
+            protected DashboardData call() throws Exception {
+                return new DashboardDao().load(scope);
+            }
+        };
+        task.setOnSucceeded(e -> apply(task.getValue()));
+        task.setOnFailed(e -> {
+            Throwable ex = task.getException();
+            if (ex instanceof SQLException sql) {
+                showDatabaseError(sql);
+            } else {
+                showDatabaseError(new SQLException(
+                        ex == null ? "Unknown error" : ex.getMessage(), ex));
+            }
+        });
+        Thread worker = new Thread(task, "deihs-dashboard");
+        worker.setDaemon(true);
+        worker.start();
     }
 
     public void setNavigator(Consumer<String> navigator) {

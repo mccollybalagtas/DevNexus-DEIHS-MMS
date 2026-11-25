@@ -69,7 +69,7 @@ public class FacilityFormController {
 
     public FacilityDraft draft() {
         Choice cond = conditionBox.getValue();
-        String type = typeBox.getEditor() != null ? typeBox.getEditor().getText() : typeBox.getValue();
+        String type = resolveType();
         return new FacilityDraft(
                 codeField.getText(),
                 nameField.getText(),
@@ -80,6 +80,16 @@ public class FacilityFormController {
                 cond == null ? null : cond.value(),
                 notesArea.getText()
         );
+    }
+
+    /** Prefers what the user typed (editable combo) and falls back to the selected value. */
+    private String resolveType() {
+        String typed = typeBox.getEditor() == null ? null : typeBox.getEditor().getText();
+        if (typed != null && !typed.isBlank()) {
+            return typed.trim();
+        }
+        String value = typeBox.getValue();
+        return value == null || value.isBlank() ? null : value.trim();
     }
 
     public void showError(String message) {

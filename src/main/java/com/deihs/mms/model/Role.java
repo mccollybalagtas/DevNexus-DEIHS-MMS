@@ -26,14 +26,20 @@ public enum Role {
         return displayName;
     }
 
+    /**
+     * Maps a database role code to a Role. Unknown or blank codes fall back to
+     * STAFF (least privilege) rather than throwing, so one malformed row can
+     * never break the whole user list.
+     */
     public static Role fromCode(String code) {
         if (code != null) {
+            String trimmed = code.trim();
             for (Role r : values()) {
-                if (r.code.equalsIgnoreCase(code)) {
+                if (r.code.equalsIgnoreCase(trimmed)) {
                     return r;
                 }
             }
         }
-        throw new IllegalArgumentException("Unknown role code: " + code);
+        return STAFF;
     }
 }

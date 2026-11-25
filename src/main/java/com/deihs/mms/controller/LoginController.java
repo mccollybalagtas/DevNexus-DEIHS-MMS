@@ -3,6 +3,7 @@ package com.deihs.mms.controller;
 import com.deihs.mms.Main;
 import com.deihs.mms.dao.AuditDao;
 import com.deihs.mms.dao.UserDao;
+import com.deihs.mms.db.Database;
 import com.deihs.mms.model.Choice;
 import com.deihs.mms.model.RegistrationDraft;
 import com.deihs.mms.model.User;
@@ -305,9 +306,13 @@ public class LoginController {
                 showError(auth.getMessage());
                 clearPassword();
                 focusPassword();
-            } else if (ex instanceof SQLException) {
+            } else if (ex instanceof SQLException sql) {
+                Database.reset(); // let the user start MySQL and retry without restarting
+                sql.printStackTrace(System.err);
                 showError("Cannot reach the database. Make sure MySQL is running in XAMPP "
-                        + "and the server address is correct.");
+                        + "and the server address is correct. (" + compact(sql) + ")");
+                clearPassword();
+                focusPassword();
             } else {
                 showError("Sign-in failed: " + (ex == null ? "unknown error" : ex.getMessage()));
             }
@@ -560,5 +565,15 @@ public class LoginController {
         errorLabel.setVisible(false);
         errorLabel.setManaged(false);
         errorLabel.setText("");
+    }
+
+    /** Short, single-line reason for a connection failure shown in the form label. */
+    private static String compact(SQLException ex) {
+        String msg = ex.getMessage();
+        if (msg == null || msg.isBlank()) {
+            return "connection failed";
+        }
+        msg = msg.replaceAll("\\s+", " ").trim();
+        return msg.length() > 140 ? msg.substring(0, 137) + "…" : msg;
     }
 }
