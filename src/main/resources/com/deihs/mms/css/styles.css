@@ -385,7 +385,6 @@
 
 .sidebar {
     -fx-background-color: #0A4A24;
-    -fx-pref-width: 72;
     -fx-min-width: 72;
     -fx-max-width: 236;
 }

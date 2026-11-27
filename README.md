@@ -21,7 +21,8 @@ Teachers report facility and equipment problems, the maintenance head assigns wo
 | **Dashboard** | Role-aware KPIs, monthly volume chart, status breakdown |
 | **Reports** | Date-range summaries, category/status breakdowns, cost and downtime, CSV and PDF export |
 | **Audit log** | Append-only trail of logins, assignments, status changes, and account actions |
-| **Accounts** | Self-registration with admin approval, user CRUD, activate/deactivate, password reset |
+| **Accounts** | Self-registration with admin approval, email verification code, user CRUD, activate/deactivate, password reset |
+| **Profile** | Self-service profile page with photo, details, password change, and appearance/theme preferences |
 | **Google sign-in** | Optional, config-gated OAuth 2.0 (desktop loopback + PKCE); verified email only |
 
 ### Roles
@@ -40,6 +41,8 @@ Roles are stored in the database and read after login — users never choose a r
 ![Sign-in screen](docs/login-screen.png)
 
 A split navy branding panel (school logo, name, location) beside a white sign-in card. The password field has an eye toggle, **Remember Me** stores only the username, **Forgot Password** explains the administrator reset process, and the Google button appears only when OAuth is configured. The bundled campus photo at `src/main/resources/com/deihs/mms/img/login-building.jpg` can be replaced with another image; if removed, the navy gradient is used.
+
+Sign-in and registration enforce username rules (letters/numbers/._-, must start with a letter, 3-50 chars) and password rules (8-64 chars). Exceeding the password length limit or 5 failed sign-in attempts triggers a 20-second lockout with a countdown. Registration sends a 6-digit email verification code; when SMTP is not configured, the app shows a clearly labeled development-mode code on the form.
 
 ---
 
@@ -105,7 +108,7 @@ deihs-mms/
 │   └── util/                        # ViewLoader, alerts, formatting, charts
 ├── src/main/resources/
 │   ├── db.properties                # blank template (no secrets)
-│   ├── com/deihs/mms/view/*.fxml    # 18 screens/dialogs
+│   ├── com/deihs/mms/view/*.fxml    # 19 screens/dialogs (incl. profile)
 │   ├── com/deihs/mms/css/styles.css # navy login + Green & Gold app shell
 │   └── com/deihs/mms/img/           # logo + login-building.jpg
 ├── docs/
@@ -249,9 +252,26 @@ Open the HTML files directly in a browser; no server needed.
 |---|---|---|
 | Google sign-in | Implemented, config-gated; not validated end to end | Real OAuth client ID/secret, redirect URI, internet/browser, matching Google emails |
 | LAN multi-PC | Configurable; not validated on the school network | Server IP, dedicated DB user, firewall rule, client test |
-| Photo attachments | Stored as local file paths (`~/DEIHS-MMS/attachments`) | Shared folder or BLOB storage for cross-PC access |
+| Photo attachments / avatars | Stored as local file paths (`~/DEIHS-MMS/attachments`, `~/.deihs-mms/avatars`) | Shared folder or BLOB storage for cross-PC access |
 | Automated tests | No unit/UI suite yet | JUnit + TestFX coverage for services and key flows |
 | Seed data | Demo accounts and sample records | Real facilities, equipment, users, and categories |
+
+### Email verification (SMTP)
+
+Registration requires a verified e-mail address. Configure SMTP in `db.properties` (or pass with `-D`):
+
+```properties
+smtp.host=smtp.gmail.com
+smtp.port=587
+smtp.user=you@gmail.com
+smtp.password=your-app-password
+smtp.from=you@gmail.com
+smtp.starttls=true
+smtp.ssl=false
+smtp.auth=true
+```
+
+Leave `smtp.host` blank for development mode: the app generates a 6-digit code and displays it on the registration form instead of sending mail. For Gmail, use an App Password, not your normal account password.
 
 ### Google OAuth configuration (optional)
 
