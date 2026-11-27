@@ -31,6 +31,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -56,6 +57,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.prefs.Preferences;
 
 /**
  * The application frame: sidebar navigation, top bar, and the content area
@@ -108,6 +110,7 @@ public class ShellController {
     @FXML private Button drawerProfileButton;
     @FXML private Button drawerSettingsButton;
     @FXML private Button drawerLogoutButton;
+    @FXML private Button sidebarSignOutButton;
 
     private final Map<String, Nav> navs = new LinkedHashMap<>();
     private final Map<String, NavRow> navRows = new LinkedHashMap<>();
@@ -117,6 +120,8 @@ public class ShellController {
     private boolean sidebarExpanded;
     private PauseTransition hoverHide;
     private boolean drawerOpen;
+
+    private static final Preferences PREFS = Preferences.userNodeForPackage(ShellController.class);
 
     private record Nav(String key, String title, String icon) {
     }
@@ -128,24 +133,57 @@ public class ShellController {
         User user = Session.get();
         Appearance.apply(shellRoot, user);
 
-        menuButton.setGraphic(Icons.of(Icons.MENU, 20, "#33414F"));
-        drawerCloseButton.setGraphic(Icons.of(Icons.CLOSE, 18, "#6B7785"));
         drawerProfileButton.setText("My profile");
-        drawerProfileButton.setGraphic(Icons.of(Icons.PROFILE, 18, "#33414F"));
         drawerSettingsButton.setText("Appearance & settings");
-        drawerSettingsButton.setGraphic(Icons.of(Icons.SETTINGS, 18, "#33414F"));
         drawerLogoutButton.setText("Log out");
-        drawerLogoutButton.setGraphic(Icons.of(Icons.LOGOUT, 18, "#B3261E"));
-        drawerLogoutButton.getStyleClass().add("drawer-item-danger");
+        if (!drawerLogoutButton.getStyleClass().contains("drawer-item-danger")) {
+            drawerLogoutButton.getStyleClass().add("drawer-item-danger");
+        }
+        if (sidebarSignOutButton != null) {
+            sidebarSignOutButton.setText("Sign out");
+            sidebarSignOutButton.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+            sidebarSignOutButton.setAlignment(Pos.CENTER);
+        }
+        refreshChrome();
 
         drawerScrim.setOnMouseClicked(e -> closeDrawer());
         installSidebarAnimation();
         installHoverPreview();
         installSceneHandlers();
 
+        applyFontPreference();
         refreshIdentity();
         buildMenu(user);
         navigate("dashboard");
+    }
+
+    /** Keeps top-bar and drawer icons readable in light and dark themes. */
+    private void refreshChrome() {
+        boolean dark = shellRoot.getStyleClass().contains("theme-dark");
+        String icon = dark ? "#E6EBF0" : "#33414F";
+        String muted = dark ? "#9AA6B2" : "#6B7785";
+        String danger = dark ? "#FF8A80" : "#B3261E";
+        menuButton.setGraphic(Icons.of(Icons.MENU, 20, icon));
+        drawerCloseButton.setGraphic(Icons.of(Icons.CLOSE, 18, muted));
+        drawerProfileButton.setGraphic(Icons.of(Icons.PROFILE, 18, icon));
+        drawerSettingsButton.setGraphic(Icons.of(Icons.SETTINGS, 18, icon));
+        drawerLogoutButton.setGraphic(Icons.of(Icons.LOGOUT, 18, danger));
+        if (sidebarSignOutButton != null) {
+            sidebarSignOutButton.setGraphic(Icons.of(Icons.LOGOUT, 18, danger));
+        }
+    }
+
+    private void applyFontPreference() {
+        String size = PREFS.get("fontSize." + Session.get().id(), "default");
+        shellRoot.getStyleClass().removeAll("text-large", "text-xlarge");
+        if ("large".equals(size)) shellRoot.getStyleClass().add("text-large");
+        if ("xlarge".equals(size)) shellRoot.getStyleClass().add("text-xlarge");
+    }
+
+    private String fontPref() {
+        if (shellRoot.getStyleClass().contains("text-xlarge")) return "xlarge";
+        if (shellRoot.getStyleClass().contains("text-large")) return "large";
+        return "default";
     }
 
     // ------------------------------------------------------------------
@@ -184,6 +222,7 @@ public class ShellController {
             case STAFF -> "Showing my own requests";
             default -> "All school records";
         });
+        refreshChrome();
     }
 
     // ------------------------------------------------------------------
@@ -215,6 +254,11 @@ public class ShellController {
                         expand ? SIDEBAR_EXPANDED : SIDEBAR_COLLAPSED,
                         Interpolator.EASE_BOTH)));
         sidebarTimeline.play();
+
+        if (sidebarSignOutButton != null) {
+            sidebarSignOutButton.setContentDisplay(expand ? ContentDisplay.LEFT : ContentDisplay.GRAPHIC_ONLY);
+            sidebarSignOutButton.setAlignment(expand ? Pos.CENTER_LEFT : Pos.CENTER);
+        }
     }
 
     /**
@@ -612,6 +656,7 @@ public class ShellController {
         ButtonType save = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(save, ButtonType.CANCEL);
         ViewLoader.applyAppStyles(dialog.getDialogPane());
+        dialog.getDialogPane().getStyleClass().addAll(shellRoot.getStyleClass());
 
         ComboBox<String> themeBox = new ComboBox<>();
         themeBox.getItems().addAll("Green (school)", "Navy blue", "Dark");
@@ -626,12 +671,35 @@ public class ShellController {
         densityBox.getSelectionModel().select(
                 "compact".equals(user.densityOrDefault()) ? 1 : 0);
 
+        ComboBox<String> fontSizeBox = new ComboBox<>();
+        fontSizeBox.getItems().addAll("Default", "Large", "Extra large");
+        fontSizeBox.getStyleClass().add("combo-input");
+        fontSizeBox.setMaxWidth(Double.MAX_VALUE);
+        fontSizeBox.getSelectionModel().select(switch (fontPref()) {
+            case "large" -> 1;
+            case "xlarge" -> 2;
+            default -> 0;
+        });
+
         // Live preview: the dialog applies the choice straight away and puts
         // the previous look back when it is cancelled.
-        themeBox.valueProperty().addListener((obs, old, value) ->
-                Appearance.apply(shellRoot, themeKey(value), densityKey(densityBox.getValue())));
-        densityBox.valueProperty().addListener((obs, old, value) ->
-                Appearance.apply(shellRoot, themeKey(themeBox.getValue()), densityKey(value)));
+        Runnable preview = () -> {
+            Appearance.apply(shellRoot, themeKey(themeBox.getValue()), densityKey(densityBox.getValue()));
+            shellRoot.getStyleClass().removeAll("text-large", "text-xlarge");
+            String fs = switch (fontSizeBox.getSelectionModel().getSelectedIndex()) {
+                case 1 -> "large";
+                case 2 -> "xlarge";
+                default -> "default";
+            };
+            if ("large".equals(fs)) shellRoot.getStyleClass().add("text-large");
+            if ("xlarge".equals(fs)) shellRoot.getStyleClass().add("text-xlarge");
+            dialog.getDialogPane().getStyleClass().setAll("dialog-pane");
+            dialog.getDialogPane().getStyleClass().addAll(shellRoot.getStyleClass());
+            refreshChrome();
+        };
+        themeBox.valueProperty().addListener((obs, old, value) -> preview.run());
+        densityBox.valueProperty().addListener((obs, old, value) -> preview.run());
+        fontSizeBox.valueProperty().addListener((obs, old, value) -> preview.run());
 
         GridPane grid = new GridPane();
         grid.setHgap(14);
@@ -640,6 +708,8 @@ public class ShellController {
         grid.add(themeBox, 1, 0);
         grid.add(new Label("Density"), 0, 1);
         grid.add(densityBox, 1, 1);
+        grid.add(new Label("Text size"), 0, 2);
+        grid.add(fontSizeBox, 1, 2);
 
         ColumnConstraints labelColumn = new ColumnConstraints();
         labelColumn.setMinWidth(80);
@@ -658,20 +728,35 @@ public class ShellController {
         content.setPadding(new Insets(4, 4, 2, 4));
         dialog.getDialogPane().setContent(content);
 
+        String oldFont = fontPref();
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isPresent() && result.get() == save) {
             try {
                 User updated = new ProfileService().savePreferences(
                         user, themeKey(themeBox.getValue()), densityKey(densityBox.getValue()));
+                String fs = switch (fontSizeBox.getSelectionModel().getSelectedIndex()) {
+                    case 1 -> "large";
+                    case 2 -> "xlarge";
+                    default -> "default";
+                };
+                PREFS.put("fontSize." + user.id(), fs);
                 Appearance.apply(shellRoot, updated);
+                applyFontPreference();
                 refreshIdentity();
+                refreshChrome();
             } catch (SQLException e) {
                 Appearance.apply(shellRoot, user);
+                PREFS.put("fontSize." + user.id(), oldFont);
+                applyFontPreference();
+                refreshChrome();
                 AlertUtil.error(owner, "Settings",
                         "Could not save your settings: " + e.getMessage());
             }
         } else {
             Appearance.apply(shellRoot, user);
+            PREFS.put("fontSize." + user.id(), oldFont);
+            applyFontPreference();
+            refreshChrome();
         }
     }
 

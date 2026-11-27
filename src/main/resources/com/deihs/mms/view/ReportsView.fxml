@@ -3,11 +3,13 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
@@ -16,9 +18,9 @@
       styleClass="page" spacing="16" maxWidth="Infinity" maxHeight="Infinity">
 
     <HBox alignment="CENTER_LEFT" spacing="12">
-        <VBox spacing="2">
-            <Label text="Reports" styleClass="page-h1"/>
-            <Label text="Maintenance request summaries and repair cost insights for the selected period."
+        <VBox spacing="3">
+            <Label text="Reports &amp; Analytics" styleClass="page-h1"/>
+            <Label text="Generate maintenance summaries, track repair costs, and export professional reports for the selected period."
                    styleClass="page-sub" wrapText="true"/>
         </VBox>
         <Region HBox.hgrow="ALWAYS"/>
@@ -26,36 +28,45 @@
         <Button text="Export PDF" styleClass="btn-primary" onAction="#onExportPdf"/>
     </HBox>
 
-    <VBox styleClass="card" spacing="0">
-        <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 0 0 4 0;">
-            <Label text="From" styleClass="field-label"/>
-            <DatePicker fx:id="fromPicker"/>
-            <Label text="To" styleClass="field-label"/>
-            <DatePicker fx:id="toPicker"/>
-            <Button text="Generate" styleClass="btn-primary" onAction="#onGenerate"/>
+    <VBox styleClass="card report-filter-card" spacing="10">
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="Reporting Period" styleClass="card-title"/>
             <Region HBox.hgrow="ALWAYS"/>
             <Label fx:id="rangeLabel" styleClass="result-count" text=""/>
+        </HBox>
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="From" styleClass="field-label"/>
+            <DatePicker fx:id="fromPicker" prefWidth="170"/>
+            <Label text="To" styleClass="field-label"/>
+            <DatePicker fx:id="toPicker" prefWidth="170"/>
+            <Button text="Generate Report" styleClass="btn-primary" onAction="#onGenerate"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Tip: choose a period, then export CSV/PDF." styleClass="form-hint"/>
         </HBox>
     </VBox>
 
     <HBox spacing="12">
-        <VBox styleClass="card kpi-card kpi-blue" spacing="4" HBox.hgrow="ALWAYS">
+        <VBox styleClass="card kpi-card kpi-blue report-kpi" spacing="4" HBox.hgrow="ALWAYS">
             <Label text="TOTAL REQUESTS" styleClass="kpi-label"/>
             <Label fx:id="totalLabel" text="0" styleClass="kpi-value"/>
+            <Label text="All requests in period" styleClass="kpi-sub"/>
         </VBox>
-        <VBox styleClass="card kpi-card kpi-gold" spacing="4" HBox.hgrow="ALWAYS">
+        <VBox styleClass="card kpi-card kpi-gold report-kpi" spacing="4" HBox.hgrow="ALWAYS">
             <Label text="OPEN" styleClass="kpi-label"/>
             <Label fx:id="openLabel" text="0" styleClass="kpi-value"/>
+            <Label text="Awaiting completion" styleClass="kpi-sub"/>
         </VBox>
-        <VBox styleClass="card kpi-card kpi-green" spacing="4" HBox.hgrow="ALWAYS">
+        <VBox styleClass="card kpi-card kpi-green report-kpi" spacing="4" HBox.hgrow="ALWAYS">
             <Label text="COMPLETED / CLOSED" styleClass="kpi-label"/>
             <Label fx:id="completedLabel" text="0" styleClass="kpi-value"/>
+            <Label text="Resolved requests" styleClass="kpi-sub"/>
         </VBox>
-        <VBox styleClass="card kpi-card kpi-red" spacing="4" HBox.hgrow="ALWAYS">
+        <VBox styleClass="card kpi-card kpi-red report-kpi" spacing="4" HBox.hgrow="ALWAYS">
             <Label text="OVERDUE (OPEN)" styleClass="kpi-label"/>
             <Label fx:id="overdueLabel" text="0" styleClass="kpi-value"/>
+            <Label text="Needs attention" styleClass="kpi-sub"/>
         </VBox>
-        <VBox styleClass="card kpi-card kpi-green" spacing="4" HBox.hgrow="ALWAYS">
+        <VBox styleClass="card kpi-card kpi-green report-kpi" spacing="4" HBox.hgrow="ALWAYS">
             <Label text="REPAIR COST" styleClass="kpi-label"/>
             <Label fx:id="costLabel" text="₱0.00" styleClass="kpi-value" style="-fx-font-size: 20px;"/>
             <Label fx:id="downtimeLabel" text="0.0 hrs downtime" styleClass="kpi-sub"/>
@@ -68,8 +79,9 @@
             <ColumnConstraints percentWidth="50" hgrow="ALWAYS"/>
         </columnConstraints>
 
-        <VBox styleClass="card" spacing="8" GridPane.rowIndex="0" GridPane.columnIndex="0">
+        <VBox styleClass="card report-section" spacing="8" GridPane.rowIndex="0" GridPane.columnIndex="0">
             <Label text="Requests by Status" styleClass="card-title"/>
+            <Label text="Distribution of request workflow states." styleClass="form-hint"/>
             <TableView fx:id="statusTable" VBox.vgrow="ALWAYS" prefHeight="220">
                 <columns>
                     <TableColumn fx:id="statusNameCol" text="STATUS" prefWidth="240"/>
@@ -78,8 +90,9 @@
             </TableView>
         </VBox>
 
-        <VBox styleClass="card" spacing="8" GridPane.rowIndex="0" GridPane.columnIndex="1">
+        <VBox styleClass="card report-section" spacing="8" GridPane.rowIndex="0" GridPane.columnIndex="1">
             <Label text="Requests by Priority" styleClass="card-title"/>
+            <Label text="Urgency breakdown for the selected period." styleClass="form-hint"/>
             <TableView fx:id="priorityTable" VBox.vgrow="ALWAYS" prefHeight="220">
                 <columns>
                     <TableColumn fx:id="priorityNameCol" text="PRIORITY" prefWidth="240"/>
@@ -88,8 +101,9 @@
             </TableView>
         </VBox>
 
-        <VBox styleClass="card" spacing="8" GridPane.rowIndex="1" GridPane.columnIndex="0">
+        <VBox styleClass="card report-section" spacing="8" GridPane.rowIndex="1" GridPane.columnIndex="0">
             <Label text="Requests by Category" styleClass="card-title"/>
+            <Label text="Most common maintenance request categories." styleClass="form-hint"/>
             <TableView fx:id="categoryTable" VBox.vgrow="ALWAYS" prefHeight="220">
                 <columns>
                     <TableColumn fx:id="categoryNameCol" text="CATEGORY" prefWidth="240"/>
@@ -98,8 +112,9 @@
             </TableView>
         </VBox>
 
-        <VBox styleClass="card" spacing="8" GridPane.rowIndex="1" GridPane.columnIndex="1">
-            <Label text="Top Facilities (by requests)" styleClass="card-title"/>
+        <VBox styleClass="card report-section" spacing="8" GridPane.rowIndex="1" GridPane.columnIndex="1">
+            <Label text="Top Facilities" styleClass="card-title"/>
+            <Label text="Facilities with the most reported requests." styleClass="form-hint"/>
             <TableView fx:id="facilityTable" VBox.vgrow="ALWAYS" prefHeight="220">
                 <columns>
                     <TableColumn fx:id="facilityNameCol" text="FACILITY" prefWidth="240"/>

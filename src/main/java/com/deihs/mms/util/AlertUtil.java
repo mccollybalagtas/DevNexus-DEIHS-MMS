@@ -2,9 +2,11 @@ package com.deihs.mms.util;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextArea;
 import javafx.stage.Window;
 
+import java.util.List;
 import java.util.Optional;
 
 public final class AlertUtil {
@@ -35,6 +37,7 @@ public final class AlertUtil {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        applyTheme(owner, alert.getDialogPane());
         Optional<ButtonType> result = alert.showAndWait();
         return result.isPresent() && result.get() == ButtonType.OK;
     }
@@ -48,6 +51,7 @@ public final class AlertUtil {
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+        applyTheme(owner, alert.getDialogPane());
 
         if (ex != null) {
             TextArea area = new TextArea(buildDetail(ex));
@@ -60,6 +64,31 @@ public final class AlertUtil {
         }
 
         alert.showAndWait();
+    }
+
+    private static void applyTheme(Window owner, DialogPane pane) {
+        ViewLoader.applyAppStyles(pane);
+        List<String> themeClasses = List.of(
+                "theme-green", "theme-navy", "theme-dark",
+                "density-compact", "text-large", "text-xlarge");
+        Window source = owner;
+        if (source == null || source.getScene() == null || source.getScene().getRoot() == null) {
+            for (Window w : Window.getWindows()) {
+                if (w.isShowing() && w.getScene() != null && w.getScene().getRoot() != null) {
+                    source = w;
+                    break;
+                }
+            }
+        }
+        if (source != null && source.getScene() != null && source.getScene().getRoot() != null) {
+            for (String cls : themeClasses) {
+                if (source.getScene().getRoot().getStyleClass().contains(cls)) {
+                    if (!pane.getStyleClass().contains(cls)) {
+                        pane.getStyleClass().add(cls);
+                    }
+                }
+            }
+        }
     }
 
     private static String buildDetail(Throwable ex) {

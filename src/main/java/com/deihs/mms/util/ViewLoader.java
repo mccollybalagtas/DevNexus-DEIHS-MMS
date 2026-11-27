@@ -50,5 +50,23 @@ public final class ViewLoader {
         if (!parent.getStylesheets().contains(css)) {
             parent.getStylesheets().add(css);
         }
+        applyThemeClasses(parent);
+    }
+
+    /** Copies active theme/density/text-size classes from the showing app window. */
+    public static void applyThemeClasses(Parent parent) {
+        java.util.List<String> themeClasses = java.util.List.of(
+                "theme-green", "theme-navy", "theme-dark",
+                "density-compact", "text-large", "text-xlarge");
+        for (javafx.stage.Window w : javafx.stage.Window.getWindows()) {
+            if (!w.isShowing() || w.getScene() == null || w.getScene().getRoot() == null) continue;
+            for (String cls : themeClasses) {
+                if (w.getScene().getRoot().getStyleClass().contains(cls)
+                        && !parent.getStyleClass().contains(cls)) {
+                    parent.getStyleClass().add(cls);
+                }
+            }
+            break;
+        }
     }
 }

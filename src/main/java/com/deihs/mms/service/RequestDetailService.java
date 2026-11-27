@@ -1,6 +1,7 @@
 package com.deihs.mms.service;
 
 import com.deihs.mms.dao.AuditDao;
+import com.deihs.mms.dao.MaintenanceRecordDao;
 import com.deihs.mms.dao.RequestDetailDao;
 import com.deihs.mms.dao.UserDao;
 import com.deihs.mms.model.AttachmentEntry;
@@ -27,6 +28,7 @@ public class RequestDetailService {
     private final RequestDetailDao detailDao = new RequestDetailDao();
     private final UserDao userDao = new UserDao();
     private final AuditDao auditDao = new AuditDao();
+    private final MaintenanceRecordDao recordDao = new MaintenanceRecordDao();
 
     // ------------------------------------------------------------------
     // Reads
@@ -214,6 +216,40 @@ public class RequestDetailService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    // ------------------------------------------------------------------
+    // Repair cost
+    // ------------------------------------------------------------------
+
+    public java.math.BigDecimal repairCost(int requestId) throws SQLException {
+        return recordDao.findTotalCostByRequest(requestId);
+    }
+
+    public boolean canEditCost(RequestDetail detail, User user) {
+        if (detail == null || user == null) return false;
+        return switch (user.role()) {
+            case ADMIN, MAINT_HEAD -> true;
+            case PERSONNEL -> detail.assigneeId() != null && detail.assigneeId() == user.id();
+            case STAFF -> false;
+        };
+    }
+
+    public void updateRepairCost(int requestId, java.math.BigDecimal cost, User actor)
+            throws SQLException, ValidationException {
+        RequestDetail detail = load(requestId, actor);
+        if (!canEditCost(detail, actor)) {
+            throw new ValidationException("You are not allowed to edit repair cost for this request.");
+        }
+        if (cost == null || cost.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw new ValidationException("Repair cost must be zero or greater.");
+        }
+        if (cost.scale() > 2) {
+            cost = cost.setScale(2, java.math.RoundingMode.HALF_UP);
+        }
+        recordDao.upsertCost(requestId, actor.id(), cost);
+        auditDao.log(actor.id(), "UPDATE_REPAIR_COST", "maintenance_requests",
+                detail.ticketNo(), "Repair cost set to " + cost.toPlainString());
     }
 
     private static String pretty(String status) {

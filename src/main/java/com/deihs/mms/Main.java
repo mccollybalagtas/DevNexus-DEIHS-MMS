@@ -43,6 +43,9 @@ public class Main extends Application {
         stage.setTitle(APP_NAME);
         stage.getIcons().add(new Image(
                 Objects.requireNonNull(Main.class.getResourceAsStream("/com/deihs/mms/img/deihs-logo.jpg"))));
+        // DevNexus credit icon - added alongside the existing app icon.
+        stage.getIcons().add(new Image(
+                Objects.requireNonNull(Main.class.getResourceAsStream("/com/deihs/mms/img/devnexus-logo.png"))));
         stage.setScene(mainScene);
         stage.setMinWidth(1024);
         stage.setMinHeight(640);

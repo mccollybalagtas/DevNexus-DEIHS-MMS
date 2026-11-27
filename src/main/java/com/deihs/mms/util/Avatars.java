@@ -6,6 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Circle;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,6 +55,7 @@ public final class Avatars {
             region.setMinSize(size, size);
             region.setPrefSize(size, size);
             region.setMaxSize(size, size);
+            region.setClip(new Circle(size / 2, size / 2, size / 2));
             String url = Paths.get(user.photoPath()).toUri().toString();
             region.setStyle("-fx-background-image: url('" + url + "');"
                     + "-fx-background-size: cover;"
@@ -66,12 +68,17 @@ public final class Avatars {
         label.setMinSize(size, size);
         label.setPrefSize(size, size);
         label.setMaxSize(size, size);
+        label.setClip(new Circle(size / 2, size / 2, size / 2));
         label.setStyle("-fx-font-size: " + Math.round(size * 0.36) + "px;");
         return label;
     }
 
     /** Replaces the contents of a holder with a fresh avatar node. */
     public static void fill(StackPane holder, User user, double size) {
+        holder.setMinSize(size, size);
+        holder.setPrefSize(size, size);
+        holder.setMaxSize(size, size);
+        holder.setClip(new Circle(size / 2, size / 2, size / 2));
         holder.getChildren().setAll(node(user, size));
     }
 }

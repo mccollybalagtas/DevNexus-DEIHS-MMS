@@ -33,12 +33,14 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
@@ -94,7 +96,8 @@ public class RequestDetailController {
             List<HistoryEntry> history,
             List<CommentEntry> comments,
             List<AttachmentEntry> attachments,
-            List<LookupOption> personnel
+            List<LookupOption> personnel,
+            BigDecimal repairCost
     ) {
     }
 
@@ -142,7 +145,8 @@ public class RequestDetailController {
                         service.history(requestId),
                         service.comments(requestId),
                         service.attachments(requestId),
-                        people);
+                        people,
+                        service.repairCost(requestId));
             }
         };
 
@@ -194,8 +198,8 @@ public class RequestDetailController {
         overdueBadge.setVisible(overdue);
         overdueBadge.setManaged(overdue);
 
-        renderInfo(detail);
-        renderActions(detail);
+        renderInfo(detail, bundle.repairCost());
+        renderActions(detail, bundle.repairCost());
         renderTimeline(bundle.history(), detail);
         renderComments(bundle.comments());
         renderAttachments(bundle.attachments());
@@ -205,7 +209,7 @@ public class RequestDetailController {
     // Information
     // ------------------------------------------------------------------
 
-    private void renderInfo(RequestDetail d) {
+    private void renderInfo(RequestDetail d, BigDecimal repairCost) {
         kvBox.getChildren().clear();
 
         kvRow("Reported by", d.requester());
@@ -232,6 +236,7 @@ public class RequestDetailController {
         if (d.resolutionNotes() != null) {
             kvRow("Resolution", d.resolutionNotes());
         }
+        kvRow("Repair cost", Format.peso(repairCost == null ? BigDecimal.ZERO : repairCost));
 
         descriptionLabel.setText(d.description() == null || d.description().isBlank()
                 ? "No description was provided."
@@ -266,7 +271,7 @@ public class RequestDetailController {
     // Actions
     // ------------------------------------------------------------------
 
-    private void renderActions(RequestDetail d) {
+    private void renderActions(RequestDetail d, BigDecimal repairCost) {
         actionBox.getChildren().clear();
 
         if (Permissions.canAssignRequests(user)
@@ -285,6 +290,13 @@ public class RequestDetailController {
             actionBox.getChildren().add(update);
         }
 
+        if (service.canEditCost(d, user)) {
+            Button costBtn = new Button("Edit Repair Cost");
+            costBtn.getStyleClass().add("btn-ghost");
+            costBtn.setOnAction(e -> openCostDialog(repairCost));
+            actionBox.getChildren().add(costBtn);
+        }
+
         Button comment = new Button("Add Comment");
         comment.getStyleClass().add("btn-ghost");
         comment.setOnAction(e -> commentArea.requestFocus());
@@ -293,6 +305,79 @@ public class RequestDetailController {
         boolean empty = actionBox.getChildren().isEmpty();
         actionBox.setVisible(!empty);
         actionBox.setManaged(!empty);
+    }
+
+    // ------------------------------------------------------------------
+    // Repair cost dialog
+    // ------------------------------------------------------------------
+
+    private void openCostDialog(BigDecimal currentCost) {
+        if (detail == null) return;
+
+        Label intro = new Label("Set the total repair cost for this request. This value is used in Reports.");
+        intro.getStyleClass().add("page-sub");
+        intro.setWrapText(true);
+
+        TextField costField = new TextField();
+        costField.getStyleClass().add("input");
+        costField.setPromptText("0.00");
+        costField.setText(currentCost == null ? "0.00" : currentCost.toPlainString());
+
+        Label err = new Label();
+        err.getStyleClass().add("form-error");
+        err.setVisible(false);
+        err.setManaged(false);
+        err.setWrapText(true);
+
+        VBox body = new VBox(10,
+                intro,
+                new VBox(6, new Label("Repair cost (PHP)") {{ getStyleClass().add("field-label"); }}, costField),
+                err);
+        body.getStyleClass().add("detail-dialog-body");
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.initOwner(window());
+        dialog.setTitle("Edit Repair Cost");
+        dialog.setHeaderText("Repair cost for " + detail.ticketNo());
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
+        dialog.getDialogPane().setContent(body);
+        ViewLoader.applyAppStyles(dialog.getDialogPane());
+
+        Button ok = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        ok.getStyleClass().add("btn-primary");
+        ok.addEventFilter(ActionEvent.ACTION, e -> {
+            e.consume();
+            err.setVisible(false); err.setManaged(false);
+            String raw = costField.getText() == null ? "" : costField.getText().trim().replace(",", "");
+            BigDecimal value;
+            try {
+                value = new BigDecimal(raw.isEmpty() ? "0" : raw);
+            } catch (NumberFormatException ex) {
+                err.setText("Enter a valid amount, for example 1500.00.");
+                err.setVisible(true); err.setManaged(true);
+                return;
+            }
+            ok.setDisable(true);
+            Task<Void> task = new Task<>() {
+                @Override protected Void call() throws Exception {
+                    service.updateRepairCost(requestId, value, user);
+                    return null;
+                }
+            };
+            task.setOnSucceeded(ev -> { ok.setDisable(false); dialog.setResult(ButtonType.OK); dialog.close(); load(); });
+            task.setOnFailed(ev -> {
+                ok.setDisable(false);
+                Throwable ex = task.getException();
+                err.setText(ex instanceof ValidationException ? ex.getMessage()
+                        : "Could not save repair cost.");
+                err.setVisible(true); err.setManaged(true);
+            });
+            Thread t = new Thread(task, "update-repair-cost");
+            t.setDaemon(true);
+            t.start();
+        });
+
+        dialog.showAndWait();
     }
 
     // ------------------------------------------------------------------

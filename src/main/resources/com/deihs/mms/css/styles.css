@@ -490,8 +490,8 @@
     -fx-border-color: #DCE5DD;
     -fx-border-radius: 22;
     -fx-background-radius: 22;
-    -fx-padding: 4 14 4 4;
-    -fx-spacing: 9;
+    -fx-padding: 3 10 3 3;
+    -fx-spacing: 8;
     -fx-alignment: CENTER_LEFT;
 }
 
@@ -1520,14 +1520,16 @@
 .theme-dark .profile-name,
 .theme-dark .drawer-title,
 .theme-dark .drawer-name,
-.theme-dark .popover-name {
-    -fx-text-fill: #E6EBF0;
+.theme-dark .popover-name,
+.theme-dark .kpi-value {
+    -fx-text-fill: #F0F4F8;
 }
 
 .theme-dark .page-sub,
 .theme-dark .empty-text,
 .theme-dark .form-hint,
 .theme-dark .kpi-sub,
+.theme-dark .kpi-label,
 .theme-dark .card-link,
 .theme-dark .profile-role,
 .theme-dark .drawer-role,
@@ -1585,6 +1587,34 @@
     -fx-background-color: #242C35;
 }
 
+.theme-dark .check-box,
+.theme-dark .radio-button,
+.theme-dark .label {
+    -fx-text-fill: #D7DEE6;
+}
+
+.theme-dark .check-box .box {
+    -fx-background-color: #141A20;
+    -fx-border-color: #4A5563;
+}
+
+.theme-dark .check-box:selected .box,
+.theme-dark .check-box:indeterminate .box {
+    -fx-background-color: #1E7A43;
+    -fx-border-color: #1E7A43;
+}
+
+.theme-dark .check-box:selected .mark {
+    -fx-background-color: #FFFFFF;
+}
+
+.theme-dark .kpi-value { -fx-text-fill: #FFFFFF; }
+.theme-dark .kpi-label { -fx-text-fill: #C5D0DB; }
+.theme-dark .page-sub,
+.theme-dark .form-hint,
+.theme-dark .kpi-sub,
+.theme-dark .result-count { -fx-text-fill: #B0BEC9; }
+
 .theme-dark .input,
 .theme-dark .login-input,
 .theme-dark .combo-input {
@@ -1592,6 +1622,114 @@
     -fx-border-color: #2E3742;
     -fx-text-fill: #E6EBF0;
     -fx-prompt-text-fill: #7C8894;
+}
+
+.theme-dark .combo-box-base,
+.theme-dark .combo-box .list-cell,
+.theme-dark .combo-box-base .text {
+    -fx-text-fill: #E6EBF0;
+    -fx-fill: #E6EBF0;
+}
+
+.theme-dark .combo-box-base {
+    -fx-background-color: #141A20;
+    -fx-border-color: #2E3742;
+}
+
+.theme-dark .combo-box-popup .list-view {
+    -fx-background-color: #1B2128;
+    -fx-border-color: #2E3742;
+}
+
+.theme-dark .combo-box-popup .list-cell {
+    -fx-background-color: #1B2128;
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .combo-box-popup .list-cell:hover,
+.theme-dark .combo-box-popup .list-cell:selected {
+    -fx-background-color: #26333F;
+    -fx-text-fill: #FFFFFF;
+}
+
+.theme-dark .date-picker,
+.theme-dark .date-picker .text-field {
+    -fx-background-color: #141A20;
+    -fx-text-fill: #E6EBF0;
+    -fx-prompt-text-fill: #7C8894;
+}
+
+.theme-dark .date-picker .arrow-button {
+    -fx-background-color: #1E2630;
+}
+
+.theme-dark .date-picker .arrow-button .arrow {
+    -fx-background-color: #E6EBF0;
+}
+
+.theme-dark .date-picker-popup,
+.theme-dark .date-picker-popup > * {
+    -fx-background-color: #1B2128;
+}
+
+.theme-dark .date-picker-popup .month-year-pane {
+    -fx-background-color: #232B34;
+}
+
+.theme-dark .date-picker-popup .month-year-pane .label {
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .date-picker-popup .spinner .button {
+    -fx-background-color: transparent;
+}
+
+.theme-dark .date-picker-popup .spinner .button .left-arrow,
+.theme-dark .date-picker-popup .spinner .button .right-arrow {
+    -fx-background-color: #E6EBF0;
+}
+
+.theme-dark .date-picker-popup .calendar-grid {
+    -fx-background-color: #1B2128;
+}
+
+.theme-dark .date-picker-popup .day-name-cell,
+.theme-dark .date-picker-popup .week-number-cell {
+    -fx-text-fill: #AAB7C4;
+    -fx-background-color: #1B2128;
+}
+
+.theme-dark .date-picker-popup .day-cell {
+    -fx-background-color: #1B2128;
+    -fx-text-fill: #E6EBF0;
+    -fx-border-color: transparent;
+}
+
+.theme-dark .date-picker-popup .day-cell:hover {
+    -fx-background-color: #2A3440;
+    -fx-text-fill: #FFFFFF;
+}
+
+.theme-dark .date-picker-popup .day-cell.selected,
+.theme-dark .date-picker-popup .day-cell.selected:hover {
+    -fx-background-color: #1E7A43;
+    -fx-text-fill: #FFFFFF;
+}
+
+.theme-dark .date-picker-popup .today {
+    -fx-border-color: #1E7A43;
+    -fx-text-fill: #7DD39A;
+}
+
+.theme-dark .date-picker-popup .previous-month,
+.theme-dark .date-picker-popup .next-month {
+    -fx-text-fill: #6B7785;
+}
+
+.theme-dark .date-picker-popup .previous-month:hover,
+.theme-dark .date-picker-popup .next-month:hover {
+    -fx-background-color: #2A3440;
+    -fx-text-fill: #AAB7C4;
 }
 
 .theme-dark .table-view {
@@ -1670,4 +1808,345 @@
 .density-compact .nav-row {
     -fx-min-height: 34;
     -fx-pref-height: 34;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Sidebar sign-out button (quick access, lower left)                 */
+/* ------------------------------------------------------------------ */
+
+.sidebar-signout {
+    -fx-background-color: rgba(255, 255, 255, 0.06);
+    -fx-text-fill: rgba(255, 255, 255, 0.92);
+    -fx-background-radius: 8;
+    -fx-padding: 8 12 8 12;
+    -fx-alignment: CENTER_LEFT;
+    -fx-graphic-text-gap: 10;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-border-color: rgba(255, 255, 255, 0.10);
+    -fx-border-radius: 8;
+}
+
+.sidebar-signout:hover {
+    -fx-background-color: rgba(255, 138, 128, 0.18);
+    -fx-text-fill: #FFFFFF;
+    -fx-border-color: rgba(255, 138, 128, 0.35);
+}
+
+.sidebar-signout:pressed {
+    -fx-background-color: rgba(255, 138, 128, 0.28);
+}
+
+/* ------------------------------------------------------------------ */
+/* User preference text size                                          */
+/* ------------------------------------------------------------------ */
+
+.text-large {
+    -fx-font-size: 15px;
+}
+
+.text-large .page-title { -fx-font-size: 17px; }
+.text-large .page-h1 { -fx-font-size: 24px; }
+.text-large .nav-label { -fx-font-size: 14px; }
+.text-large .user-name { -fx-font-size: 12.5px; }
+.text-large .user-role { -fx-font-size: 10.5px; }
+
+.text-xlarge {
+    -fx-font-size: 17px;
+}
+
+.text-xlarge .page-title { -fx-font-size: 19px; }
+.text-xlarge .page-h1 { -fx-font-size: 26px; }
+.text-xlarge .nav-label { -fx-font-size: 15px; }
+.text-xlarge .user-name { -fx-font-size: 13.5px; }
+.text-xlarge .user-role { -fx-font-size: 11px; }
+
+
+/* ------------------------------------------------------------------ */
+/* Dark theme system-wide coverage                                     */
+/* ------------------------------------------------------------------ */
+
+.theme-dark .dialog-pane,
+.theme-dark .dialog-pane .content,
+.theme-dark .dialog-pane .button-bar {
+    -fx-background-color: #1B2128;
+}
+
+.theme-dark .dialog-pane .label,
+.theme-dark .dialog-pane .content.label,
+.theme-dark .dialog-pane .header-panel .label {
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .dialog-pane .header-panel {
+    -fx-background-color: #232B34;
+}
+
+.theme-dark .dialog-pane .button {
+    -fx-background-color: #2A3440;
+    -fx-text-fill: #E6EBF0;
+    -fx-border-color: #3A4552;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.theme-dark .dialog-pane .button:hover {
+    -fx-background-color: #344050;
+}
+
+.theme-dark .dialog-pane .button:default {
+    -fx-background-color: #1E7A43;
+    -fx-text-fill: #FFFFFF;
+    -fx-border-color: #1E7A43;
+}
+
+.theme-dark .dialog-pane .button:default:hover {
+    -fx-background-color: #25914F;
+}
+
+.theme-dark .text-area,
+.theme-dark .text-area .content {
+    -fx-background-color: #141A20;
+    -fx-text-fill: #E6EBF0;
+    -fx-prompt-text-fill: #7C8894;
+}
+
+.theme-dark .text-area {
+    -fx-border-color: #2E3742;
+}
+
+.theme-dark .scroll-pane,
+.theme-dark .scroll-pane .viewport,
+.theme-dark .scroll-pane .corner {
+    -fx-background-color: transparent;
+}
+
+.theme-dark .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.theme-dark .scroll-bar .track {
+    -fx-background-color: #1B2128;
+    -fx-background-radius: 4;
+}
+
+.theme-dark .scroll-bar .thumb {
+    -fx-background-color: #3A4552;
+    -fx-background-radius: 4;
+}
+
+.theme-dark .scroll-bar .thumb:hover {
+    -fx-background-color: #4A5563;
+}
+
+.theme-dark .scroll-bar .increment-button,
+.theme-dark .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+
+.theme-dark .scroll-bar .increment-arrow,
+.theme-dark .scroll-bar .decrement-arrow {
+    -fx-background-color: #9AA6B2;
+}
+
+.theme-dark .context-menu {
+    -fx-background-color: #232B34;
+    -fx-border-color: #3A4552;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
+.theme-dark .menu-item .label,
+.theme-dark .menu-item {
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .menu-item:focused,
+.theme-dark .menu-item:hover {
+    -fx-background-color: #2E3A46;
+}
+
+.theme-dark .tooltip {
+    -fx-background-color: #2A3440;
+    -fx-text-fill: #F0F4F8;
+    -fx-border-color: #3A4552;
+    -fx-background-radius: 6;
+    -fx-border-radius: 6;
+}
+
+.theme-dark .table-view .column-header .label,
+.theme-dark .table-view .column-header {
+    -fx-text-fill: #B0BEC9;
+}
+
+.theme-dark .table-view .filler,
+.theme-dark .table-view .column-header-background {
+    -fx-background-color: #1B2128;
+}
+
+.theme-dark .list-view {
+    -fx-background-color: #1B2128;
+    -fx-border-color: #2A323C;
+}
+
+.theme-dark .list-view .list-cell {
+    -fx-background-color: #1B2128;
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .list-view .list-cell:filled:hover,
+.theme-dark .list-view .list-cell:filled:selected {
+    -fx-background-color: #26333F;
+    -fx-text-fill: #FFFFFF;
+}
+
+.theme-dark .separator .line {
+    -fx-border-color: #2A323C;
+}
+
+.theme-dark .btn-ghost {
+    -fx-background-color: #232B34;
+    -fx-text-fill: #E6EBF0;
+    -fx-border-color: #3A4552;
+}
+
+.theme-dark .btn-ghost:hover {
+    -fx-background-color: #2E3A46;
+}
+
+.theme-dark .btn-plain {
+    -fx-text-fill: #B0BEC9;
+}
+
+.theme-dark .btn-plain:hover {
+    -fx-background-color: #232B34;
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .btn-warn {
+    -fx-text-fill: #FF8A80;
+    -fx-border-color: #5A3030;
+}
+
+.theme-dark .btn-warn:hover {
+    -fx-background-color: #35242A;
+}
+
+.theme-dark .form-body,
+.theme-dark .form-dialog {
+    -fx-background-color: #1B2128;
+}
+
+.theme-dark .profile-card,
+.theme-dark .card,
+.theme-dark .login-card,
+.theme-dark .register-card {
+    -fx-background-color: #1B2128;
+    -fx-border-color: #2A323C;
+}
+
+.theme-dark .topbar {
+    -fx-background-color: #1B2128;
+    -fx-border-color: transparent transparent #2A323C transparent;
+}
+
+.theme-dark .page-title {
+    -fx-text-fill: #7DD39A;
+}
+
+.theme-dark .user-name { -fx-text-fill: #E6EBF0; }
+.theme-dark .user-role { -fx-text-fill: #AAB7C4; }
+
+.theme-dark .sidebar-signout {
+    -fx-background-color: rgba(255,255,255,0.06);
+    -fx-text-fill: #F0F4F8;
+}
+
+.theme-dark .sidebar-signout:hover {
+    -fx-background-color: rgba(255,138,128,0.18);
+}
+
+.theme-dark .text-field,
+.theme-dark .password-field,
+.theme-dark .text-input {
+    -fx-background-color: #141A20;
+    -fx-text-fill: #E6EBF0;
+    -fx-prompt-text-fill: #7C8894;
+}
+
+.theme-dark .hyperlink {
+    -fx-text-fill: #7DD39A;
+}
+
+.theme-dark .titled-pane > .title {
+    -fx-background-color: #232B34;
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .titled-pane > .content {
+    -fx-background-color: #1B2128;
+    -fx-border-color: #2A323C;
+}
+
+
+/* Dark theme base and button safeguards */
+.theme-dark {
+    -fx-background-color: #141A20;
+    -fx-base: #1B2128;
+    -fx-control-inner-background: #141A20;
+    -fx-accent: #1E7A43;
+    -fx-focus-color: #1E7A43;
+    -fx-faint-focus-color: rgba(30,122,67,0.25);
+}
+
+.theme-dark .page,
+.theme-dark .content-area,
+.theme-dark .page-scroll {
+    -fx-background-color: #141A20;
+}
+
+.theme-dark .btn-primary {
+    -fx-background-color: #1E7A43;
+    -fx-text-fill: #FFFFFF;
+    -fx-border-color: #1E7A43;
+}
+
+.theme-dark .btn-primary:hover {
+    -fx-background-color: #25914F;
+}
+
+.theme-dark .btn-secondary {
+    -fx-background-color: #2A3440;
+    -fx-text-fill: #E6EBF0;
+    -fx-border-color: #3A4552;
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Reports page polish                                                 */
+/* ------------------------------------------------------------------ */
+
+.report-filter-card {
+    -fx-padding: 16 18 16 18;
+}
+
+.report-kpi {
+    -fx-min-height: 112;
+}
+
+.report-section .card-title {
+    -fx-font-size: 13px;
+}
+
+.report-section .form-hint {
+    -fx-padding: 0 0 2 0;
+}
+
+.theme-dark .report-filter-card,
+.theme-dark .report-section,
+.theme-dark .report-kpi {
+    -fx-background-color: #1B2128;
 }

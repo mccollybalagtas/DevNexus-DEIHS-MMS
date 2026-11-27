@@ -42,9 +42,12 @@
 
             <VBox fx:id="menuBox" styleClass="menu" VBox.vgrow="ALWAYS"/>
 
-            <VBox fx:id="sideFoot" styleClass="side-foot" spacing="4">
+            <VBox fx:id="sideFoot" styleClass="side-foot" spacing="6">
                 <Label fx:id="scopeLabel" styleClass="side-foot-label"
                        text="All school records" wrapText="true"/>
+                <Button fx:id="sidebarSignOutButton" text="Sign out"
+                        onAction="#onLogout" maxWidth="Infinity"
+                        styleClass="sidebar-signout" focusTraversable="false"/>
                 <Label fx:id="versionLabel" text="v1.0 · DEIHS" styleClass="side-foot-label"/>
             </VBox>
         </VBox>
@@ -52,11 +55,15 @@
         <!-- Main column -->
         <VBox HBox.hgrow="ALWAYS" minWidth="0">
             <HBox styleClass="topbar">
-                <Button fx:id="menuButton" styleClass="icon-btn"
-                        onAction="#onOpenDrawer" focusTraversable="false"/>
+                <ImageView fitHeight="30" preserveRatio="true" smooth="true"
+                           pickOnBounds="true">
+                    <image>
+                        <Image url="@../img/devnexus-logo.png"/>
+                    </image>
+                </ImageView>
                 <Label fx:id="pageTitle" styleClass="page-title" text="Dashboard"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <HBox fx:id="userChip" styleClass="user-chip" spacing="9"
+                <HBox fx:id="userChip" styleClass="user-chip" spacing="8"
                       alignment="CENTER_LEFT" focusTraversable="false">
                     <StackPane fx:id="avatarHolder" styleClass="avatar-holder"
                                minWidth="30" minHeight="30" maxWidth="30" maxHeight="30"/>
@@ -65,6 +72,8 @@
                         <Label fx:id="userRoleLabel" styleClass="user-role" text="—"/>
                     </VBox>
                 </HBox>
+                <Button fx:id="menuButton" styleClass="icon-btn"
+                        onAction="#onOpenDrawer" focusTraversable="false"/>
             </HBox>
 
             <StackPane fx:id="contentArea" styleClass="content" alignment="TOP_LEFT"
