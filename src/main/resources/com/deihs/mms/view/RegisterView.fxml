@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.deihs.mms.util.BrandPanel?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
@@ -12,102 +13,132 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 
 <HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.deihs.mms.controller.RegisterController"
-      styleClass="login-root" prefWidth="1180" prefHeight="720">
+      styleClass="login-root" prefWidth="1180" prefHeight="760"
+      maxWidth="Infinity" maxHeight="Infinity">
 
-    <VBox styleClass="login-brand" prefWidth="420" minWidth="320" maxWidth="480">
-        <Region VBox.vgrow="ALWAYS"/>
-        <Label text="Request a&#10;DEIHS account" styleClass="login-title" wrapText="true"/>
-        <Label text="Submit your details for administrator approval. You will be able to sign in once your account is approved and assigned a role."
-               styleClass="login-tagline" wrapText="true">
-            <VBox.margin><Insets top="12"/></VBox.margin>
-        </Label>
-        <Region VBox.vgrow="ALWAYS"/>
-        <Label text="Dasmariñas East Integrated High School · 2026" styleClass="login-footer"/>
-    </VBox>
+    <!-- The same brand panel as the sign-in screen. -->
+    <BrandPanel HBox.hgrow="ALWAYS"/>
 
-    <StackPane styleClass="login-panel" HBox.hgrow="ALWAYS">
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="page-scroll" maxWidth="620">
-            <content>
-                <VBox styleClass="login-card" spacing="13" alignment="CENTER_LEFT">
-                    <padding><Insets top="22" right="26" bottom="22" left="26"/></padding>
+    <StackPane styleClass="login-panel" prefWidth="600" minWidth="520" maxWidth="700"
+               HBox.hgrow="NEVER">
 
-                    <Label text="Create account request" styleClass="login-heading"/>
-                    <Label text="Fill in the required fields. Your request will be reviewed by the School Administrator."
-                           styleClass="login-sub" wrapText="true">
-                        <VBox.margin><Insets top="-8"/></VBox.margin>
-                    </Label>
+        <Circle radius="290" fill="#1A47B8" opacity="0.055"
+                translateX="250" translateY="-240"/>
+        <Circle radius="240" fill="#3B82F6" opacity="0.05"
+                translateX="-260" translateY="280"/>
 
-                    <Label fx:id="messageLabel" wrapText="true" visible="false" managed="false"/>
+        <ScrollPane styleClass="register-scroll" fitToWidth="true"
+                    hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                    maxWidth="520" maxHeight="700"
+                    StackPane.alignment="CENTER">
+            <VBox styleClass="login-card, register-card" spacing="8" alignment="TOP_LEFT">
 
-                    <HBox spacing="12">
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Employee / ID number" styleClass="field-label"/>
-                            <TextField fx:id="employeeNoField" styleClass="input" promptText="e.g. EMP-0100"/>
-                        </VBox>
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Username" styleClass="field-label"/>
-                            <TextField fx:id="usernameField" styleClass="input" promptText="e.g. jdelacruz"/>
-                        </VBox>
-                    </HBox>
+                <Label text="Create your account" styleClass="login-heading"/>
+                <Label text="Submit your details for administrator approval."
+                       styleClass="login-sub" wrapText="true">
+                    <VBox.margin>
+                        <Insets top="-4" bottom="2"/>
+                    </VBox.margin>
+                </Label>
 
-                    <HBox spacing="12">
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="First name" styleClass="field-label"/>
-                            <TextField fx:id="firstNameField" styleClass="input"/>
-                        </VBox>
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Last name" styleClass="field-label"/>
-                            <TextField fx:id="lastNameField" styleClass="input"/>
-                        </VBox>
-                    </HBox>
+                <Label fx:id="errorLabel" styleClass="form-error" wrapText="true"
+                       visible="false" managed="false" maxWidth="Infinity"/>
 
-                    <HBox spacing="12">
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Email (optional)" styleClass="field-label"/>
-                            <TextField fx:id="emailField" styleClass="input" promptText="name@deihs.edu.ph"/>
-                        </VBox>
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Phone (optional)" styleClass="field-label"/>
-                            <TextField fx:id="phoneField" styleClass="input"/>
-                        </VBox>
-                    </HBox>
+                <Label text="Employee / ID number" styleClass="field-label"/>
+                <TextField fx:id="employeeNoField" styleClass="login-input"
+                           promptText="e.g. EMP-0100" maxWidth="Infinity"/>
 
-                    <HBox spacing="12">
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Department / Office" styleClass="field-label"/>
-                            <TextField fx:id="departmentField" styleClass="input" promptText="e.g. Science, Maintenance"/>
-                        </VBox>
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Requested role" styleClass="field-label"/>
-                            <ComboBox fx:id="roleBox" styleClass="combo-input" maxWidth="Infinity"/>
-                        </VBox>
-                    </HBox>
+                <Label text="Username" styleClass="field-label"/>
+                <TextField fx:id="usernameField" styleClass="login-input"
+                           promptText="e.g. jcruz" maxWidth="Infinity"/>
+                <Label text="3–50 characters, starts with a letter. Letters, numbers, dots, dashes and underscores only."
+                       styleClass="form-hint" wrapText="true"/>
 
-                    <HBox spacing="12">
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Password" styleClass="field-label"/>
-                            <PasswordField fx:id="passwordField" styleClass="input" promptText="At least 6 characters"/>
-                        </VBox>
-                        <VBox spacing="6" HBox.hgrow="ALWAYS">
-                            <Label text="Confirm password" styleClass="field-label"/>
-                            <PasswordField fx:id="confirmField" styleClass="input"/>
-                        </VBox>
-                    </HBox>
+                <HBox spacing="10">
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="First name" styleClass="field-label"/>
+                        <TextField fx:id="firstNameField" styleClass="login-input"
+                                   promptText="Juan" maxWidth="Infinity"/>
+                    </VBox>
+                    <VBox spacing="4" HBox.hgrow="ALWAYS">
+                        <Label text="Last name" styleClass="field-label"/>
+                        <TextField fx:id="lastNameField" styleClass="login-input"
+                                   promptText="Cruz" maxWidth="Infinity"/>
+                    </VBox>
+                </HBox>
 
-                    <Label text="Your account will remain pending until an administrator reviews and approves it."
-                           styleClass="form-hint" wrapText="true"/>
+                <Label text="E-mail address" styleClass="field-label"/>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <TextField fx:id="emailField" styleClass="login-input"
+                               promptText="name@gmail.com" maxWidth="Infinity"
+                               HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="sendCodeButton" text="Send code"
+                            styleClass="btn-ghost, register-code-btn"
+                            onAction="#onSendCode"/>
+                </HBox>
 
-                    <Button fx:id="submitButton" text="Submit Request" styleClass="btn-primary"
-                            onAction="#onSubmit" maxWidth="Infinity"/>
-                    <HBox alignment="CENTER_LEFT" spacing="4">
-                        <Label text="Already have an account?" styleClass="form-hint"/>
-                        <Hyperlink text="Back to Sign In" onAction="#onBack"/>
-                    </HBox>
-                </VBox>
-            </content>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <TextField fx:id="codeField" styleClass="login-input"
+                               promptText="6-digit code" maxWidth="Infinity"
+                               HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="verifyCodeButton" text="Verify"
+                            styleClass="btn-ghost, register-code-btn"
+                            onAction="#onVerifyCode"/>
+                </HBox>
+                <Label fx:id="codeStatusLabel" styleClass="form-hint" wrapText="true"
+                       visible="false" managed="false"/>
+                <Label fx:id="devCodeLabel" styleClass="dev-code" wrapText="true"
+                       visible="false" managed="false"/>
+
+                <Label text="Department / Office" styleClass="field-label"/>
+                <TextField fx:id="departmentField" styleClass="login-input"
+                           promptText="e.g. Science, Maintenance" maxWidth="Infinity"/>
+
+                <Label text="Requested role" styleClass="field-label"/>
+                <ComboBox fx:id="roleBox" styleClass="combo-input" maxWidth="Infinity"/>
+
+                <Label text="Password" styleClass="field-label">
+                    <VBox.margin>
+                        <Insets top="4"/>
+                    </VBox.margin>
+                </Label>
+                <PasswordField fx:id="passwordField" styleClass="login-input"
+                               promptText="At least 8 characters" maxWidth="Infinity"/>
+                <HBox fx:id="strengthMeter" styleClass="strength-meter" spacing="4">
+                    <Region styleClass="strength-bar" HBox.hgrow="ALWAYS"/>
+                    <Region styleClass="strength-bar" HBox.hgrow="ALWAYS"/>
+                    <Region styleClass="strength-bar" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="strengthLabel" text="Weak" styleClass="strength-label"/>
+                </HBox>
+                <Label fx:id="passwordHint" styleClass="form-hint" wrapText="true"
+                       text="Use at least 8 characters with a letter and a number."/>
+
+                <Label text="Confirm password" styleClass="field-label"/>
+                <PasswordField fx:id="confirmField" styleClass="login-input"
+                               promptText="Repeat the password" maxWidth="Infinity"/>
+
+                <Button fx:id="createButton" text="Submit request"
+                        styleClass="login-signin" onAction="#onCreateAccount"
+                        maxWidth="Infinity">
+                    <VBox.margin>
+                        <Insets top="8"/>
+                    </VBox.margin>
+                </Button>
+
+                <HBox alignment="CENTER" spacing="4">
+                    <Label text="Already have an account?" styleClass="login-footer-note"/>
+                    <Hyperlink text="Sign in" styleClass="login-link"
+                               onAction="#onBackToSignIn"/>
+                </HBox>
+
+                <Label text="New accounts are reviewed by the School Administrator before sign-in is enabled."
+                       styleClass="login-footer-note" wrapText="true"
+                       textAlignment="CENTER" alignment="CENTER" maxWidth="Infinity"/>
+            </VBox>
         </ScrollPane>
     </StackPane>
 </HBox>

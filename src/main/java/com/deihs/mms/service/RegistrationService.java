@@ -3,6 +3,7 @@ package com.deihs.mms.service;
 import com.deihs.mms.dao.AccountRequestDao;
 import com.deihs.mms.dao.UserDao;
 import com.deihs.mms.model.RegistrationDraft;
+import com.deihs.mms.util.PasswordPolicy;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -12,12 +13,16 @@ import java.util.regex.Pattern;
 /**
  * Handles self-registration submissions. Accounts are created as pending
  * requests for administrator review; no user row is inserted here.
+ *
+ * <p>The rules here mirror the form so a request can never be accepted by a
+ * crafted client that bypasses the UI checks.</p>
  */
 public class RegistrationService {
 
     private static final Set<String> ALLOWED_ROLES =
             Set.of("STAFF", "PERSONNEL", "MAINT_HEAD");
-    private static final Pattern USERNAME_RE = Pattern.compile("^[a-zA-Z0-9._-]{3,50}$");
+    private static final Pattern EMAIL_RE =
+            Pattern.compile("^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$");
 
     private final AccountRequestDao requestDao = new AccountRequestDao();
     private final UserDao userDao = new UserDao();
@@ -31,6 +36,9 @@ public class RegistrationService {
         }
         if (userDao.employeeNoExists(clean.employeeNo()) || requestDao.pendingEmployeeNoExists(clean.employeeNo())) {
             throw new ValidationException("That employee number is already registered or has a pending request.");
+        }
+        if (userDao.emailExists(clean.email(), 0)) {
+            throw new ValidationException("An account already uses that email address.");
         }
 
         String hash = AuthService.hashPassword(clean.password());
@@ -49,9 +57,10 @@ public class RegistrationService {
                 text(d.firstName()),
                 text(d.lastName()),
                 lower(text(d.email())),
-                text(d.phone()),
+                null,
                 text(d.department()),
-                role
+                role,
+                d.emailVerified()
         );
     }
 
@@ -64,9 +73,12 @@ public class RegistrationService {
         if (d.employeeNo().length() > 30) {
             throw new ValidationException("Employee number is too long.");
         }
-        if (d.username() == null || !USERNAME_RE.matcher(d.username()).matches()) {
-            throw new ValidationException("Username must be 3-50 characters (letters, numbers, dot, underscore, dash).");
+
+        String usernameError = PasswordPolicy.usernameError(d.username());
+        if (usernameError != null) {
+            throw new ValidationException(usernameError);
         }
+
         if (d.firstName() == null || d.firstName().length() < 2) {
             throw new ValidationException("Enter your first name.");
         }
@@ -76,18 +88,35 @@ public class RegistrationService {
         if (d.requestedRole() == null || !ALLOWED_ROLES.contains(d.requestedRole())) {
             throw new ValidationException("Choose a valid role to request.");
         }
-        if (d.password() == null || d.password().length() < 6) {
-            throw new ValidationException("Password must be at least 6 characters.");
+
+        String passwordError = PasswordPolicy.passwordError(d.password());
+        if (passwordError != null) {
+            throw new ValidationException(passwordError);
         }
         if (!d.password().equals(d.confirmPassword())) {
             throw new ValidationException("Passwords do not match.");
         }
-        if (d.email() != null && d.email().length() > 120) {
+
+        if (d.email() == null || d.email().isEmpty()) {
+            throw new ValidationException("Enter your email address so we can verify your account.");
+        }
+        if (d.email().length() > 120) {
             throw new ValidationException("Email address is too long.");
+        }
+        if (!EMAIL_RE.matcher(d.email()).matches()) {
+            throw new ValidationException("Enter a valid email address, for example name@gmail.com.");
+        }
+        if (!d.emailVerified()) {
+            throw new ValidationException("Verify your email address before submitting the request.");
         }
         if (d.department() != null && d.department().length() > 80) {
             throw new ValidationException("Department is too long.");
         }
+    }
+
+    /** Shared with the registration form so the hint matches the service rule. */
+    public static boolean isValidEmail(String email) {
+        return email != null && EMAIL_RE.matcher(email.trim()).matches();
     }
 
     private static String text(String v) {

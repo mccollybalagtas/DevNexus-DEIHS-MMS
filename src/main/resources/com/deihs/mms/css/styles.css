@@ -385,8 +385,9 @@
 
 .sidebar {
     -fx-background-color: #0A4A24;
-    -fx-pref-width: 236;
-    -fx-min-width: 236;
+    -fx-pref-width: 72;
+    -fx-min-width: 72;
+    -fx-max-width: 236;
 }
 
 .brand-box {
@@ -396,10 +397,10 @@
     -fx-border-width: 0 0 1 0;
 }
 
-.brand-logo-frame {
-    -fx-background-color: #FFFFFF;
-    -fx-background-radius: 9;
-    -fx-padding: 2;
+/* The crest is transparent, so no white frame is painted behind it. */
+.brand-logo {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
 }
 
 .brand-name {
@@ -418,51 +419,43 @@
     -fx-spacing: 3;
 }
 
-.nav-item {
-    -fx-background-color: transparent;
-    -fx-text-fill: rgba(255, 255, 255, 0.88);
-    -fx-font-size: 12.5px;
-    -fx-alignment: CENTER_LEFT;
-    -fx-padding: 9 12 9 12;
+/* ---------- Animated navigation rows ---------- */
+
+.nav-row {
+    -fx-min-height: 38;
+    -fx-pref-height: 38;
     -fx-background-radius: 7;
-    -fx-graphic-text-gap: 11;
     -fx-cursor: hand;
-    -fx-max-width: 100000;
 }
 
-.nav-item:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.09);
-    -fx-text-fill: #FFFFFF;
+.nav-highlight {
+    -fx-background-color: rgba(255, 255, 255, 0.10);
+    -fx-background-radius: 7;
 }
 
-.nav-item.active:hover {
-    -fx-background-color: #F5C518, #0E6B34;
-    -fx-background-insets: 0, 0 0 0 3;
-    -fx-background-radius: 7, 7;
+.nav-active .nav-highlight {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
 }
 
-.nav-item.active {
-    -fx-background-color: #F5C518, #0E6B34;
-    -fx-background-insets: 0, 0 0 0 3;
-    -fx-background-radius: 7, 7;
+.nav-bar {
+    -fx-background-color: #F5C518;
+    -fx-background-radius: 2;
+    -fx-min-width: 3;
+    -fx-pref-width: 3;
+    -fx-max-width: 3;
+    -fx-min-height: 18;
+    -fx-pref-height: 18;
+    -fx-max-height: 18;
+}
+
+.nav-label {
+    -fx-text-fill: rgba(255, 255, 255, 0.90);
+    -fx-font-size: 12.5px;
+}
+
+.nav-active .nav-label {
     -fx-text-fill: #FFFFFF;
     -fx-font-weight: bold;
-    -fx-border-color: transparent;
-    -fx-border-width: 0;
-}
-
-.nav-svg {
-    -fx-fill: rgba(255, 255, 255, 0.88);
-}
-
-.nav-item:hover .nav-svg,
-.nav-item.active .nav-svg {
-    -fx-fill: #FFFFFF;
-}
-
-.nav-icon {
-    -fx-text-fill: inherit;
-    -fx-font-size: 13px;
 }
 
 .side-foot {
@@ -1172,4 +1165,510 @@
 .attachment-meta {
     -fx-font-size: 10.6px;
     -fx-text-fill: #6B7785;
+}
+
+/* =====================================================================
+   Shell upgrade: icon buttons, account drawer, hover preview, avatars
+   ===================================================================== */
+
+.icon-btn {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 7;
+    -fx-cursor: hand;
+}
+
+.icon-btn:hover {
+    -fx-background-color: #EEF3EE;
+}
+
+.icon-btn:pressed {
+    -fx-background-color: #E2EAE3;
+}
+
+.btn-small {
+    -fx-pref-height: 30;
+    -fx-min-height: 30;
+    -fx-font-size: 11px;
+    -fx-padding: 4 12 4 12;
+}
+
+.avatar-photo {
+    -fx-background-radius: 999;
+    -fx-border-radius: 999;
+}
+
+.avatar-holder {
+    -fx-background-radius: 999;
+}
+
+/* ---------- Hover preview ---------- */
+
+.profile-popover {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 14;
+    -fx-border-color: #DCE5DD;
+    -fx-border-radius: 14;
+    -fx-padding: 16;
+    -fx-spacing: 11;
+    -fx-effect: dropshadow(gaussian, rgba(16, 32, 20, 0.20), 28, 0.14, 0, 12);
+}
+
+.popover-name {
+    -fx-font-size: 13.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2933;
+}
+
+.popover-role {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #6B7785;
+}
+
+.popover-meta {
+    -fx-font-size: 11px;
+    -fx-text-fill: #55616F;
+}
+
+.popover-status {
+    -fx-font-size: 10.5px;
+}
+
+.popover-status-ok {
+    -fx-text-fill: #0E6B34;
+}
+
+.popover-status-warn {
+    -fx-text-fill: #B7791F;
+}
+
+.popover-divider {
+    -fx-background-color: #EDF2EE;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+}
+
+/* ---------- Account drawer ---------- */
+
+.drawer-scrim {
+    -fx-background-color: rgba(10, 22, 14, 0.36);
+}
+
+.drawer {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 18 20 16 20;
+    -fx-spacing: 13;
+    -fx-border-color: transparent transparent transparent #DCE5DD;
+    -fx-border-width: 0 0 0 1;
+    -fx-effect: dropshadow(gaussian, rgba(10, 24, 14, 0.24), 34, 0.16, -8, 0);
+}
+
+.drawer-title {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2933;
+}
+
+.drawer-name {
+    -fx-font-size: 13.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2933;
+}
+
+.drawer-role {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #6B7785;
+}
+
+.drawer-email {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #6B7785;
+}
+
+.drawer-divider {
+    -fx-background-color: #EDF2EE;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+}
+
+.drawer-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 10 12 10 12;
+    -fx-alignment: CENTER_LEFT;
+    -fx-graphic-text-gap: 10;
+    -fx-font-size: 12.5px;
+    -fx-text-fill: #33414F;
+    -fx-cursor: hand;
+}
+
+.drawer-item:hover {
+    -fx-background-color: #F1F6F2;
+}
+
+.drawer-item-danger {
+    -fx-text-fill: #B3261E;
+}
+
+.drawer-item-danger:hover {
+    -fx-background-color: #FDECEA;
+}
+
+.drawer-foot {
+    -fx-font-size: 9.5px;
+    -fx-text-fill: #94A29B;
+    -fx-alignment: CENTER;
+    -fx-max-width: Infinity;
+}
+
+/* =====================================================================
+   Profile page
+   ===================================================================== */
+
+.profile-identity {
+    -fx-alignment: TOP_CENTER;
+}
+
+.profile-photo-holder {
+    -fx-background-radius: 999;
+}
+
+.profile-name {
+    -fx-font-size: 17px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2933;
+}
+
+.profile-role {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #6B7785;
+}
+
+.profile-meta-key {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #6B7785;
+}
+
+.profile-meta-value {
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #33414F;
+}
+
+.divider {
+    -fx-background-color: #E8EEE9;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-width: Infinity;
+}
+
+.form-success {
+    -fx-text-fill: #1B6B3D;
+    -fx-font-size: 11px;
+}
+
+/* =====================================================================
+   Registration: scrollable card, verification and strength meter
+   ===================================================================== */
+
+.register-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-padding: 0;
+}
+
+.register-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.register-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-pref-width: 8;
+}
+
+.register-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(15, 40, 80, 0.16);
+    -fx-background-radius: 6;
+}
+
+.register-card {
+    -fx-pref-width: 100000;
+    -fx-max-width: 100000;
+    -fx-padding: 30 34 26 34;
+}
+
+.register-code-btn {
+    -fx-pref-height: 46;
+    -fx-min-height: 46;
+    -fx-min-width: 92;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+}
+
+.dev-code {
+    -fx-background-color: #FFF7E0;
+    -fx-border-color: #E8C15A;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 7 10 7 10;
+    -fx-font-size: 11px;
+    -fx-text-fill: #7A5A00;
+}
+
+.strength-meter {
+    -fx-padding: 1 0 0 0;
+}
+
+.strength-bar {
+    -fx-min-height: 5;
+    -fx-pref-height: 5;
+    -fx-background-radius: 3;
+    -fx-background-color: #E4EAE5;
+}
+
+.strength-bar.bar-empty  { -fx-background-color: #E4EAE5; }
+.strength-bar.bar-weak   { -fx-background-color: #C0392B; }
+.strength-bar.bar-good   { -fx-background-color: #D69E00; }
+.strength-bar.bar-strong { -fx-background-color: #0E6B34; }
+
+.strength-label {
+    -fx-font-size: 10.5px;
+    -fx-text-fill: #6B7785;
+    -fx-padding: 0 0 0 6;
+}
+
+.strength-label.strength-weak   { -fx-text-fill: #A12B22; -fx-font-weight: bold; }
+.strength-label.strength-good   { -fx-text-fill: #8A6100; -fx-font-weight: bold; }
+.strength-label.strength-strong { -fx-text-fill: #0E6B34; -fx-font-weight: bold; }
+
+/* =====================================================================
+   Themes — switched by the class Appearance puts on the shell root
+   ===================================================================== */
+
+/* ---------- Navy ---------- */
+
+.theme-navy .sidebar {
+    -fx-background-color: #0B2545;
+}
+
+.theme-navy .page-title {
+    -fx-text-fill: #1A47B8;
+}
+
+.theme-navy .btn-primary {
+    -fx-background-color: #1A47B8;
+}
+
+.theme-navy .btn-primary:hover {
+    -fx-background-color: #143C9C;
+}
+
+.theme-navy .user-chip {
+    -fx-background-color: #F5F8FD;
+    -fx-border-color: #D8E1EC;
+}
+
+.theme-navy .avatar {
+    -fx-background-color: #1A47B8;
+}
+
+.theme-navy .nav-bar {
+    -fx-background-color: #7FB2FF;
+}
+
+.theme-navy .nav-active .nav-highlight {
+    -fx-background-color: rgba(127, 178, 255, 0.22);
+}
+
+.theme-navy .card {
+    -fx-border-color: #DCE4F0;
+}
+
+.theme-navy .app-shell,
+.theme-navy .content {
+    -fx-background-color: #F3F6FC;
+}
+
+/* ---------- Dark ---------- */
+
+.theme-dark .app-shell,
+.theme-dark .content {
+    -fx-background-color: #12161B;
+}
+
+.theme-dark .sidebar {
+    -fx-background-color: #0B0F13;
+}
+
+.theme-dark .topbar {
+    -fx-background-color: #171C22;
+    -fx-border-color: transparent transparent #2A323C transparent;
+}
+
+.theme-dark .page-title {
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .card,
+.theme-dark .kpi-card {
+    -fx-background-color: #1B2128;
+    -fx-border-color: #2A323C;
+}
+
+.theme-dark .card-title,
+.theme-dark .page-h1,
+.theme-dark .empty-title,
+.theme-dark .profile-name,
+.theme-dark .drawer-title,
+.theme-dark .drawer-name,
+.theme-dark .popover-name {
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .page-sub,
+.theme-dark .empty-text,
+.theme-dark .form-hint,
+.theme-dark .kpi-sub,
+.theme-dark .card-link,
+.theme-dark .profile-role,
+.theme-dark .drawer-role,
+.theme-dark .drawer-email,
+.theme-dark .popover-role,
+.theme-dark .popover-meta,
+.theme-dark .profile-meta-key {
+    -fx-text-fill: #9AA6B2;
+}
+
+.theme-dark .profile-meta-value,
+.theme-dark .user-name,
+.theme-dark .popover-status {
+    -fx-text-fill: #D7DEE6;
+}
+
+.theme-dark .user-chip {
+    -fx-background-color: #1F262E;
+    -fx-border-color: #2E3742;
+}
+
+.theme-dark .user-role {
+    -fx-text-fill: #9AA6B2;
+}
+
+.theme-dark .drawer,
+.theme-dark .profile-popover {
+    -fx-background-color: #1B2128;
+    -fx-border-color: #2A323C;
+}
+
+.theme-dark .drawer-divider,
+.theme-dark .popover-divider,
+.theme-dark .divider {
+    -fx-background-color: #2A323C;
+}
+
+.theme-dark .drawer-item {
+    -fx-text-fill: #D7DEE6;
+}
+
+.theme-dark .drawer-item:hover {
+    -fx-background-color: #242C35;
+}
+
+.theme-dark .drawer-item-danger {
+    -fx-text-fill: #FF8A80;
+}
+
+.theme-dark .drawer-item-danger:hover {
+    -fx-background-color: #35242A;
+}
+
+.theme-dark .icon-btn:hover {
+    -fx-background-color: #242C35;
+}
+
+.theme-dark .input,
+.theme-dark .login-input,
+.theme-dark .combo-input {
+    -fx-background-color: #141A20;
+    -fx-border-color: #2E3742;
+    -fx-text-fill: #E6EBF0;
+    -fx-prompt-text-fill: #7C8894;
+}
+
+.theme-dark .table-view {
+    -fx-background-color: #1B2128;
+    -fx-border-color: #2A323C;
+}
+
+.theme-dark .table-view .column-header-background,
+.theme-dark .table-view .column-header,
+.theme-dark .table-view .filler {
+    -fx-background-color: #1B2128;
+}
+
+.theme-dark .table-view .table-row-cell {
+    -fx-background-color: #1B2128;
+    -fx-border-color: transparent transparent #262E37 transparent;
+}
+
+.theme-dark .table-view .table-row-cell:hover {
+    -fx-background-color: #232B34;
+}
+
+.theme-dark .table-view .table-row-cell:selected {
+    -fx-background-color: #26333F;
+}
+
+.theme-dark .table-view .table-row-cell:selected .text,
+.theme-dark .table-view .table-cell {
+    -fx-text-fill: #D7DEE6;
+    -fx-fill: #D7DEE6;
+}
+
+.theme-dark .btn-primary {
+    -fx-background-color: #1E7A43;
+}
+
+.theme-dark .btn-primary:hover {
+    -fx-background-color: #176336;
+}
+
+.theme-dark .btn-ghost {
+    -fx-background-color: #242C35;
+    -fx-text-fill: #D7DEE6;
+}
+
+.theme-dark .btn-ghost:hover {
+    -fx-background-color: #2E3742;
+}
+
+/* ---------- Compact density ---------- */
+
+.density-compact .content {
+    -fx-padding: 16 18 18 18;
+}
+
+.density-compact .page {
+    -fx-spacing: 12;
+}
+
+.density-compact .card {
+    -fx-padding: 12;
+}
+
+.density-compact .kpi-card {
+    -fx-padding: 10 12 10 12;
+}
+
+.density-compact .table-view .table-row-cell {
+    -fx-cell-size: 34;
+}
+
+.density-compact .menu {
+    -fx-spacing: 1;
+}
+
+.density-compact .nav-row {
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
 }

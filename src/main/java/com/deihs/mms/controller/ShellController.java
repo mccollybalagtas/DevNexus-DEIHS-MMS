@@ -4,63 +4,229 @@ import com.deihs.mms.Main;
 import com.deihs.mms.model.Role;
 import com.deihs.mms.model.User;
 import com.deihs.mms.service.Permissions;
+import com.deihs.mms.service.ProfileService;
 import com.deihs.mms.service.Session;
 import com.deihs.mms.util.AlertUtil;
+import com.deihs.mms.util.Appearance;
+import com.deihs.mms.util.Avatars;
 import com.deihs.mms.util.Icons;
 import com.deihs.mms.util.ViewLoader;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Window;
+import javafx.util.Duration;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * The application frame: sidebar navigation, top bar, and the content area
  * where each screen is loaded.
+ *
+ * <p>The sidebar is a hover-expanded rail: it rests at 72 px showing only the
+ * crest and the nav icons, then grows to 236 px while the pointer is over it.
+ * The top bar carries a three-line button that opens the account drawer and
+ * the account chip, which shows a small preview on hover and opens the full
+ * profile page when clicked.</p>
  */
 public class ShellController {
 
+    private static final double SIDEBAR_COLLAPSED = 72;
+    private static final double SIDEBAR_EXPANDED = 236;
+    private static final String DISMISS_INSTALLED = "deihs.mms.shell.dismiss";
+    private static ShellController activeShell;
+
+    @FXML private StackPane shellRoot;
+    @FXML private HBox appShell;
+    @FXML private VBox sidebar;
+    @FXML private HBox brandBox;
+    @FXML private StackPane brandLogo;
+    @FXML private VBox brandText;
     @FXML private VBox menuBox;
-    @FXML private StackPane contentArea;
+    @FXML private VBox sideFoot;
+    @FXML private Label scopeLabel;
+    @FXML private Label versionLabel;
+    @FXML private Button menuButton;
     @FXML private Label pageTitle;
-    @FXML private Label avatarLabel;
+    @FXML private HBox userChip;
+    @FXML private StackPane avatarHolder;
     @FXML private Label userNameLabel;
     @FXML private Label userRoleLabel;
-    @FXML private Label scopeLabel;
+    @FXML private StackPane contentArea;
+    @FXML private Region drawerScrim;
+    @FXML private VBox profilePopover;
+    @FXML private StackPane popoverAvatar;
+    @FXML private Label popoverName;
+    @FXML private Label popoverRole;
+    @FXML private Label popoverEmail;
+    @FXML private StackPane popoverStatusIcon;
+    @FXML private Label popoverStatus;
+    @FXML private VBox drawer;
+    @FXML private Button drawerCloseButton;
+    @FXML private StackPane drawerAvatar;
+    @FXML private Label drawerName;
+    @FXML private Label drawerRole;
+    @FXML private Label drawerEmail;
+    @FXML private Button drawerProfileButton;
+    @FXML private Button drawerSettingsButton;
+    @FXML private Button drawerLogoutButton;
 
-    private final Map<String, Button> navButtons = new LinkedHashMap<>();
     private final Map<String, Nav> navs = new LinkedHashMap<>();
+    private final Map<String, NavRow> navRows = new LinkedHashMap<>();
     private String currentKey = "dashboard";
+
+    private Timeline sidebarTimeline;
+    private boolean sidebarExpanded;
+    private PauseTransition hoverHide;
+    private boolean drawerOpen;
 
     private record Nav(String key, String title, String icon) {
     }
 
     @FXML
     private void initialize() {
+        activeShell = this;
+
+        User user = Session.get();
+        Appearance.apply(shellRoot, user);
+
+        menuButton.setGraphic(Icons.of(Icons.MENU, 20, "#33414F"));
+        drawerCloseButton.setGraphic(Icons.of(Icons.CLOSE, 18, "#6B7785"));
+        drawerProfileButton.setText("My profile");
+        drawerProfileButton.setGraphic(Icons.of(Icons.PROFILE, 18, "#33414F"));
+        drawerSettingsButton.setText("Appearance & settings");
+        drawerSettingsButton.setGraphic(Icons.of(Icons.SETTINGS, 18, "#33414F"));
+        drawerLogoutButton.setText("Log out");
+        drawerLogoutButton.setGraphic(Icons.of(Icons.LOGOUT, 18, "#B3261E"));
+        drawerLogoutButton.getStyleClass().add("drawer-item-danger");
+
+        drawerScrim.setOnMouseClicked(e -> closeDrawer());
+        installSidebarAnimation();
+        installHoverPreview();
+        installSceneHandlers();
+
+        refreshIdentity();
+        buildMenu(user);
+        navigate("dashboard");
+    }
+
+    // ------------------------------------------------------------------
+    // Identity
+    // ------------------------------------------------------------------
+
+    /** Re-reads the session so a profile edit shows up everywhere at once. */
+    private void refreshIdentity() {
         User user = Session.get();
 
-        avatarLabel.setText(user.initials());
         userNameLabel.setText(user.fullName());
         userRoleLabel.setText(user.roleName());
+        Avatars.fill(avatarHolder, user, 30);
+        Avatars.fill(drawerAvatar, user, 56);
+        Avatars.fill(popoverAvatar, user, 44);
+
+        String email = user.email() == null || user.email().isBlank()
+                ? "No email on file" : user.email();
+        drawerName.setText(user.fullName());
+        drawerRole.setText(user.roleName());
+        drawerEmail.setText(email);
+        popoverName.setText(user.fullName());
+        popoverRole.setText(user.roleName());
+        popoverEmail.setText(email);
+
+        boolean verified = user.emailVerified();
+        popoverStatus.setText(verified ? "Email verified" : "Email not verified");
+        popoverStatus.getStyleClass().removeAll("popover-status-ok", "popover-status-warn");
+        popoverStatus.getStyleClass().add(verified ? "popover-status-ok" : "popover-status-warn");
+        popoverStatusIcon.getChildren().setAll(Icons.of(
+                verified ? Icons.CHECK_CIRCLE : Icons.MAIL, 15,
+                verified ? "#0E6B34" : "#B7791F"));
+
         scopeLabel.setText(switch (user.role()) {
             case PERSONNEL -> "Showing my assigned tasks";
             case STAFF -> "Showing my own requests";
             default -> "All school records";
         });
+    }
 
-        buildMenu(user);
-        navigate("dashboard");
+    // ------------------------------------------------------------------
+    // Sidebar
+    // ------------------------------------------------------------------
+
+    private void installSidebarAnimation() {
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(sidebar.widthProperty());
+        clip.heightProperty().bind(sidebar.heightProperty());
+        sidebar.setClip(clip);
+
+        sidebar.setOnMouseEntered(e -> setSidebarExpanded(true));
+        sidebar.setOnMouseExited(e -> setSidebarExpanded(false));
+    }
+
+    private void setSidebarExpanded(boolean expand) {
+        if (sidebarExpanded == expand) {
+            return;
+        }
+        sidebarExpanded = expand;
+
+        if (sidebarTimeline != null) {
+            sidebarTimeline.stop();
+        }
+        sidebarTimeline = new Timeline(new KeyFrame(
+                Duration.millis(expand ? 200 : 180),
+                new KeyValue(sidebar.prefWidthProperty(),
+                        expand ? SIDEBAR_EXPANDED : SIDEBAR_COLLAPSED,
+                        Interpolator.EASE_BOTH)));
+        sidebarTimeline.play();
+    }
+
+    /**
+     * Fades a label in step with the sidebar width. Below roughly 100 px the
+     * text is fully transparent, above 166 px it is fully visible, and the
+     * space between gives the expand animation a soft reveal.
+     */
+    private void bindSidebarReveal(Node node) {
+        node.opacityProperty().bind(Bindings.createDoubleBinding(() -> {
+            double width = sidebar.getPrefWidth();
+            return Math.max(0, Math.min(1, (width - 96) / 70.0));
+        }, sidebar.prefWidthProperty()));
     }
 
     // ------------------------------------------------------------------
@@ -68,18 +234,14 @@ public class ShellController {
     // ------------------------------------------------------------------
 
     private void buildMenu(User user) {
+        bindSidebarReveal(brandText);
+        bindSidebarReveal(sideFoot);
+
         for (Nav nav : navFor(user)) {
             navs.put(nav.key(), nav);
-
-            Node iconNode = Icons.of(nav.icon(), 16);
-
-            Button item = new Button(nav.title(), iconNode);
-            item.getStyleClass().add("nav-item");
-            item.setMaxWidth(Double.MAX_VALUE);
-            item.setOnAction(e -> navigate(nav.key()));
-
-            navButtons.put(nav.key(), item);
-            menuBox.getChildren().add(item);
+            NavRow row = new NavRow(nav);
+            navRows.put(nav.key(), row);
+            menuBox.getChildren().add(row.node);
         }
     }
 
@@ -121,14 +283,12 @@ public class ShellController {
         }
         currentKey = key;
         pageTitle.setText(nav.title());
-
-        navButtons.forEach((k, button) -> button.getStyleClass().remove("active"));
-        Button active = navButtons.get(key);
-        if (active != null && !active.getStyleClass().contains("active")) {
-            active.getStyleClass().add("active");
-        }
-
+        setActiveNav(key);
         contentArea.getChildren().setAll(loadView(nav));
+    }
+
+    private void setActiveNav(String key) {
+        navRows.forEach((rowKey, row) -> row.setActive(rowKey.equals(key)));
     }
 
     private Node loadView(Nav nav) {
@@ -230,6 +390,312 @@ public class ShellController {
     }
 
     // ------------------------------------------------------------------
+    // Profile page
+    // ------------------------------------------------------------------
+
+    private void showProfile() {
+        hidePopover();
+        if (drawerOpen) {
+            closeDrawer();
+        }
+        currentKey = "profile";
+        pageTitle.setText("My profile");
+        setActiveNav("");
+        try {
+            FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/ProfileView.fxml");
+            Parent view = loader.load();
+            ProfileController controller = loader.getController();
+            controller.setOnProfileChanged(this::refreshIdentity);
+            contentArea.getChildren().setAll(view);
+        } catch (IOException | RuntimeException e) {
+            contentArea.getChildren().setAll(errorView("My profile", e));
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Account drawer
+    // ------------------------------------------------------------------
+
+    @FXML
+    private void onOpenDrawer() {
+        hidePopover();
+        refreshIdentity();
+        drawerOpen = true;
+
+        drawerScrim.setVisible(true);
+        drawerScrim.setManaged(true);
+        drawerScrim.setOpacity(0);
+        FadeTransition scrimIn = new FadeTransition(Duration.millis(180), drawerScrim);
+        scrimIn.setToValue(1);
+        scrimIn.play();
+
+        drawer.setVisible(true);
+        drawer.setManaged(true);
+        drawer.toFront();
+        drawer.setTranslateX(340);
+        TranslateTransition slide = new TranslateTransition(Duration.millis(230), drawer);
+        slide.setToX(0);
+        slide.setInterpolator(Interpolator.EASE_OUT);
+        slide.play();
+    }
+
+    private void closeDrawer() {
+        if (!drawerOpen) {
+            return;
+        }
+        drawerOpen = false;
+
+        TranslateTransition slide = new TranslateTransition(Duration.millis(180), drawer);
+        slide.setToX(340);
+        slide.setInterpolator(Interpolator.EASE_IN);
+        slide.setOnFinished(e -> {
+            drawer.setVisible(false);
+            drawer.setManaged(false);
+        });
+        slide.play();
+
+        FadeTransition scrimOut = new FadeTransition(Duration.millis(160), drawerScrim);
+        scrimOut.setToValue(0);
+        scrimOut.setOnFinished(e -> {
+            drawerScrim.setVisible(false);
+            drawerScrim.setManaged(false);
+        });
+        scrimOut.play();
+    }
+
+    @FXML
+    private void onCloseDrawer() {
+        closeDrawer();
+    }
+
+    @FXML
+    private void onOpenProfileFromDrawer() {
+        showProfile();
+    }
+
+    @FXML
+    private void onOpenProfileFromPopover() {
+        showProfile();
+    }
+
+    // ------------------------------------------------------------------
+    // Hover preview
+    // ------------------------------------------------------------------
+
+    private void installHoverPreview() {
+        hoverHide = new PauseTransition(Duration.millis(220));
+        hoverHide.setOnFinished(e -> hidePopover());
+
+        userChip.setOnMouseEntered(e -> {
+            if (drawerOpen) {
+                return;
+            }
+            hoverHide.stop();
+            showPopover();
+        });
+        userChip.setOnMouseExited(e -> scheduleHide());
+        profilePopover.setOnMouseEntered(e -> hoverHide.stop());
+        profilePopover.setOnMouseExited(e -> scheduleHide());
+        userChip.setOnMouseClicked(e -> showProfile());
+    }
+
+    private void scheduleHide() {
+        hoverHide.playFromStart();
+    }
+
+    private void showPopover() {
+        if (profilePopover.isVisible()) {
+            return;
+        }
+        refreshIdentity();
+        profilePopover.setVisible(true);
+        profilePopover.setManaged(true);
+        profilePopover.toFront();
+        profilePopover.setOpacity(0);
+        profilePopover.setTranslateY(-6);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(140), profilePopover);
+        fade.setToValue(1);
+        fade.play();
+
+        TranslateTransition slide = new TranslateTransition(Duration.millis(160), profilePopover);
+        slide.setToY(0);
+        slide.setInterpolator(Interpolator.EASE_OUT);
+        slide.play();
+    }
+
+    private void hidePopover() {
+        if (hoverHide != null) {
+            hoverHide.stop();
+        }
+        profilePopover.setVisible(false);
+        profilePopover.setManaged(false);
+    }
+
+    // ------------------------------------------------------------------
+    // Scene-wide dismissal
+    // ------------------------------------------------------------------
+
+    private void installSceneHandlers() {
+        Platform.runLater(() -> {
+            Scene scene = shellRoot.getScene();
+            if (scene == null || scene.getProperties().containsKey(DISMISS_INSTALLED)) {
+                return;
+            }
+            scene.getProperties().put(DISMISS_INSTALLED, Boolean.TRUE);
+
+            scene.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                ShellController shell = activeShell;
+                if (shell != null) {
+                    shell.handleScenePress(event);
+                }
+            });
+            scene.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+                ShellController shell = activeShell;
+                if (shell != null && event.getCode() == KeyCode.ESCAPE) {
+                    shell.handleEscape();
+                }
+            });
+        });
+    }
+
+    private void handleScenePress(MouseEvent event) {
+        if (!profilePopover.isVisible()) {
+            return;
+        }
+        Object target = event.getTarget();
+        if (!(target instanceof Node node)
+                || (!isInside(node, profilePopover) && !isInside(node, userChip))) {
+            hidePopover();
+        }
+    }
+
+    private void handleEscape() {
+        if (drawerOpen) {
+            closeDrawer();
+        } else {
+            hidePopover();
+        }
+    }
+
+    private static boolean isInside(Node node, Node ancestor) {
+        Node cursor = node;
+        while (cursor != null) {
+            if (cursor == ancestor) {
+                return true;
+            }
+            cursor = cursor.getParent();
+        }
+        return false;
+    }
+
+    // ------------------------------------------------------------------
+    // Settings dialog
+    // ------------------------------------------------------------------
+
+    @FXML
+    private void onOpenSettings() {
+        if (drawerOpen) {
+            closeDrawer();
+        }
+
+        User user = Session.get();
+        Window owner = shellRoot.getScene() == null ? null : shellRoot.getScene().getWindow();
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+        dialog.setTitle("Appearance & settings");
+        dialog.setHeaderText("Personalise your workspace");
+
+        ButtonType save = new ButtonType("Save", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(save, ButtonType.CANCEL);
+        ViewLoader.applyAppStyles(dialog.getDialogPane());
+
+        ComboBox<String> themeBox = new ComboBox<>();
+        themeBox.getItems().addAll("Green (school)", "Navy blue", "Dark");
+        themeBox.getStyleClass().add("combo-input");
+        themeBox.setMaxWidth(Double.MAX_VALUE);
+        themeBox.getSelectionModel().select(themeIndex(user.themeOrDefault()));
+
+        ComboBox<String> densityBox = new ComboBox<>();
+        densityBox.getItems().addAll("Comfortable", "Compact");
+        densityBox.getStyleClass().add("combo-input");
+        densityBox.setMaxWidth(Double.MAX_VALUE);
+        densityBox.getSelectionModel().select(
+                "compact".equals(user.densityOrDefault()) ? 1 : 0);
+
+        // Live preview: the dialog applies the choice straight away and puts
+        // the previous look back when it is cancelled.
+        themeBox.valueProperty().addListener((obs, old, value) ->
+                Appearance.apply(shellRoot, themeKey(value), densityKey(densityBox.getValue())));
+        densityBox.valueProperty().addListener((obs, old, value) ->
+                Appearance.apply(shellRoot, themeKey(themeBox.getValue()), densityKey(value)));
+
+        GridPane grid = new GridPane();
+        grid.setHgap(14);
+        grid.setVgap(12);
+        grid.add(new Label("Theme"), 0, 0);
+        grid.add(themeBox, 1, 0);
+        grid.add(new Label("Density"), 0, 1);
+        grid.add(densityBox, 1, 1);
+
+        ColumnConstraints labelColumn = new ColumnConstraints();
+        labelColumn.setMinWidth(80);
+        ColumnConstraints fieldColumn = new ColumnConstraints();
+        fieldColumn.setHgrow(Priority.ALWAYS);
+        fieldColumn.setMinWidth(220);
+        grid.getColumnConstraints().addAll(labelColumn, fieldColumn);
+
+        Label hint = new Label("Themes change the sidebar and accent colours. "
+                + "Compact density tightens tables, cards and spacing.");
+        hint.getStyleClass().add("form-hint");
+        hint.setWrapText(true);
+        hint.setMaxWidth(320);
+
+        VBox content = new VBox(12, grid, hint);
+        content.setPadding(new Insets(4, 4, 2, 4));
+        dialog.getDialogPane().setContent(content);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == save) {
+            try {
+                User updated = new ProfileService().savePreferences(
+                        user, themeKey(themeBox.getValue()), densityKey(densityBox.getValue()));
+                Appearance.apply(shellRoot, updated);
+                refreshIdentity();
+            } catch (SQLException e) {
+                Appearance.apply(shellRoot, user);
+                AlertUtil.error(owner, "Settings",
+                        "Could not save your settings: " + e.getMessage());
+            }
+        } else {
+            Appearance.apply(shellRoot, user);
+        }
+    }
+
+    private static int themeIndex(String theme) {
+        return switch (theme) {
+            case "navy" -> 1;
+            case "dark" -> 2;
+            default -> 0;
+        };
+    }
+
+    private static String themeKey(String label) {
+        return switch (label == null ? "" : label) {
+            case "Navy blue" -> "navy";
+            case "Dark" -> "dark";
+            default -> "green";
+        };
+    }
+
+    private static String densityKey(String label) {
+        return "Compact".equals(label) ? "compact" : "comfortable";
+    }
+
+    // ------------------------------------------------------------------
     // Placeholder for screens that are still being built
     // ------------------------------------------------------------------
 
@@ -308,19 +774,115 @@ public class ShellController {
 
     @FXML
     private void onLogout() {
-        javafx.stage.Window owner = contentArea.getScene() == null
+        Window owner = contentArea.getScene() == null
                 ? null : contentArea.getScene().getWindow();
         boolean ok = AlertUtil.confirm(owner,
                 "Sign out", "Sign out of the DEIHS Maintenance Management System?");
         if (!ok) {
             return;
         }
+        hidePopover();
         Session.clear();
+        activeShell = null;
         Parent login = ViewLoader.load("/com/deihs/mms/view/LoginView.fxml");
         Main.setRoot(login);
     }
 
     public String currentKey() {
         return currentKey;
+    }
+
+    // ------------------------------------------------------------------
+    // Sidebar row
+    // ------------------------------------------------------------------
+
+    /**
+     * One navigation row. The highlight is a separate region whose opacity is
+     * animated, which gives a smooth hover without repainting the label.
+     */
+    private final class NavRow {
+
+        private final String key;
+        private final StackPane node;
+        private final Region highlight;
+        private final Region bar;
+        private final FadeTransition hoverIn;
+        private final FadeTransition hoverOut;
+        private boolean active;
+
+        NavRow(Nav nav) {
+            key = nav.key();
+
+            node = new StackPane();
+            node.getStyleClass().add("nav-row");
+            node.setAlignment(Pos.CENTER_LEFT);
+            node.setMaxWidth(Double.MAX_VALUE);
+            node.setFocusTraversable(false);
+
+            highlight = new Region();
+            highlight.getStyleClass().add("nav-highlight");
+            highlight.setOpacity(0);
+            highlight.setMouseTransparent(true);
+
+            bar = new Region();
+            bar.getStyleClass().add("nav-bar");
+            bar.setVisible(false);
+            bar.setMouseTransparent(true);
+            StackPane.setAlignment(bar, Pos.CENTER_LEFT);
+
+            StackPane iconHolder = new StackPane(Icons.of(nav.icon(), 16));
+            iconHolder.setMinSize(24, 24);
+            iconHolder.setPrefSize(24, 24);
+            iconHolder.setMaxSize(24, 24);
+
+            Label label = new Label(nav.title());
+            label.getStyleClass().add("nav-label");
+            label.setMaxWidth(Double.MAX_VALUE);
+            bindSidebarReveal(label);
+
+            HBox content = new HBox(12, iconHolder, label);
+            content.setAlignment(Pos.CENTER_LEFT);
+            content.setPadding(new Insets(0, 12, 0, 16));
+            content.setMouseTransparent(true);
+
+            node.getChildren().addAll(highlight, bar, content);
+            node.setOnMouseClicked(e -> navigate(key));
+
+            Tooltip tooltip = new Tooltip(nav.title());
+            tooltip.setShowDelay(Duration.millis(400));
+            Tooltip.install(node, tooltip);
+
+            hoverIn = new FadeTransition(Duration.millis(110), highlight);
+            hoverIn.setToValue(1);
+            hoverOut = new FadeTransition(Duration.millis(160), highlight);
+            hoverOut.setToValue(0);
+
+            node.setOnMouseEntered(e -> {
+                hoverOut.stop();
+                hoverIn.playFromStart();
+            });
+            node.setOnMouseExited(e -> {
+                hoverIn.stop();
+                if (!active) {
+                    hoverOut.playFromStart();
+                }
+            });
+        }
+
+        void setActive(boolean value) {
+            active = value;
+            node.getStyleClass().remove("nav-active");
+            if (value) {
+                node.getStyleClass().add("nav-active");
+            }
+            bar.setVisible(value);
+            hoverOut.stop();
+            if (value) {
+                hoverIn.stop();
+                highlight.setOpacity(1);
+            } else if (!node.isHover()) {
+                hoverOut.playFromStart();
+            }
+        }
     }
 }

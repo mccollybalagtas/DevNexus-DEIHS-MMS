@@ -101,6 +101,9 @@ public class UserService {
         int userId = userDao.create(data.employeeNo(), data.username(), data.passwordHash(),
                 data.firstName(), data.lastName(), data.email(), data.phone(),
                 data.department(), role, true);
+        if (data.emailVerified()) {
+            userDao.setEmailVerified(userId, true);
+        }
         requestDao.markReviewed(requestId, "APPROVED", actor.id(), "Approved as " + role);
         auditDao.log(actor.id(), "APPROVE_ACCOUNT_REQUEST", "account_requests",
                 String.valueOf(requestId), data.username() + " -> user " + userId + " (" + role + ")");

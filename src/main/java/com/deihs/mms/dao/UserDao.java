@@ -21,6 +21,7 @@ public class UserDao {
             SELECT u.user_id, u.employee_no, u.username, u.password_hash,
                    u.first_name, u.last_name, u.email, u.phone,
                    u.department, u.is_active, u.last_login,
+                   u.photo_path, u.theme, u.ui_density, u.email_verified,
                    r.role_code
             FROM users u
             JOIN roles r ON r.role_id = u.role_id
@@ -135,6 +136,92 @@ public class UserDao {
         return exists("SELECT 1 FROM users WHERE employee_no = ?", employeeNo, 0);
     }
 
+    public boolean emailExists(String email, int excludeId) throws SQLException {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        String sql = "SELECT 1 FROM users WHERE LOWER(email) = LOWER(?) AND user_id <> ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, email.trim());
+            ps.setInt(2, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /** Reads the current hash so a profile password change can verify it. */
+    public Optional<String> findPasswordHash(int userId) throws SQLException {
+        String sql = "SELECT password_hash FROM users WHERE user_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? Optional.ofNullable(rs.getString("password_hash")) : Optional.empty();
+            }
+        }
+    }
+
+    public void updateProfile(int userId, String firstName, String lastName,
+                              String email, String department) throws SQLException {
+        String sql = """
+                UPDATE users
+                   SET first_name = ?, last_name = ?, email = ?, department = ?
+                 WHERE user_id = ?
+                """;
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, firstName);
+            ps.setString(2, lastName);
+            ps.setString(3, email);
+            ps.setString(4, department);
+            ps.setInt(5, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateUsername(int userId, String username) throws SQLException {
+        String sql = "UPDATE users SET username = ? WHERE user_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, username);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updatePhoto(int userId, String photoPath) throws SQLException {
+        String sql = "UPDATE users SET photo_path = ? WHERE user_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, photoPath);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void updatePreferences(int userId, String theme, String density) throws SQLException {
+        String sql = "UPDATE users SET theme = ?, ui_density = ? WHERE user_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, theme);
+            ps.setString(2, density);
+            ps.setInt(3, userId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void setEmailVerified(int userId, boolean verified) throws SQLException {
+        String sql = "UPDATE users SET email_verified = ? WHERE user_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, verified ? 1 : 0);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        }
+    }
+
     public boolean employeeNoExists(String employeeNo, int excludeId) throws SQLException {
         return exists("SELECT 1 FROM users WHERE employee_no = ? AND user_id <> ?", employeeNo, excludeId);
     }
@@ -241,7 +328,11 @@ public class UserDao {
                 Role.fromCode(rs.getString("role_code")),
                 rs.getString("department"),
                 rs.getBoolean("is_active"),
-                lastLogin == null ? null : lastLogin.toLocalDateTime()
+                lastLogin == null ? null : lastLogin.toLocalDateTime(),
+                rs.getString("photo_path"),
+                rs.getString("theme"),
+                rs.getString("ui_density"),
+                rs.getBoolean("email_verified")
         );
     }
 }

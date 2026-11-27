@@ -54,15 +54,91 @@ public final class Icons {
     public static final String TASKS =
             "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z";
 
+    public static final String MENU =
+            "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z";
+
+    public static final String PROFILE =
+            "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2"
+                    + "c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z";
+
+    public static final String SETTINGS =
+            "M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58"
+                    + "c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96"
+                    + "c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84"
+                    + "c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96"
+                    + "c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58"
+                    + "c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61"
+                    + "l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54"
+                    + "c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54"
+                    + "c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32"
+                    + "c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6"
+                    + "s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z";
+
+    public static final String LOGOUT =
+            "M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4"
+                    + "c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z";
+
+    public static final String CHEVRON_RIGHT =
+            "M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z";
+
+    public static final String CAMERA =
+            "M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6"
+                    + "c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5"
+                    + " 5 2.24 5 5-2.24 5-5 5zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6z";
+
+    public static final String MAIL =
+            "M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6"
+                    + "c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z";
+
+    public static final String CLOSE =
+            "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19"
+                    + " 12 13.41 17.59 19 19 17.59 13.41 12z";
+
+    public static final String CHECK_CIRCLE =
+            "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"
+                    + "m-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z";
+
+    public static final String SUN =
+            "M6.76 4.84l-1.8-1.79-1.41 1.41 1.79 1.79 1.42-1.41zM4 10.5H1v2h3v-2z"
+                    + "m9-9.95h-2V3.5h2V.55zm7.45 3.91l-1.41-1.41-1.79 1.79 1.41 1.41"
+                    + " 1.79-1.79zm-3.21 13.7l1.79 1.8 1.41-1.41-1.8-1.79-1.4 1.4z"
+                    + "M20 10.5v2h3v-2h-3zm-8-5c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69"
+                    + " 6-6-2.69-6-6-6zm-1 16.95h2V19.5h-2v2.95zm-7.45-3.91l1.41 1.41"
+                    + " 1.79-1.8-1.41-1.41-1.79 1.8z";
+
+    public static final String MOON =
+            "M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01"
+                    + "-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5"
+                    + " 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9"
+                    + " 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5"
+                    + "s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5"
+                    + "s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9"
+                    + "s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z";
+
     private Icons() {
     }
 
     /** Returns a fixed-size, non-interactive icon node for use as a button graphic. */
     public static Node of(String path, double size) {
+        return build(path, size, Color.web("#E6F0E9"), true);
+    }
+
+    /**
+     * Coloured variant for top-bar, drawer and profile controls. It
+     * deliberately does not carry the {@code nav-svg} class, so the sidebar
+     * stylesheet rule cannot recolour it.
+     */
+    public static Node of(String path, double size, String color) {
+        return build(path, size, Color.web(color), false);
+    }
+
+    private static Node build(String path, double size, Color color, boolean navStyle) {
         SVGPath svg = new SVGPath();
         svg.setContent(path);
-        svg.setFill(Color.web("#E6F0E9"));
-        svg.getStyleClass().add("nav-svg");
+        svg.setFill(color);
+        if (navStyle) {
+            svg.getStyleClass().add("nav-svg");
+        }
         svg.setScaleX(size / 24.0);
         svg.setScaleY(size / 24.0);
         svg.setMouseTransparent(true);

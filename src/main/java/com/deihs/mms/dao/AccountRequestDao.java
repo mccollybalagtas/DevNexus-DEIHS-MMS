@@ -24,8 +24,8 @@ public class AccountRequestDao {
         String sql = """
                 INSERT INTO account_requests
                     (employee_no, username, password_hash, first_name, last_name,
-                     email, phone, department, requested_role)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     email, phone, department, requested_role, email_verified)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection c = Database.getConnection();
              PreparedStatement ps = c.prepareStatement(sql)) {
@@ -38,6 +38,7 @@ public class AccountRequestDao {
             ps.setString(7, draft.phone());
             ps.setString(8, draft.department());
             ps.setString(9, draft.requestedRole());
+            ps.setInt(10, draft.emailVerified() ? 1 : 0);
             ps.executeUpdate();
         }
     }
@@ -125,7 +126,7 @@ public class AccountRequestDao {
     public Optional<ApprovalData> findForApproval(int requestId) throws SQLException {
         String sql = """
                 SELECT request_id, employee_no, username, password_hash, first_name, last_name,
-                       email, phone, department, requested_role, status
+                       email, phone, department, requested_role, status, email_verified
                 FROM account_requests
                 WHERE request_id = ?
                 """;
@@ -145,7 +146,8 @@ public class AccountRequestDao {
                             rs.getString("phone"),
                             rs.getString("department"),
                             rs.getString("requested_role"),
-                            rs.getString("status")
+                            rs.getString("status"),
+                            rs.getBoolean("email_verified")
                     ));
                 }
             }
@@ -164,7 +166,8 @@ public class AccountRequestDao {
             String phone,
             String department,
             String requestedRole,
-            String status
+            String status,
+            boolean emailVerified
     ) {}
 
     private AccountRequest map(ResultSet rs) throws SQLException {

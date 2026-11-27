@@ -15,7 +15,11 @@ import com.deihs.mms.service.GoogleOAuthService.GoogleProfile;
 import com.deihs.mms.service.RegistrationService;
 import com.deihs.mms.service.Session;
 import com.deihs.mms.service.ValidationException;
+import com.deihs.mms.util.Lockout;
+import com.deihs.mms.util.PasswordPolicy;
 import com.deihs.mms.util.ViewLoader;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -39,9 +43,9 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
 import javafx.scene.text.Font;
 import javafx.stage.Modality;
+import javafx.util.Duration;
 
 import java.io.IOException;
-import java.net.URL;
 import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.Base64;
@@ -57,9 +61,7 @@ public class LoginController {
     private static final String PREF_NODE = "com/deihs/mms/login";
     private static final String PREF_USERNAME = "rememberedUsername";
 
-    @FXML private StackPane brandPane;
     @FXML private StackPane signInPane;
-    @FXML private Region buildingLayer;
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
     @FXML private TextField passwordVisible;
@@ -69,9 +71,6 @@ public class LoginController {
     @FXML private CheckBox rememberMe;
     @FXML private Label errorLabel;
     @FXML private Label headingLabel;
-    @FXML private Label schoolLine1;
-    @FXML private Label schoolLine2;
-    @FXML private Label locationLabel;
     @FXML private Button signInButton;
     @FXML private VBox googleBox;
     @FXML private Button googleButton;
@@ -82,12 +81,14 @@ public class LoginController {
     private final AuditDao auditDao = new AuditDao();
     private final RegistrationService registrationService = new RegistrationService();
 
+    /** Five bad passwords, or one over-length password, pause sign-in for 20 s. */
+    private final Lockout lockout = new Lockout();
+    private Timeline lockoutPulse;
     private boolean passwordShown;
 
     @FXML
     private void initialize() {
         clipDecorativeLayers();
-        applyBuildingPhoto();
         applyDisplayFont();
         restoreRememberedUsername();
 
@@ -115,47 +116,16 @@ public class LoginController {
     }
 
     /**
-     * The decorative circles and light beams deliberately extend past the
-     * panel edges. Without a clip they would paint over the opposite panel.
+     * The decorative circles on the sign-in panel deliberately extend past its
+     * edge. Without a clip they would paint over the brand panel.
      */
     private void clipDecorativeLayers() {
-        if (brandPane != null) {
-            Rectangle clip = new Rectangle();
-            clip.widthProperty().bind(brandPane.widthProperty());
-            clip.heightProperty().bind(brandPane.heightProperty());
-            brandPane.setClip(clip);
-        }
         if (signInPane != null) {
             Rectangle clip = new Rectangle();
             clip.widthProperty().bind(signInPane.widthProperty());
             clip.heightProperty().bind(signInPane.heightProperty());
             signInPane.setClip(clip);
         }
-    }
-
-    /**
-     * Uses a real campus photo when one is bundled at
-     * /com/deihs/mms/img/login-building.jpg. Otherwise the navy gradient
-     * defined in styles.css remains visible.
-     */
-    private void applyBuildingPhoto() {
-        if (buildingLayer == null) {
-            return;
-        }
-        URL photo = LoginController.class.getResource("/com/deihs/mms/img/login-building.jpg");
-        if (photo == null) {
-            buildingLayer.setVisible(false);
-            buildingLayer.setManaged(false);
-            return;
-        }
-        // Inline style wins over the stylesheet, and loading is synchronous so
-        // the photo is present on the very first pulse (no blank flash).
-        buildingLayer.setStyle("-fx-background-image: url('" + photo.toExternalForm() + "');"
-                + "-fx-background-size: cover;"
-                + "-fx-background-position: center center;"
-                + "-fx-background-repeat: no-repeat;");
-        buildingLayer.setVisible(true);
-        buildingLayer.setManaged(true);
     }
 
     /**
@@ -168,11 +138,8 @@ public class LoginController {
         if (family == null) {
             return;
         }
-        String css = "-fx-font-family: \"" + family + "\";";
-        for (Label label : new Label[]{headingLabel, schoolLine1, schoolLine2, locationLabel}) {
-            if (label != null) {
-                label.setStyle(css);
-            }
+        if (headingLabel != null) {
+            headingLabel.setStyle("-fx-font-family: \"" + family + "\";");
         }
     }
 
@@ -274,6 +241,10 @@ public class LoginController {
 
     @FXML
     private void onSignIn() {
+        if (lockout.isLocked()) {
+            startLockoutCountdown("Too many attempts.");
+            return;
+        }
         hideError();
 
         String username = usernameField.getText() == null ? "" : usernameField.getText().trim();
@@ -281,6 +252,21 @@ public class LoginController {
 
         if (username.isEmpty() || password.isEmpty()) {
             showError("Enter your username and password.");
+            return;
+        }
+
+        String usernameError = PasswordPolicy.usernameError(username);
+        if (usernameError != null) {
+            showError(usernameError);
+            usernameField.requestFocus();
+            return;
+        }
+
+        if (password.length() > PasswordPolicy.MAX_LENGTH) {
+            clearPassword();
+            lockout.lockNow();
+            startLockoutCountdown("Password must be "
+                    + PasswordPolicy.MAX_LENGTH + " characters or fewer.");
             return;
         }
 
@@ -295,6 +281,8 @@ public class LoginController {
 
         task.setOnSucceeded(e -> {
             User user = task.getValue();
+            lockout.reset();
+            stopLockoutPulse();
             persistRememberedUsername();
             Session.set(user);
             openShell();
@@ -304,7 +292,12 @@ public class LoginController {
             setBusy(false, null);
             Throwable ex = task.getException();
             if (ex instanceof AuthException auth) {
-                showError(auth.getMessage());
+                lockout.registerFailure();
+                if (lockout.isLocked()) {
+                    startLockoutCountdown("Too many failed attempts.");
+                } else {
+                    showError(auth.getMessage());
+                }
                 clearPassword();
                 focusPassword();
             } else if (ex instanceof SQLException sql) {
@@ -466,7 +459,8 @@ public class LoginController {
                     profile.email(),
                     null,
                     deptField.getText(),
-                    roleBox.getValue() == null ? null : roleBox.getValue().value()
+                    roleBox.getValue() == null ? null : roleBox.getValue().value(),
+                    true
             );
             try {
                 registrationService.submit(draft);
@@ -481,7 +475,9 @@ public class LoginController {
             }
         });
 
-        dialog.setResultConverter(bt -> bt == ButtonType.OK ? new RegistrationDraft("", "", "", "", "", "", "", "", "", "") : null);
+        dialog.setResultConverter(bt -> bt == ButtonType.OK
+                ? new RegistrationDraft("", "", "", "", "", "", "", null, "", "", true)
+                : null);
         dialog.showAndWait().ifPresent(d -> {
             showSuccess("Account request submitted for " + profile.email()
                     + ". You can sign in with Google once an administrator approves it.");
@@ -506,14 +502,16 @@ public class LoginController {
     }
 
     private static String randomPassword() {
-        byte[] b = new byte[24];
+        byte[] b = new byte[18];
         new SecureRandom().nextBytes(b);
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(b);
+        // The prefix guarantees a letter and a digit, which the policy requires,
+        // while the random tail keeps the value unguessable.
+        return "Gg1-" + Base64.getUrlEncoder().withoutPadding().encodeToString(b);
     }
 
     private void setBusy(boolean busy, String signInText) {
-        signInButton.setDisable(busy);
-        if (googleButton != null) googleButton.setDisable(busy);
+        signInButton.setDisable(busy || lockout.isLocked());
+        if (googleButton != null) googleButton.setDisable(busy || lockout.isLocked());
         if (rememberMe != null) rememberMe.setDisable(busy);
         if (togglePasswordButton != null) togglePasswordButton.setDisable(busy);
         signInButton.setText(busy ? (signInText == null ? "Please wait…" : signInText) : "Sign In");
@@ -550,6 +548,46 @@ public class LoginController {
             Session.clear();
             resetButton();
             showError("Could not open the main window: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Repaints the remaining lock time once a second. The button stays disabled
+     * until the lock expires so a fast double-click cannot slip an attempt in.
+     */
+    private void startLockoutCountdown(String reason) {
+        stopLockoutPulse();
+        setBusy(false, null);
+        signInButton.setDisable(true);
+        if (googleButton != null) {
+            googleButton.setDisable(true);
+        }
+        updateLockoutMessage(reason);
+        lockoutPulse = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
+            if (lockout.isLocked()) {
+                updateLockoutMessage(reason);
+            } else {
+                stopLockoutPulse();
+                hideError();
+                setBusy(false, null);
+                focusPassword();
+            }
+        }));
+        lockoutPulse.setCycleCount(Timeline.INDEFINITE);
+        lockoutPulse.play();
+    }
+
+    private void updateLockoutMessage(String reason) {
+        long seconds = lockout.remainingSeconds();
+        if (seconds > 0) {
+            showError(reason + " Try again in " + seconds + "s.");
+        }
+    }
+
+    private void stopLockoutPulse() {
+        if (lockoutPulse != null) {
+            lockoutPulse.stop();
+            lockoutPulse = null;
         }
     }
 

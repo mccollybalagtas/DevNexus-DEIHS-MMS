@@ -1,6 +1,7 @@
 package com.deihs.mms;
 
 import com.deihs.mms.db.Database;
+import com.deihs.mms.db.SchemaUpgrade;
 import com.deihs.mms.util.ViewLoader;
 import javafx.application.Application;
 import javafx.scene.Parent;
@@ -8,6 +9,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import java.sql.SQLException;
 import java.util.Objects;
 
 /**
@@ -23,6 +25,16 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
+        // Add the profile / theme / verification columns when upgrading an
+        // existing install. A database that is not running yet must not stop
+        // the login screen from opening, so failure is logged and retried
+        // after a successful sign-in.
+        try {
+            SchemaUpgrade.ensure();
+        } catch (SQLException e) {
+            System.err.println("Schema upgrade deferred: " + e.getMessage());
+        }
+
         Parent root = ViewLoader.load("/com/deihs/mms/view/LoginView.fxml");
         mainScene = new Scene(root, 1180, 720);
         mainScene.getStylesheets().add(

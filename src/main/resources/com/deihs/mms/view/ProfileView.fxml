@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    Self-service profile: photo and identity on the left, editable details,
+    password and appearance on the right. Every action is handled by
+    ProfileController against the signed-in user only.
+-->
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.deihs.mms.controller.ProfileController"
+            styleClass="page-scroll" fitToWidth="true"
+            hbarPolicy="NEVER" maxWidth="Infinity" maxHeight="Infinity">
+
+    <VBox styleClass="page" spacing="16">
+
+        <VBox spacing="2">
+            <Label text="Profile &amp; preferences" styleClass="page-h1"/>
+            <Label text="Update your details, photo, password and the way the app looks."
+                   styleClass="page-sub"/>
+        </VBox>
+
+        <HBox spacing="16" alignment="TOP_LEFT">
+
+            <!-- Identity card -->
+            <VBox styleClass="card, profile-identity" spacing="10"
+                  prefWidth="320" minWidth="300" maxWidth="320">
+                <StackPane fx:id="photoHolder" styleClass="profile-photo-holder"
+                           minWidth="104" minHeight="104" maxWidth="104" maxHeight="104"/>
+
+                <Label fx:id="nameLabel" styleClass="profile-name" text="—"
+                       maxWidth="Infinity" alignment="CENTER"/>
+                <Label fx:id="roleLabel" styleClass="profile-role" text="—"
+                       maxWidth="Infinity" alignment="CENTER"/>
+                <Label fx:id="emailBadge" styleClass="badge, badge-pending" text="Email not verified"
+                       maxWidth="-Infinity" alignment="CENTER"/>
+
+                <Region styleClass="divider"/>
+
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label text="Employee no." styleClass="profile-meta-key"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="employeeNoLabel" styleClass="profile-meta-value" text="—"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label text="Department" styleClass="profile-meta-key"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="departmentLabel" styleClass="profile-meta-value" text="—"
+                           maxWidth="170" wrapText="true" textAlignment="RIGHT"/>
+                </HBox>
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Label text="Last sign-in" styleClass="profile-meta-key"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lastLoginLabel" styleClass="profile-meta-value" text="—"/>
+                </HBox>
+
+                <Region styleClass="divider"/>
+
+                <HBox spacing="8" alignment="CENTER_LEFT">
+                    <Button fx:id="changePhotoButton" text="Change photo"
+                            styleClass="btn-ghost, btn-small" onAction="#onChangePhoto"/>
+                    <Button fx:id="removePhotoButton" text="Remove"
+                            styleClass="btn-ghost, btn-small, btn-warn" onAction="#onRemovePhoto"/>
+                </HBox>
+                <Label text="PNG, JPG, GIF or BMP · up to 6 MB" styleClass="form-hint"/>
+                <Label fx:id="photoStatus" styleClass="form-hint" wrapText="true"
+                       visible="false" managed="false" maxWidth="Infinity"/>
+            </VBox>
+
+            <!-- Editable cards -->
+            <VBox HBox.hgrow="ALWAYS" spacing="16" maxWidth="Infinity" minWidth="0">
+
+                <!-- Personal details -->
+                <VBox styleClass="card" spacing="12">
+                    <Label text="Personal details" styleClass="card-title"/>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="First name" styleClass="field-label"/>
+                            <TextField fx:id="firstNameField" styleClass="input"
+                                       promptText="Juan" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Last name" styleClass="field-label"/>
+                            <TextField fx:id="lastNameField" styleClass="input"
+                                       promptText="Cruz" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Username" styleClass="field-label"/>
+                            <TextField fx:id="usernameField" styleClass="input"
+                                       promptText="e.g. jcruz" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="E-mail address" styleClass="field-label"/>
+                            <TextField fx:id="emailField" styleClass="input"
+                                       promptText="name@gmail.com" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+
+                    <VBox spacing="4">
+                        <Label text="Department / Office" styleClass="field-label"/>
+                        <TextField fx:id="departmentField" styleClass="input"
+                                   promptText="e.g. Science, Maintenance" maxWidth="Infinity"/>
+                    </VBox>
+
+                    <Label text="Changing your e-mail address marks it unverified until an administrator confirms it again."
+                           styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="detailsStatus" styleClass="form-hint" wrapText="true"
+                           visible="false" managed="false" maxWidth="Infinity"/>
+
+                    <HBox alignment="CENTER_RIGHT">
+                        <Button fx:id="saveDetailsButton" text="Save details"
+                                styleClass="btn-primary" onAction="#onSaveDetails"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Password -->
+                <VBox styleClass="card" spacing="12">
+                    <Label text="Change password" styleClass="card-title"/>
+
+                    <VBox spacing="4">
+                        <Label text="Current password" styleClass="field-label"/>
+                        <PasswordField fx:id="currentPasswordField" styleClass="input"
+                                       promptText="Your current password" maxWidth="Infinity"/>
+                    </VBox>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="New password" styleClass="field-label"/>
+                            <PasswordField fx:id="newPasswordField" styleClass="input"
+                                           promptText="At least 8 characters" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Confirm new password" styleClass="field-label"/>
+                            <PasswordField fx:id="confirmPasswordField" styleClass="input"
+                                           promptText="Repeat the password" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox styleClass="strength-meter" spacing="4" alignment="CENTER_LEFT">
+                        <Region fx:id="strengthBar1" styleClass="strength-bar, bar-empty" HBox.hgrow="ALWAYS"/>
+                        <Region fx:id="strengthBar2" styleClass="strength-bar, bar-empty" HBox.hgrow="ALWAYS"/>
+                        <Region fx:id="strengthBar3" styleClass="strength-bar, bar-empty" HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="strengthLabel" text="Enter a password" styleClass="strength-label"/>
+                    </HBox>
+
+                    <Label fx:id="passwordHint" styleClass="form-hint" wrapText="true"
+                           text="Use at least 8 characters with a letter and a number. Up to 64 characters."/>
+                    <Label fx:id="passwordStatus" styleClass="form-hint" wrapText="true"
+                           visible="false" managed="false" maxWidth="Infinity"/>
+
+                    <HBox alignment="CENTER_RIGHT">
+                        <Button fx:id="updatePasswordButton" text="Update password"
+                                styleClass="btn-primary" onAction="#onUpdatePassword"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Appearance -->
+                <VBox styleClass="card" spacing="12">
+                    <Label text="Appearance" styleClass="card-title"/>
+
+                    <HBox spacing="12">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Theme" styleClass="field-label"/>
+                            <ComboBox fx:id="themeBox" styleClass="combo-input" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Density" styleClass="field-label"/>
+                            <ComboBox fx:id="densityBox" styleClass="combo-input" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+
+                    <Label text="Themes change the sidebar and accent colours. Compact density tightens tables, cards and spacing."
+                           styleClass="form-hint" wrapText="true"/>
+                    <Label fx:id="appearanceStatus" styleClass="form-hint" wrapText="true"
+                           visible="false" managed="false" maxWidth="Infinity"/>
+
+                    <HBox alignment="CENTER_RIGHT">
+                        <Button fx:id="saveAppearanceButton" text="Save appearance"
+                                styleClass="btn-primary" onAction="#onSaveAppearance"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </HBox>
+    </VBox>
+</ScrollPane>

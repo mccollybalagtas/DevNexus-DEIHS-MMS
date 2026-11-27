@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.Image?>
@@ -9,50 +10,132 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.deihs.mms.controller.ShellController"
-      styleClass="app-shell">
+<!--
+    The application frame. The sidebar starts collapsed (72 px, crest only)
+    and expands on hover; the top bar carries a three-line menu button that
+    opens the account drawer, and the account chip shows a hover preview of
+    the profile. The overlays live in the same StackPane so they can sit
+    above the working area without disturbing its layout.
+-->
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:id="shellRoot" fx:controller="com.deihs.mms.controller.ShellController"
+           styleClass="app-shell-root">
 
-    <!-- Sidebar -->
-    <VBox styleClass="sidebar">
-        <HBox styleClass="brand-box" alignment="CENTER_LEFT" spacing="11">
-            <StackPane styleClass="brand-logo-frame">
-                <ImageView fitWidth="36" fitHeight="36" preserveRatio="true">
-                    <image>
-                        <Image url="@../img/deihs-logo.jpg"/>
-                    </image>
-                </ImageView>
-            </StackPane>
-            <VBox spacing="1">
-                <Label text="DEIHS MMS" styleClass="brand-name"/>
-                <Label text="Maintenance System" styleClass="brand-sub"/>
+    <HBox fx:id="appShell" styleClass="app-shell">
+        <!-- Sidebar -->
+        <VBox fx:id="sidebar" styleClass="sidebar"
+              prefWidth="72" minWidth="72" maxWidth="236">
+            <HBox fx:id="brandBox" styleClass="brand-box" alignment="CENTER_LEFT" spacing="11">
+                <StackPane fx:id="brandLogo" styleClass="brand-logo"
+                           minWidth="40" minHeight="40" maxWidth="40" maxHeight="40">
+                    <ImageView fitWidth="40" fitHeight="40" preserveRatio="true" smooth="true">
+                        <image>
+                            <Image url="@../img/deihs-logo-small.png"/>
+                        </image>
+                    </ImageView>
+                </StackPane>
+                <VBox fx:id="brandText" spacing="1" minWidth="0">
+                    <Label text="DEIHS MMS" styleClass="brand-name"/>
+                    <Label text="Maintenance System" styleClass="brand-sub"/>
+                </VBox>
+            </HBox>
+
+            <VBox fx:id="menuBox" styleClass="menu" VBox.vgrow="ALWAYS"/>
+
+            <VBox fx:id="sideFoot" styleClass="side-foot" spacing="4">
+                <Label fx:id="scopeLabel" styleClass="side-foot-label"
+                       text="All school records" wrapText="true"/>
+                <Label fx:id="versionLabel" text="v1.0 · DEIHS" styleClass="side-foot-label"/>
+            </VBox>
+        </VBox>
+
+        <!-- Main column -->
+        <VBox HBox.hgrow="ALWAYS" minWidth="0">
+            <HBox styleClass="topbar">
+                <Button fx:id="menuButton" styleClass="icon-btn"
+                        onAction="#onOpenDrawer" focusTraversable="false"/>
+                <Label fx:id="pageTitle" styleClass="page-title" text="Dashboard"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox fx:id="userChip" styleClass="user-chip" spacing="9"
+                      alignment="CENTER_LEFT" focusTraversable="false">
+                    <StackPane fx:id="avatarHolder" styleClass="avatar-holder"
+                               minWidth="30" minHeight="30" maxWidth="30" maxHeight="30"/>
+                    <VBox spacing="0">
+                        <Label fx:id="userNameLabel" styleClass="user-name" text="—"/>
+                        <Label fx:id="userRoleLabel" styleClass="user-role" text="—"/>
+                    </VBox>
+                </HBox>
+            </HBox>
+
+            <StackPane fx:id="contentArea" styleClass="content" alignment="TOP_LEFT"
+                       VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </HBox>
+
+    <!-- Dim layer behind the drawer -->
+    <Region fx:id="drawerScrim" styleClass="drawer-scrim" visible="false" managed="false"/>
+
+    <!-- Hover preview of the signed-in account -->
+    <VBox fx:id="profilePopover" styleClass="profile-popover" visible="false" managed="false"
+          StackPane.alignment="TOP_RIGHT" prefWidth="300" maxWidth="300" maxHeight="-Infinity">
+        <StackPane.margin>
+            <Insets top="70" right="22"/>
+        </StackPane.margin>
+
+        <HBox spacing="11" alignment="CENTER_LEFT">
+            <StackPane fx:id="popoverAvatar" minWidth="44" minHeight="44" maxWidth="44" maxHeight="44"/>
+            <VBox spacing="1" HBox.hgrow="ALWAYS" minWidth="0">
+                <Label fx:id="popoverName" styleClass="popover-name" text="—"/>
+                <Label fx:id="popoverRole" styleClass="popover-role" text="—"/>
             </VBox>
         </HBox>
 
-        <VBox fx:id="menuBox" styleClass="menu" VBox.vgrow="ALWAYS"/>
-
-        <VBox styleClass="side-foot" spacing="4">
-            <Label fx:id="scopeLabel" styleClass="side-foot-label" text="All school records"/>
-            <Label text="v1.0 · DEIHS" styleClass="side-foot-label"/>
-        </VBox>
-    </VBox>
-
-    <!-- Main -->
-    <VBox HBox.hgrow="ALWAYS">
-        <HBox styleClass="topbar">
-            <Label fx:id="pageTitle" styleClass="page-title" text="Dashboard"/>
-            <Region HBox.hgrow="ALWAYS"/>
-            <Button text="Sign out" styleClass="btn-ghost" onAction="#onLogout"/>
-            <HBox styleClass="user-chip" spacing="9" alignment="CENTER_LEFT">
-                <Label fx:id="avatarLabel" styleClass="avatar" text="--"/>
-                <VBox spacing="0">
-                    <Label fx:id="userNameLabel" styleClass="user-name" text="—"/>
-                    <Label fx:id="userRoleLabel" styleClass="user-role" text="—"/>
-                </VBox>
-            </HBox>
+        <HBox spacing="7" alignment="CENTER_LEFT">
+            <Label fx:id="popoverEmail" styleClass="popover-meta" text="—" maxWidth="260"/>
         </HBox>
 
-        <StackPane fx:id="contentArea" styleClass="content" alignment="TOP_LEFT"
-                   VBox.vgrow="ALWAYS"/>
+        <HBox spacing="7" alignment="CENTER_LEFT">
+            <StackPane fx:id="popoverStatusIcon" minWidth="15" minHeight="15" maxWidth="15" maxHeight="15"/>
+            <Label fx:id="popoverStatus" styleClass="popover-status" text="—"/>
+        </HBox>
+
+        <Region styleClass="popover-divider"/>
+
+        <Button text="Open my profile" styleClass="btn-primary btn-block"
+                onAction="#onOpenProfileFromPopover"/>
     </VBox>
-</HBox>
+
+    <!-- Account drawer -->
+    <VBox fx:id="drawer" styleClass="drawer" visible="false" managed="false"
+          StackPane.alignment="TOP_RIGHT" prefWidth="340" minWidth="340" maxWidth="340"
+          maxHeight="Infinity">
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="Account" styleClass="drawer-title" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="drawerCloseButton" styleClass="icon-btn"
+                    onAction="#onCloseDrawer" focusTraversable="false"/>
+        </HBox>
+
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <StackPane fx:id="drawerAvatar" minWidth="56" minHeight="56" maxWidth="56" maxHeight="56"/>
+            <VBox spacing="1" HBox.hgrow="ALWAYS" minWidth="0">
+                <Label fx:id="drawerName" styleClass="drawer-name" text="—"/>
+                <Label fx:id="drawerRole" styleClass="drawer-role" text="—"/>
+                <Label fx:id="drawerEmail" styleClass="drawer-email" text="—" maxWidth="230"/>
+            </VBox>
+        </HBox>
+
+        <Region styleClass="drawer-divider"/>
+
+        <Button fx:id="drawerProfileButton" styleClass="drawer-item"
+                maxWidth="Infinity" onAction="#onOpenProfileFromDrawer"/>
+        <Button fx:id="drawerSettingsButton" styleClass="drawer-item"
+                maxWidth="Infinity" onAction="#onOpenSettings"/>
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <Region styleClass="drawer-divider"/>
+        <Button fx:id="drawerLogoutButton" styleClass="drawer-item"
+                maxWidth="Infinity" onAction="#onLogout"/>
+        <Label text="DEIHS MMS · v1.0" styleClass="drawer-foot"/>
+    </VBox>
+</StackPane>
