@@ -51,7 +51,12 @@
 
                 <Region styleClass="detail-rule"/>
 
-                <Label text="Attachments" styleClass="detail-subtitle"/>
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                    <Label text="Attachments" styleClass="detail-subtitle"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="addAttachmentButton" text="Add Attachment" styleClass="btn-ghost"
+                            onAction="#onAddAttachment"/>
+                </HBox>
                 <VBox fx:id="attachmentBox" spacing="6"/>
             </VBox>
 

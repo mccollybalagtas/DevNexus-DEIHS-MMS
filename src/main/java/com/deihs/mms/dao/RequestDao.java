@@ -268,8 +268,8 @@ public class RequestDao {
             throws SQLException {
         String sql = """
                 INSERT INTO attachments
-                    (request_id, file_name, file_path, file_size, mime_type, uploaded_by)
-                VALUES (?, ?, ?, ?, ?, ?)
+                    (request_id, file_name, file_path, file_size, mime_type, uploaded_by, attachment_kind)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 """;
         try (PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setInt(1, requestId);
@@ -278,6 +278,7 @@ public class RequestDao {
             ps.setLong(4, a.fileSize());
             ps.setString(5, a.mimeType());
             ps.setInt(6, userId);
+            ps.setString(7, a.normalizedKind());
             ps.executeUpdate();
         }
     }

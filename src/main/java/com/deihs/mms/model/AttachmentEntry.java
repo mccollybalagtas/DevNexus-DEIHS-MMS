@@ -14,6 +14,15 @@ public record AttachmentEntry(
         long fileSize,
         String mimeType,
         String uploadedBy,
-        LocalDateTime uploadedAt
+        LocalDateTime uploadedAt,
+        String kind
 ) {
+    public AttachmentEntry(int id, String fileName, String filePath, long fileSize,
+                           String mimeType, String uploadedBy, LocalDateTime uploadedAt) {
+        this(id, fileName, filePath, fileSize, mimeType, uploadedBy, uploadedAt, "GENERAL");
+    }
+
+    public String normalizedKind() {
+        return kind == null || kind.isBlank() ? "GENERAL" : kind.trim().toUpperCase();
+    }
 }

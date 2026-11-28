@@ -63,4 +63,9 @@ public final class Permissions {
     public static boolean canFileRepairRecord(User u) {
         return u.role() == Role.PERSONNEL || u.role() == Role.MAINT_HEAD;
     }
+
+    /** Approve or reject high-cost repair requests. */
+    public static boolean canApproveHighCost(User u) {
+        return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
+    }
 }

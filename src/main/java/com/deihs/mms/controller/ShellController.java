@@ -358,6 +358,9 @@ public class ShellController {
         if (u.role() != Role.STAFF) {
             list.add(new Nav("schedules", "Schedules", Icons.SCHEDULES));
         }
+        if (u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD || u.role() == Role.PERSONNEL) {
+            list.add(new Nav("workload", "Workload", Icons.CALENDAR));
+        }
         if (Permissions.canManageParts(u)) {
             list.add(new Nav("parts", "Parts", Icons.PARTS));
         }
@@ -492,6 +495,17 @@ public class ShellController {
             try {
                 FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/ReportsView.fxml");
                 Parent view = loader.load();
+                return view;
+            } catch (IOException | RuntimeException e) {
+                return errorView(nav.title(), e);
+            }
+        }
+        if ("workload".equals(nav.key())) {
+            try {
+                FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/WorkloadView.fxml");
+                Parent view = loader.load();
+                WorkloadController controller = loader.getController();
+                controller.setOpenRequestHandler(id -> openRequest(nav, id));
                 return view;
             } catch (IOException | RuntimeException e) {
                 return errorView(nav.title(), e);
@@ -979,6 +993,7 @@ public class ShellController {
         if (Permissions.canManageUsers(user)) {
             content.getChildren().add(buildBackupSection(owner));
             content.getChildren().add(buildSlaSection(owner));
+            content.getChildren().add(buildHighCostApprovalSection(owner));
             content.getChildren().add(buildLanWebSection(owner));
         }
         if (user.role() == com.deihs.mms.model.Role.ADMIN || user.role() == com.deihs.mms.model.Role.MAINT_HEAD) {
@@ -1192,6 +1207,40 @@ public class ShellController {
 
         HBox buttons = new HBox(8, save, checkNow);
         VBox box = new VBox(6, title, hint, grid, buttons, status);
+        box.getStyleClass().add("settings-section");
+        return box;
+    }
+
+    private Node buildHighCostApprovalSection(Window owner) {
+        Label title = new Label("High-cost repair approval");
+        title.getStyleClass().add("card-title");
+        Label hint = new Label("Repairs at or above this PHP amount require Admin/Maintenance Head approval before completion. Set 0 to disable.");
+        hint.getStyleClass().add("form-hint");
+        hint.setWrapText(true); hint.setMaxWidth(340);
+        javafx.scene.control.TextField thresholdField = new javafx.scene.control.TextField();
+        thresholdField.setPrefWidth(120);
+        int current = 0;
+        try { current = new com.deihs.mms.service.RequestDetailService().highCostThreshold(); } catch (Exception ignored) {}
+        thresholdField.setText(String.valueOf(current));
+        Button save = new Button("Save threshold");
+        save.getStyleClass().add("btn-ghost");
+        Label status = new Label("");
+        status.getStyleClass().add("form-hint"); status.setWrapText(true); status.setMaxWidth(340);
+        save.setOnAction(e -> {
+            try {
+                int val = Integer.parseInt(thresholdField.getText().trim());
+                new com.deihs.mms.service.RequestDetailService().setHighCostThreshold(val, Session.get());
+                status.setText("Threshold saved: " + val + " PHP" + (val <= 0 ? " (disabled)." : "."));
+            } catch (Exception ex) {
+                status.setText("");
+                AlertUtil.error(owner, "High-cost threshold", ex.getMessage(), ex);
+            }
+        });
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(8); grid.setVgap(8);
+        grid.add(new Label("Threshold (PHP)"), 0, 0);
+        grid.add(thresholdField, 1, 0);
+        VBox box = new VBox(6, title, hint, grid, new HBox(8, save), status);
         box.getStyleClass().add("settings-section");
         return box;
     }

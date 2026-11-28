@@ -46,13 +46,18 @@ public class RequestDetailDao {
                              AND r.target_date IS NOT NULL
                              AND r.target_date < CURDATE()
                         THEN 1 ELSE 0 END AS is_overdue,
-                   r.sla_due_at, r.sla_breached_at, r.escalated_at
+                   r.sla_due_at, r.sla_breached_at, r.escalated_at,
+                   COALESCE(r.approval_status, 'NOT_REQUIRED') AS approval_status,
+                   r.approval_requested_at, r.approved_by, r.approved_at, r.approval_notes, r.approval_cost,
+                   CASE WHEN apr.user_id IS NULL THEN NULL
+                        ELSE CONCAT(apr.first_name, ' ', apr.last_name) END AS approved_by_name
             FROM maintenance_requests r
             JOIN users req ON req.user_id = r.requester_id
             LEFT JOIN users asg ON asg.user_id = r.assigned_to
             JOIN maintenance_categories cat ON cat.category_id = r.category_id
             LEFT JOIN facilities f ON f.facility_id = r.facility_id
             LEFT JOIN equipment e ON e.equipment_id = r.equipment_id
+            LEFT JOIN users apr ON apr.user_id = r.approved_by
             WHERE r.request_id = ?
             """;
 
@@ -89,7 +94,14 @@ public class RequestDetailDao {
                         rs.getInt("is_overdue") == 1,
                         toLocal(rs.getTimestamp("sla_due_at")),
                         toLocal(rs.getTimestamp("sla_breached_at")),
-                        toLocal(rs.getTimestamp("escalated_at"))
+                        toLocal(rs.getTimestamp("escalated_at")),
+                        rs.getString("approval_status"),
+                        toLocal(rs.getTimestamp("approval_requested_at")),
+                        nullableInt(rs, "approved_by"),
+                        rs.getString("approved_by_name"),
+                        toLocal(rs.getTimestamp("approved_at")),
+                        rs.getString("approval_notes"),
+                        rs.getBigDecimal("approval_cost")
                 );
             }
         }
@@ -155,7 +167,7 @@ public class RequestDetailDao {
     public List<AttachmentEntry> attachments(int requestId) throws SQLException {
         String sql = """
                 SELECT a.attachment_id, a.file_name, a.file_path, a.file_size,
-                       a.mime_type, a.uploaded_at,
+                       a.mime_type, a.uploaded_at, COALESCE(a.attachment_kind, 'GENERAL') AS attachment_kind,
                        CONCAT(u.first_name, ' ', u.last_name) AS uploaded_by_name
                 FROM attachments a
                 JOIN users u ON u.user_id = a.uploaded_by
@@ -175,7 +187,8 @@ public class RequestDetailDao {
                             rs.getLong("file_size"),
                             rs.getString("mime_type"),
                             rs.getString("uploaded_by_name"),
-                            toLocal(rs.getTimestamp("uploaded_at"))
+                            toLocal(rs.getTimestamp("uploaded_at")),
+                            rs.getString("attachment_kind")
                     ));
                 }
             }
@@ -319,6 +332,64 @@ public class RequestDetailDao {
                     );
                 }
             }
+        }
+    }
+
+    public void insertAttachment(int requestId, com.deihs.mms.model.AttachmentDraft a, int userId) throws SQLException {
+        String sql = """
+                INSERT INTO attachments
+                    (request_id, file_name, file_path, file_size, mime_type, uploaded_by, attachment_kind)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, requestId);
+            ps.setString(2, a.fileName());
+            ps.setString(3, a.filePath());
+            ps.setLong(4, a.fileSize());
+            ps.setString(5, a.mimeType());
+            ps.setInt(6, userId);
+            ps.setString(7, a.normalizedKind());
+            ps.executeUpdate();
+        }
+    }
+
+    public void updateApproval(int requestId, String status, Integer approvedBy, String notes, java.math.BigDecimal approvalCost) throws SQLException {
+        String sql = """
+                UPDATE maintenance_requests
+                   SET approval_status = ?,
+                       approval_requested_at = CASE WHEN ? = 'PENDING' THEN COALESCE(approval_requested_at, NOW()) ELSE approval_requested_at END,
+                       approved_by = ?,
+                       approved_at = CASE WHEN ? IN ('APPROVED','REJECTED') THEN NOW() WHEN ? = 'PENDING' THEN NULL ELSE approved_at END,
+                       approval_notes = ?,
+                       approval_cost = ?
+                 WHERE request_id = ?
+                """;
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setString(2, status);
+            if (approvedBy == null) ps.setNull(3, Types.INTEGER); else ps.setInt(3, approvedBy);
+            ps.setString(4, status);
+            ps.setString(5, status);
+            if (notes == null || notes.isBlank()) ps.setNull(6, Types.VARCHAR); else ps.setString(6, notes.trim());
+            if (approvalCost == null) ps.setNull(7, Types.DECIMAL); else ps.setBigDecimal(7, approvalCost);
+            ps.setInt(8, requestId);
+            ps.executeUpdate();
+        }
+    }
+
+    public void clearApproval(int requestId) throws SQLException {
+        String sql = """
+                UPDATE maintenance_requests
+                   SET approval_status='NOT_REQUIRED', approval_requested_at=NULL, approved_by=NULL,
+                       approved_at=NULL, approval_notes=NULL, approval_cost=NULL
+                 WHERE request_id=?
+                """;
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, requestId);
+            ps.executeUpdate();
         }
     }
 

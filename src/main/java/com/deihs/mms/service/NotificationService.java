@@ -139,6 +139,27 @@ public class NotificationService {
         }
     }
 
+    public void approvalRequested(int requestId, String ticketNo, String title, java.math.BigDecimal cost, int actorId) {
+        notifyRoles(List.of(Role.ADMIN, Role.MAINT_HEAD),
+                "High-cost approval needed: " + ticketNo,
+                "\"" + title + "\" has repair cost " + cost.toPlainString() + " PHP and needs approval before completion.",
+                "request", requestId, actorId);
+    }
+
+    public void approvalDecided(int requestId, String ticketNo, String title, boolean approved,
+                                String actor, Integer requesterId, Integer assigneeId, int actorId) {
+        String decision = approved ? "approved" : "rejected";
+        String msg = actor + " " + decision + " the high-cost repair for \"" + title + "\".";
+        if (requesterId != null && requesterId != actorId) {
+            notifyUser(requesterId, ticketNo + " approval " + decision, msg, "request", requestId);
+        }
+        if (assigneeId != null && assigneeId != actorId && !assigneeId.equals(requesterId)) {
+            notifyUser(assigneeId, ticketNo + " approval " + decision, msg, "request", requestId);
+        }
+        notifyRoles(List.of(Role.ADMIN, Role.MAINT_HEAD),
+                ticketNo + " approval " + decision, msg, "request", requestId, actorId);
+    }
+
     // ------------------------------------------------------------------
     // Inbox reads
     // ------------------------------------------------------------------

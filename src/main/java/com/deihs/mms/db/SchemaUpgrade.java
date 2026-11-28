@@ -190,6 +190,26 @@ public final class SchemaUpgrade {
                         CONSTRAINT fk_rci_checklist FOREIGN KEY (checklist_id) REFERENCES request_checklists(checklist_id) ON DELETE CASCADE
                     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
                     """);
+
+            // Batch 4: high-cost approval workflow.
+            createTable(c, "app_settings", """
+                    CREATE TABLE IF NOT EXISTS app_settings (
+                        setting_key VARCHAR(80) NOT NULL,
+                        setting_value TEXT NULL,
+                        updated_by INT NULL,
+                        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        PRIMARY KEY (setting_key)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                    """);
+            addColumn(c, "maintenance_requests", "approval_status", "VARCHAR(20) NOT NULL DEFAULT 'NOT_REQUIRED'");
+            addColumn(c, "maintenance_requests", "approval_requested_at", "DATETIME NULL");
+            addColumn(c, "maintenance_requests", "approved_by", "INT NULL");
+            addColumn(c, "maintenance_requests", "approved_at", "DATETIME NULL");
+            addColumn(c, "maintenance_requests", "approval_notes", "TEXT NULL");
+            addColumn(c, "maintenance_requests", "approval_cost", "DECIMAL(10,2) NULL");
+
+            // Batch 4: before/after attachments.
+            addColumn(c, "attachments", "attachment_kind", "VARCHAR(20) NOT NULL DEFAULT 'GENERAL'");
         }
         done = true;
     }

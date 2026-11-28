@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.WorkloadController"
+      styleClass="page" spacing="16" maxWidth="Infinity" maxHeight="Infinity">
+
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <VBox spacing="2">
+            <Label text="Technician Workload / Calendar" styleClass="page-h1"/>
+            <Label text="Track technician assignments, due dates, SLA deadlines, and overdue work." styleClass="page-sub" wrapText="true"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="refreshButton" text="Refresh" styleClass="btn-ghost" onAction="#onRefresh"/>
+    </HBox>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <ComboBox fx:id="technicianBox" promptText="All technicians" prefWidth="220"/>
+        <DatePicker fx:id="fromPicker" promptText="From"/>
+        <DatePicker fx:id="toPicker" promptText="To"/>
+        <Button text="This Week" styleClass="btn-ghost" onAction="#onThisWeek"/>
+        <Button text="This Month" styleClass="btn-ghost" onAction="#onThisMonth"/>
+        <Button text="Clear" styleClass="btn-ghost" onAction="#onClearFilters"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="statusLabel" styleClass="page-sub"/>
+    </HBox>
+
+    <SplitPane dividerPositions="0.34" VBox.vgrow="ALWAYS">
+        <VBox spacing="8" styleClass="card">
+            <Label text="Workload Summary" styleClass="card-title"/>
+            <TableView fx:id="summaryTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="techCol" text="TECHNICIAN" prefWidth="160"/>
+                    <TableColumn fx:id="openCol" text="OPEN" prefWidth="70"/>
+                    <TableColumn fx:id="overdueCol" text="OVERDUE" prefWidth="80"/>
+                    <TableColumn fx:id="dueTodayCol" text="TODAY" prefWidth="70"/>
+                    <TableColumn fx:id="dueSoonCol" text="7 DAYS" prefWidth="70"/>
+                    <TableColumn fx:id="slaCol" text="SLA" prefWidth="70"/>
+                </columns>
+            </TableView>
+        </VBox>
+        <VBox spacing="8" styleClass="card">
+            <Label text="Agenda / Calendar" styleClass="card-title"/>
+            <TableView fx:id="agendaTable" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn fx:id="ticketCol" text="TICKET" prefWidth="120"/>
+                    <TableColumn fx:id="titleCol" text="TITLE" prefWidth="220"/>
+                    <TableColumn fx:id="assigneeCol" text="ASSIGNEE" prefWidth="140"/>
+                    <TableColumn fx:id="statusCol" text="STATUS" prefWidth="110"/>
+                    <TableColumn fx:id="priorityCol" text="PRIORITY" prefWidth="90"/>
+                    <TableColumn fx:id="targetCol" text="TARGET" prefWidth="100"/>
+                    <TableColumn fx:id="slaDueCol" text="SLA DUE" prefWidth="140"/>
+                </columns>
+            </TableView>
+            <Label text="Tip: double-click a row to open the request." styleClass="form-hint"/>
+        </VBox>
+    </SplitPane>
+</VBox>

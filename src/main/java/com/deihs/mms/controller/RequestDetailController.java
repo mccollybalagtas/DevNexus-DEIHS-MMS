@@ -37,11 +37,14 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -87,6 +90,7 @@ public class RequestDetailController {
     @FXML private Button addPartButton;
     @FXML private VBox checklistBox;
     @FXML private Button applyChecklistButton;
+    @FXML private Button addAttachmentButton;
 
     private final RequestDetailService service = new RequestDetailService();
     private final PartService partService = new PartService();
@@ -257,6 +261,17 @@ public class RequestDetailController {
             kvRow("Resolution", d.resolutionNotes());
         }
         kvRow("Repair cost", Format.peso(repairCost == null ? BigDecimal.ZERO : repairCost));
+        String ap = d.normalizedApprovalStatus();
+        if (!"NOT_REQUIRED".equals(ap)) {
+            String approvalText = Format.pretty(ap);
+            if (d.approvedByName() != null) approvalText += " by " + d.approvedByName();
+            if (d.approvedAt() != null) approvalText += " on " + Format.dateTime(d.approvedAt());
+            if (d.approvalCost() != null) approvalText += " (cost " + Format.peso(d.approvalCost()) + ")";
+            kvRow("High-cost approval", approvalText);
+            if (d.approvalNotes() != null && !d.approvalNotes().isBlank()) {
+                kvRow("Approval notes", d.approvalNotes());
+            }
+        }
 
         descriptionLabel.setText(d.description() == null || d.description().isBlank()
                 ? "No description was provided."
@@ -317,6 +332,16 @@ public class RequestDetailController {
             actionBox.getChildren().add(costBtn);
         }
 
+        if (d.approvalPending() && Permissions.canApproveHighCost(user)) {
+            Button approve = new Button("Approve Cost");
+            approve.getStyleClass().add("btn-primary");
+            approve.setOnAction(e -> decideApproval(true));
+            Button reject = new Button("Reject Cost");
+            reject.getStyleClass().add("btn-danger");
+            reject.setOnAction(e -> decideApproval(false));
+            actionBox.getChildren().addAll(approve, reject);
+        }
+
         Button comment = new Button("Add Comment");
         comment.getStyleClass().add("btn-ghost");
         comment.setOnAction(e -> commentArea.requestFocus());
@@ -325,6 +350,11 @@ public class RequestDetailController {
         boolean empty = actionBox.getChildren().isEmpty();
         actionBox.setVisible(!empty);
         actionBox.setManaged(!empty);
+        if (addAttachmentButton != null) {
+            boolean canAttach = detail != null;
+            addAttachmentButton.setVisible(canAttach);
+            addAttachmentButton.setManaged(canAttach);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -1009,10 +1039,14 @@ public class RequestDetailController {
         }
 
         for (AttachmentEntry a : attachments) {
-            Label name = new Label(a.fileName());
+            String kind = a.normalizedKind();
+            String prefix = switch (kind) { case "BEFORE" -> "[BEFORE] "; case "AFTER" -> "[AFTER] "; default -> ""; };
+            Label name = new Label(prefix + a.fileName());
             name.getStyleClass().add("attachment-name");
+            name.setStyle("-fx-cursor: hand; -fx-underline: true;");
+            name.setOnMouseClicked(e -> openAttachment(a));
 
-            String meta = Format.fileSize(a.fileSize()) + " · " + a.uploadedBy()
+            String meta = kind + " · " + Format.fileSize(a.fileSize()) + " · " + a.uploadedBy()
                     + " · " + Format.dateTime(a.uploadedAt());
             Label info = new Label(meta);
             info.getStyleClass().add("attachment-meta");
@@ -1021,6 +1055,58 @@ public class RequestDetailController {
             VBox block = new VBox(2, name, info);
             attachmentBox.getChildren().add(block);
         }
+    }
+
+    private void openAttachment(AttachmentEntry a) {
+        try {
+            java.io.File f = new java.io.File(a.filePath());
+            if (!f.exists()) { AlertUtil.warn(window(), "File not found", "The attachment file is not available on this PC:\n" + a.filePath()); return; }
+            if (java.awt.Desktop.isDesktopSupported()) java.awt.Desktop.getDesktop().open(f);
+        } catch (Exception ex) {
+            AlertUtil.error(window(), "Could not open attachment", ex.getMessage(), ex);
+        }
+    }
+
+    @FXML
+    private void onAddAttachment() {
+        if (detail == null) return;
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Add Attachment");
+        chooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Images / PDF", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.pdf"),
+                new FileChooser.ExtensionFilter("All Files", "*.*"));
+        java.io.File file = chooser.showOpenDialog(window());
+        if (file == null) return;
+        ChoiceDialog<String> kindDialog = new ChoiceDialog<>("GENERAL", java.util.List.of("GENERAL","BEFORE","AFTER"));
+        kindDialog.initOwner(window());
+        kindDialog.setTitle("Attachment Type");
+        kindDialog.setHeaderText("Select attachment type for " + file.getName());
+        kindDialog.setContentText("Type:");
+        java.util.Optional<String> kind = kindDialog.showAndWait();
+        if (kind.isEmpty()) return;
+        Task<Void> task = new Task<>() { @Override protected Void call() throws Exception { service.addAttachment(requestId, file, kind.get(), user); return null; } };
+        task.setOnSucceeded(e -> load());
+        task.setOnFailed(e -> AlertUtil.error(window(), "Could not add attachment", String.valueOf(task.getException().getMessage()), task.getException()));
+        Thread t = new Thread(task, "add-attachment"); t.setDaemon(true); t.start();
+    }
+
+    private void decideApproval(boolean approve) {
+        if (detail == null) return;
+        TextInputDialog dlg = new TextInputDialog();
+        dlg.initOwner(window());
+        dlg.setTitle(approve ? "Approve High-Cost Repair" : "Reject High-Cost Repair");
+        dlg.setHeaderText(approve ? "Approve this high-cost repair?" : "Reject this high-cost repair?");
+        dlg.setContentText(approve ? "Notes (optional):" : "Reason (required):");
+        java.util.Optional<String> res = dlg.showAndWait();
+        if (res.isEmpty()) return;
+        Task<Void> task = new Task<>() { @Override protected Void call() throws Exception { service.decideApproval(requestId, approve, res.get(), user); return null; } };
+        task.setOnSucceeded(e -> load());
+        task.setOnFailed(e -> {
+            Throwable ex = task.getException();
+            String msg = ex instanceof ValidationException ? ex.getMessage() : "Could not save approval decision.";
+            AlertUtil.error(window(), "Approval failed", msg, ex instanceof ValidationException ? null : ex);
+        });
+        Thread t = new Thread(task, "decide-approval"); t.setDaemon(true); t.start();
     }
 
     // ------------------------------------------------------------------
