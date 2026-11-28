@@ -2,6 +2,7 @@ package com.deihs.mms;
 
 import com.deihs.mms.db.Database;
 import com.deihs.mms.db.SchemaUpgrade;
+import com.deihs.mms.service.DigestService;
 import com.deihs.mms.service.LanWebServerService;
 import com.deihs.mms.util.ViewLoader;
 import javafx.application.Application;
@@ -61,10 +62,16 @@ public class Main extends Application {
                 System.err.println("Could not start LAN web portal: " + e.getMessage());
             }
         }
+        try {
+            DigestService.start();
+        } catch (Exception e) {
+            System.err.println("Could not start digest scheduler: " + e.getMessage());
+        }
     }
 
     @Override
     public void stop() {
+        try { DigestService.stop(); } catch (Exception ignored) {}
         try { LanWebServerService.get().stop(); } catch (Exception ignored) {}
         Database.close();
     }

@@ -998,6 +998,7 @@ public class ShellController {
         }
         if (user.role() == com.deihs.mms.model.Role.ADMIN || user.role() == com.deihs.mms.model.Role.MAINT_HEAD) {
             content.getChildren().add(buildChecklistTemplatesSection(owner));
+            content.getChildren().add(buildDigestSection(owner));
         }
         dialog.getDialogPane().setContent(content);
 
@@ -1104,6 +1105,86 @@ public class ShellController {
 
         HBox buttons = new HBox(8, startStop, copy);
         VBox box = new VBox(6, title, hint, buttons, urlLabel, qrView);
+        box.getStyleClass().add("settings-section");
+        return box;
+    }
+
+    private Node buildDigestSection(Window owner) {
+        Label title = new Label("Scheduled email digest");
+        title.getStyleClass().add("card-title");
+        Label hint = new Label("Send a daily maintenance summary email (open, overdue, SLA breached, recent requests) to selected roles. Requires SMTP settings in db.properties.");
+        hint.getStyleClass().add("form-hint");
+        hint.setWrapText(true);
+        hint.setMaxWidth(340);
+
+        com.deihs.mms.service.DigestService svc = new com.deihs.mms.service.DigestService();
+        javafx.scene.control.CheckBox enabled = new javafx.scene.control.CheckBox("Enable daily digest");
+        enabled.setSelected(svc.isEnabled());
+        javafx.scene.control.Spinner<Integer> hour = new javafx.scene.control.Spinner<>(0, 23, svc.getHour());
+        hour.setEditable(true); hour.setPrefWidth(90);
+        javafx.scene.control.Spinner<Integer> minute = new javafx.scene.control.Spinner<>(0, 59, svc.getMinute());
+        minute.setEditable(true); minute.setPrefWidth(90);
+        javafx.scene.control.CheckBox adminRole = new javafx.scene.control.CheckBox("Admins");
+        javafx.scene.control.CheckBox headRole = new javafx.scene.control.CheckBox("Maintenance Heads");
+        String roles = svc.getRoles() == null ? "" : svc.getRoles().toUpperCase();
+        adminRole.setSelected(roles.contains("ADMIN"));
+        headRole.setSelected(roles.contains("MAINT_HEAD"));
+        Label lastSent = new Label("Last sent: " + (svc.getLastSent().isBlank() ? "never" : svc.getLastSent()));
+        lastSent.getStyleClass().add("form-hint");
+        lastSent.setWrapText(true); lastSent.setMaxWidth(340);
+        Label status = new Label("");
+        status.getStyleClass().add("form-hint"); status.setWrapText(true); status.setMaxWidth(340);
+
+        Button save = new Button("Save digest settings");
+        save.getStyleClass().add("btn-ghost");
+        Button sendNow = new Button("Send digest now");
+        sendNow.getStyleClass().add("btn-ghost");
+
+        save.setOnAction(e -> {
+            try {
+                java.util.List<String> selectedRoles = new java.util.ArrayList<>();
+                if (adminRole.isSelected()) selectedRoles.add("ADMIN");
+                if (headRole.isSelected()) selectedRoles.add("MAINT_HEAD");
+                if (selectedRoles.isEmpty()) throw new IllegalArgumentException("Select at least one recipient role.");
+                svc.setEnabled(enabled.isSelected(), Session.get().id());
+                svc.setTime(hour.getValue(), minute.getValue(), Session.get().id());
+                svc.setRoles(String.join(",", selectedRoles), Session.get().id());
+                status.setText("Digest settings saved.");
+            } catch (Exception ex) {
+                AlertUtil.error(owner, "Digest settings", ex.getMessage(), ex);
+            }
+        });
+
+        sendNow.setOnAction(e -> {
+            sendNow.setDisable(true);
+            status.setText("Sending digest...");
+            javafx.concurrent.Task<Integer> task = new javafx.concurrent.Task<>() {
+                @Override protected Integer call() throws Exception { return svc.sendDigestNow(Session.get().id()); }
+            };
+            task.setOnSucceeded(ev -> {
+                sendNow.setDisable(false);
+                status.setText("Digest sent to " + task.getValue() + " recipient(s).");
+                lastSent.setText("Last sent: " + svc.getLastSent());
+            });
+            task.setOnFailed(ev -> {
+                sendNow.setDisable(false);
+                Throwable ex = task.getException();
+                status.setText("Digest send failed.");
+                AlertUtil.error(owner, "Digest", ex == null ? "Unknown error" : ex.getMessage(), ex);
+            });
+            Thread t = new Thread(task, "digest-send-now");
+            t.setDaemon(true);
+            t.start();
+        });
+
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(8); grid.setVgap(8);
+        grid.add(new Label("Hour"), 0, 0); grid.add(hour, 1, 0);
+        grid.add(new Label("Minute"), 0, 1); grid.add(minute, 1, 1);
+        VBox rolesBox = new VBox(4, adminRole, headRole);
+        grid.add(new Label("Recipients"), 0, 2); grid.add(rolesBox, 1, 2);
+
+        VBox box = new VBox(6, title, hint, enabled, grid, new HBox(8, save, sendNow), lastSent, status);
         box.getStyleClass().add("settings-section");
         return box;
     }
