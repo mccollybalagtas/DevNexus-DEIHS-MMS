@@ -12,6 +12,7 @@ import com.deihs.mms.service.Permissions;
 import com.deihs.mms.service.Session;
 import com.deihs.mms.service.ValidationException;
 import com.deihs.mms.util.AlertUtil;
+import com.deihs.mms.util.AssetTagDialog;
 import com.deihs.mms.util.Format;
 import com.deihs.mms.util.ViewLoader;
 import javafx.animation.PauseTransition;
@@ -138,15 +139,25 @@ public class EquipmentController {
             }
         });
 
-        actionsCol.setVisible(canManage);
+        actionsCol.setVisible(true);
         actionsCol.setCellFactory(col -> new TableCell<>() {
+            private final Button qr = new Button("QR Tag");
             private final Button edit = new Button("Edit");
             private final Button toggle = new Button();
-            private final HBox box = new HBox(6, edit, toggle);
+            private final HBox box = new HBox(6);
             {
                 box.getStyleClass().add("table-actions");
+                qr.getStyleClass().addAll("btn-ghost", "btn-table");
                 edit.getStyleClass().addAll("btn-ghost", "btn-table");
                 toggle.getStyleClass().addAll("btn-ghost", "btn-table");
+                qr.setOnAction(e -> {
+                    Equipment eq = row();
+                    if (eq != null) {
+                        String location = eq.facilityName() == null ? "—" : eq.facilityName();
+                        String details = join(eq.brand(), eq.model());
+                        AssetTagDialog.show(ownerWindow(), "Equipment", eq.propertyNo(), eq.name(), location, details);
+                    }
+                });
                 edit.setOnAction(e -> { Equipment eq = row(); if (eq != null) openForm(eq); });
                 toggle.setOnAction(e -> { Equipment eq = row(); if (eq != null) toggleActive(eq); });
             }
@@ -156,12 +167,17 @@ public class EquipmentController {
             }
             @Override protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || !canManage) { setGraphic(null); return; }
-                Equipment eq = row();
+                Equipment eq = empty ? null : row();
                 if (eq == null) { setGraphic(null); return; }
-                toggle.setText(eq.active() ? "Archive" : "Restore");
-                toggle.getStyleClass().removeAll("btn-warn");
-                if (eq.active()) toggle.getStyleClass().add("btn-warn");
+                box.getChildren().clear();
+                box.getChildren().add(qr);
+                if (canManage) {
+                    box.getChildren().add(edit);
+                    toggle.setText(eq.active() ? "Archive" : "Restore");
+                    toggle.getStyleClass().removeAll("btn-warn");
+                    if (eq.active()) toggle.getStyleClass().add("btn-warn");
+                    box.getChildren().add(toggle);
+                }
                 setGraphic(box);
             }
         });

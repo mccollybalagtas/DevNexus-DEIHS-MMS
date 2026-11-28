@@ -28,6 +28,11 @@ public final class Permissions {
         return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
     }
 
+    /** Add, edit, archive parts and adjust stock levels. */
+    public static boolean canManageParts(User u) {
+        return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;
+    }
+
     /** Assign requests to personnel. */
     public static boolean canAssignRequests(User u) {
         return u.role() == Role.ADMIN || u.role() == Role.MAINT_HEAD;

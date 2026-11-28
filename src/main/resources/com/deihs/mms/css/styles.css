@@ -2150,3 +2150,291 @@
 .theme-dark .report-kpi {
     -fx-background-color: #1B2128;
 }
+
+/* =====================================================================
+   Notification centre
+   ===================================================================== */
+
+.bell-holder {
+    -fx-padding: 0;
+}
+
+.bell-badge {
+    -fx-background-color: #D64545;
+    -fx-background-radius: 999;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 9px;
+    -fx-font-weight: bold;
+    -fx-padding: 1 4 1 4;
+    -fx-min-width: 16;
+    -fx-alignment: center;
+}
+
+.notif-row {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10;
+    -fx-padding: 11 12 11 12;
+    -fx-cursor: hand;
+}
+
+.notif-row:hover {
+    -fx-background-color: #F2F6F2;
+}
+
+.notif-unread {
+    -fx-background-color: #F4FAF5;
+    -fx-border-color: #D8EBDD;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+}
+
+.notif-title {
+    -fx-font-size: 12.5px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1F2933;
+}
+
+.notif-message {
+    -fx-font-size: 11.5px;
+    -fx-text-fill: #55616F;
+}
+
+.notif-time {
+    -fx-font-size: 10px;
+    -fx-text-fill: #7B8794;
+}
+
+.notif-dot {
+    -fx-background-color: #1E7A43;
+    -fx-background-radius: 999;
+}
+
+.theme-dark .bell-badge {
+    -fx-background-color: #E05A5A;
+    -fx-text-fill: #FFFFFF;
+}
+
+.theme-dark .notif-row:hover {
+    -fx-background-color: #242C35;
+}
+
+.theme-dark .notif-unread {
+    -fx-background-color: #20282F;
+    -fx-border-color: #35503F;
+}
+
+.theme-dark .notif-title {
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .notif-message {
+    -fx-text-fill: #AAB7C4;
+}
+
+.theme-dark .notif-time {
+    -fx-text-fill: #8A97A4;
+}
+
+.theme-dark .notif-dot {
+    -fx-background-color: #48B477;
+}
+
+/* =====================================================================
+   Settings sections (profile drawer / backup & restore)
+   ===================================================================== */
+
+.settings-section {
+    -fx-background-color: #F6F8F6;
+    -fx-background-radius: 12;
+    -fx-border-color: #E2E8E3;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 14 16 14 16;
+    -fx-spacing: 8;
+}
+
+.theme-dark .settings-section {
+    -fx-background-color: #20282F;
+    -fx-border-color: #2F3A45;
+}
+
+/* =====================================================================
+   Parts inventory
+   ===================================================================== */
+
+.stock-low-text {
+    -fx-text-fill: #B45309;
+    -fx-font-weight: bold;
+}
+
+.theme-dark .stock-low-text {
+    -fx-text-fill: #F0B860;
+}
+
+.part-line {
+    -fx-background-color: #F6F8F6;
+    -fx-background-radius: 9;
+    -fx-padding: 8 11 8 11;
+}
+
+.part-line-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: #26322A;
+}
+
+.part-line-meta {
+    -fx-text-fill: #5B6774;
+    -fx-font-size: 12px;
+}
+
+.part-line-total {
+    -fx-font-weight: bold;
+    -fx-text-fill: #1E7A43;
+}
+
+.theme-dark .part-line {
+    -fx-background-color: #232B34;
+}
+
+.theme-dark .part-line-name {
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .part-line-meta {
+    -fx-text-fill: #AAB7C4;
+}
+
+.theme-dark .part-line-total {
+    -fx-text-fill: #6FD79A;
+}
+
+/* =====================================================================
+   Schedules calendar
+   ===================================================================== */
+
+.content-tabs {
+    -fx-background-color: transparent;
+}
+
+.content-tabs .tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: #E9EFEA;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.content-tabs .tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: #FFFFFF;
+}
+
+.content-tabs .tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.calendar-head {
+    -fx-font-weight: bold;
+    -fx-text-fill: #5B6774;
+    -fx-padding: 4 0 4 0;
+}
+
+.calendar-cell {
+    -fx-background-color: #F7FAF7;
+    -fx-background-radius: 10;
+    -fx-border-color: #E2E8E3;
+    -fx-border-radius: 10;
+    -fx-padding: 8;
+}
+
+.calendar-cell-out {
+    -fx-opacity: 0.55;
+}
+
+.calendar-cell-today {
+    -fx-border-color: #1E7A43;
+    -fx-border-width: 1.5;
+}
+
+.calendar-day {
+    -fx-font-weight: bold;
+    -fx-text-fill: #26322A;
+}
+
+.calendar-item {
+    -fx-font-size: 11px;
+    -fx-text-fill: #334155;
+}
+
+.calendar-item-due {
+    -fx-text-fill: #A12B22;
+}
+
+.calendar-more {
+    -fx-font-size: 11px;
+    -fx-text-fill: #5B6774;
+}
+
+.theme-dark .content-tabs .tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: #232B34;
+}
+
+.theme-dark .content-tabs .tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: #1B2128;
+}
+
+.theme-dark .content-tabs .tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.theme-dark .content-tabs .tab-label {
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .calendar-head {
+    -fx-text-fill: #AAB7C4;
+}
+
+.theme-dark .calendar-cell {
+    -fx-background-color: #20282F;
+    -fx-border-color: #2F3A45;
+}
+
+.theme-dark .calendar-cell-today {
+    -fx-border-color: #6FD79A;
+}
+
+.theme-dark .calendar-day {
+    -fx-text-fill: #E6EBF0;
+}
+
+.theme-dark .calendar-item {
+    -fx-text-fill: #C8D3DE;
+}
+
+.theme-dark .calendar-item-due {
+    -fx-text-fill: #FF9A9A;
+}
+
+.theme-dark .calendar-more {
+    -fx-text-fill: #AAB7C4;
+}
+
+/* Charts */
+.chart-plot-background { -fx-background-color: transparent; }
+.chart-vertical-grid-lines, .chart-horizontal-grid-lines { -fx-stroke: rgba(120,140,120,0.18); }
+.axis { -fx-tick-label-fill: #55626F; }
+.axis-label { -fx-text-fill: #55626F; }
+.theme-dark .axis { -fx-tick-label-fill: #C8D3DE; }
+.theme-dark .axis-label { -fx-text-fill: #C8D3DE; }
+.theme-dark .chart-plot-background { -fx-background-color: transparent; }
+.theme-dark .chart-vertical-grid-lines, .theme-dark .chart-horizontal-grid-lines { -fx-stroke: rgba(170,183,196,0.18); }
+.theme-dark .chart-legend-item { -fx-text-fill: #E6EBF0; }
+
+/* Asset tag QR dialog */
+.asset-tag-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+}
+.asset-tag-school { -fx-font-size: 12px; -fx-text-fill: #4B5563; -fx-font-weight: bold; -fx-text-alignment: center; }
+.asset-tag-title { -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #111827; }
+.asset-tag-name { -fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1E7A43; -fx-text-alignment: center; }
+.asset-tag-key { -fx-font-size: 11px; -fx-text-fill: #6B7280; -fx-font-weight: bold; }
+.asset-tag-val { -fx-font-size: 11px; -fx-text-fill: #111827; }
+.theme-dark .asset-tag-card { -fx-background-color: #F8FAFC; }

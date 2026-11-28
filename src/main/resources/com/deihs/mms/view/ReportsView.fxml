@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
@@ -72,6 +76,38 @@
             <Label fx:id="downtimeLabel" text="0.0 hrs downtime" styleClass="kpi-sub"/>
         </VBox>
     </HBox>
+
+    <GridPane hgap="12" vgap="12">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="33.4" hgrow="ALWAYS"/>
+            <ColumnConstraints percentWidth="33.3" hgrow="ALWAYS"/>
+            <ColumnConstraints percentWidth="33.3" hgrow="ALWAYS"/>
+        </columnConstraints>
+
+        <VBox styleClass="card report-section" spacing="8" GridPane.columnIndex="0">
+            <Label text="Category Breakdown" styleClass="card-title"/>
+            <BarChart fx:id="categoryChart" animated="false" legendVisible="false" prefHeight="220">
+                <xAxis><CategoryAxis label="Category"/></xAxis>
+                <yAxis><NumberAxis label="Requests"/></yAxis>
+            </BarChart>
+        </VBox>
+
+        <VBox styleClass="card report-section" spacing="8" GridPane.columnIndex="1">
+            <Label text="Priority Breakdown" styleClass="card-title"/>
+            <BarChart fx:id="priorityChart" animated="false" legendVisible="false" prefHeight="220">
+                <xAxis><CategoryAxis label="Priority"/></xAxis>
+                <yAxis><NumberAxis label="Requests"/></yAxis>
+            </BarChart>
+        </VBox>
+
+        <VBox styleClass="card report-section" spacing="8" GridPane.columnIndex="2">
+            <Label text="Monthly Trend" styleClass="card-title"/>
+            <LineChart fx:id="trendChart" animated="false" legendVisible="false" prefHeight="220">
+                <xAxis><CategoryAxis label="Month"/></xAxis>
+                <yAxis><NumberAxis label="Requests"/></yAxis>
+            </LineChart>
+        </VBox>
+    </GridPane>
 
     <GridPane hgap="12" vgap="12" VBox.vgrow="ALWAYS">
         <columnConstraints>

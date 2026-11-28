@@ -29,6 +29,7 @@ public class RequestDetailService {
     private final UserDao userDao = new UserDao();
     private final AuditDao auditDao = new AuditDao();
     private final MaintenanceRecordDao recordDao = new MaintenanceRecordDao();
+    private final NotificationService notifications = new NotificationService();
 
     // ------------------------------------------------------------------
     // Reads
@@ -117,6 +118,8 @@ public class RequestDetailService {
                 + (note == null ? "" : " - " + note);
         auditDao.log(actor.id(), "ASSIGN_REQUEST", "maintenance_requests",
                 detail.ticketNo(), details);
+        notifications.requestAssigned(requestId, detail.ticketNo(), assigneeId,
+                actor.fullName(), detail.title());
     }
 
     // ------------------------------------------------------------------
@@ -182,6 +185,8 @@ public class RequestDetailService {
                 + (note == null ? "" : " - " + note);
         auditDao.log(actor.id(), "UPDATE_REQUEST_STATUS", "maintenance_requests",
                 detail.ticketNo(), details);
+        notifications.requestStatusChanged(requestId, detail.ticketNo(), detail.title(),
+                toStatus, detail.requesterId(), detail.assigneeId(), actor.id());
     }
 
     // ------------------------------------------------------------------
@@ -203,6 +208,8 @@ public class RequestDetailService {
         CommentEntry saved = detailDao.addComment(requestId, actor.id(), body);
         auditDao.log(actor.id(), "ADD_COMMENT", "maintenance_requests",
                 detail.ticketNo(), "Comment #" + saved.id());
+        notifications.requestComment(requestId, detail.ticketNo(), actor.fullName(),
+                detail.requesterId(), detail.assigneeId(), actor.id());
         return saved;
     }
 

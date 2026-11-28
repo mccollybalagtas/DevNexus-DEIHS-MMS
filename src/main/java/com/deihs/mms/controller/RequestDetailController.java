@@ -1,14 +1,18 @@
 package com.deihs.mms.controller;
 
+import com.deihs.mms.dao.PartDao;
 import com.deihs.mms.dao.UserDao;
 import com.deihs.mms.model.AttachmentEntry;
 import com.deihs.mms.model.Choice;
 import com.deihs.mms.model.CommentEntry;
 import com.deihs.mms.model.HistoryEntry;
 import com.deihs.mms.model.LookupOption;
+import com.deihs.mms.model.Part;
 import com.deihs.mms.model.RequestDetail;
+import com.deihs.mms.model.RequestPart;
 import com.deihs.mms.model.Role;
 import com.deihs.mms.model.User;
+import com.deihs.mms.service.PartService;
 import com.deihs.mms.service.Permissions;
 import com.deihs.mms.service.RequestDetailService;
 import com.deihs.mms.service.Session;
@@ -78,8 +82,13 @@ public class RequestDetailController {
     @FXML private Label commentError;
     @FXML private TextArea commentArea;
     @FXML private Button postButton;
+    @FXML private VBox partsBox;
+    @FXML private Label partsCostLabel;
+    @FXML private Button addPartButton;
 
     private final RequestDetailService service = new RequestDetailService();
+    private final PartService partService = new PartService();
+    private final PartDao partDao = new PartDao();
     private final UserDao userDao = new UserDao();
 
     private User user;
@@ -97,7 +106,9 @@ public class RequestDetailController {
             List<CommentEntry> comments,
             List<AttachmentEntry> attachments,
             List<LookupOption> personnel,
-            BigDecimal repairCost
+            BigDecimal repairCost,
+            List<RequestPart> parts,
+            BigDecimal partsCost
     ) {
     }
 
@@ -146,7 +157,9 @@ public class RequestDetailController {
                         service.comments(requestId),
                         service.attachments(requestId),
                         people,
-                        service.repairCost(requestId));
+                        service.repairCost(requestId),
+                        partService.partsForRequest(requestId),
+                        partService.partsCost(requestId));
             }
         };
 
@@ -200,6 +213,7 @@ public class RequestDetailController {
 
         renderInfo(detail, bundle.repairCost());
         renderActions(detail, bundle.repairCost());
+        renderParts(bundle.parts(), bundle.partsCost());
         renderTimeline(bundle.history(), detail);
         renderComments(bundle.comments());
         renderAttachments(bundle.attachments());
@@ -305,6 +319,172 @@ public class RequestDetailController {
         boolean empty = actionBox.getChildren().isEmpty();
         actionBox.setVisible(!empty);
         actionBox.setManaged(!empty);
+    }
+
+    // ------------------------------------------------------------------
+    // Parts used
+    // ------------------------------------------------------------------
+
+    private void renderParts(List<RequestPart> parts, BigDecimal partsCost) {
+        partsBox.getChildren().clear();
+
+        boolean canRecord = detail != null && partService.canRecordParts(detail, user);
+        addPartButton.setVisible(canRecord);
+        addPartButton.setManaged(canRecord);
+
+        BigDecimal total = partsCost == null ? BigDecimal.ZERO : partsCost;
+        partsCostLabel.setText("Parts cost: " + Format.peso(total));
+
+        if (parts == null || parts.isEmpty()) {
+            partsBox.getChildren().add(muted(canRecord
+                    ? "No parts recorded yet. Use Add Part to deduct stock from the inventory."
+                    : "No parts were recorded for this request."));
+            return;
+        }
+
+        for (RequestPart p : parts) {
+            Label name = new Label(p.name());
+            name.getStyleClass().add("part-line-name");
+
+            Label meta = new Label(p.quantity() + " " + p.unit()
+                    + " × " + Format.peso(p.unitCost() == null ? BigDecimal.ZERO : p.unitCost()));
+            meta.getStyleClass().add("part-line-meta");
+
+            Label lineTotal = new Label(Format.peso(p.total()));
+            lineTotal.getStyleClass().add("part-line-total");
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            HBox row = new HBox(10, name, meta, spacer, lineTotal);
+            row.setAlignment(Pos.CENTER_LEFT);
+            row.getStyleClass().add("part-line");
+
+            if (canRecord) {
+                Button remove = new Button("Return");
+                remove.getStyleClass().addAll("btn-ghost", "btn-table");
+                remove.setOnAction(e -> removePart(p));
+                row.getChildren().add(remove);
+            }
+            partsBox.getChildren().add(row);
+        }
+    }
+
+    @FXML
+    private void onAddPart() {
+        if (detail == null) {
+            return;
+        }
+        List<Part> active;
+        try {
+            active = partDao.search(null, false, false);
+        } catch (SQLException ex) {
+            AlertUtil.error(window(), "Could not load parts",
+                    "The parts inventory could not be read from the database.", ex);
+            return;
+        }
+        if (active.isEmpty()) {
+            AlertUtil.warn(window(), "No parts available",
+                    "Add parts to the inventory first, or restore archived items.");
+            return;
+        }
+
+        ComboBox<LookupOption> partBox = new ComboBox<>();
+        partBox.getStyleClass().add("combo-input");
+        partBox.setMaxWidth(Double.MAX_VALUE);
+        partBox.setPromptText("Choose a part");
+        for (Part p : active) {
+            String label = p.name() + " (" + p.unit() + ") — " + p.quantity() + " in stock";
+            partBox.getItems().add(new LookupOption(p.id(), label));
+        }
+
+        TextField qtyField = new TextField("1");
+        qtyField.getStyleClass().add("input");
+        qtyField.setPrefWidth(120);
+
+        Label error = new Label();
+        error.getStyleClass().add("form-error");
+        error.setWrapText(true);
+        error.setVisible(false);
+        error.setManaged(false);
+
+        VBox content = new VBox(8,
+                new Label("Record a part consumed by this repair. Stock is deducted immediately.") {{
+                    getStyleClass().add("page-sub");
+                    setWrapText(true);
+                }},
+                new Label("Part") {{ getStyleClass().add("field-label"); }},
+                partBox,
+                new Label("Quantity") {{ getStyleClass().add("field-label"); }},
+                qtyField,
+                error);
+        content.setPrefWidth(420);
+
+        Dialog<ButtonType> dialog = buildDialog("Add Part", content);
+        ButtonType save = new ButtonType("Add Part", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().setAll(save, ButtonType.CANCEL);
+        Node saveNode = dialog.getDialogPane().lookupButton(save);
+        saveNode.getStyleClass().add("btn-primary");
+
+        boolean[] saved = new boolean[1];
+        saveNode.addEventFilter(ActionEvent.ACTION, event -> {
+            LookupOption chosen = partBox.getValue();
+            if (chosen == null) {
+                showInline(error, "Choose a part to record.");
+                event.consume();
+                return;
+            }
+            int qty;
+            try {
+                qty = Integer.parseInt(qtyField.getText().trim().replace(",", ""));
+            } catch (NumberFormatException ex) {
+                showInline(error, "Enter a whole number for the quantity.");
+                event.consume();
+                return;
+            }
+            if (qty <= 0) {
+                showInline(error, "Quantity must be greater than zero.");
+                event.consume();
+                return;
+            }
+
+            dialog.getDialogPane().setCursor(Cursor.WAIT);
+            try {
+                partService.consumeForRequest(requestId, chosen.id(), qty, user);
+                saved[0] = true;
+            } catch (ValidationException ex) {
+                showInline(error, ex.getMessage());
+                event.consume();
+            } catch (SQLException ex) {
+                showInline(error, ex.getMessage() == null
+                        ? "The part could not be recorded." : ex.getMessage());
+                event.consume();
+            } finally {
+                dialog.getDialogPane().setCursor(Cursor.DEFAULT);
+            }
+        });
+
+        dialog.showAndWait();
+        if (saved[0]) {
+            load();
+        }
+    }
+
+    private void removePart(RequestPart p) {
+        if (!AlertUtil.confirm(window(), "Return part to stock?",
+                "Return " + p.quantity() + " " + p.unit() + " of " + p.name()
+                        + " to the inventory and remove it from this request?")) {
+            return;
+        }
+        try {
+            partService.removePart(p.id(), user);
+            load();
+        } catch (ValidationException ex) {
+            AlertUtil.warn(window(), "Not allowed", ex.getMessage());
+        } catch (SQLException ex) {
+            AlertUtil.error(window(), "Could not return the part",
+                    "The inventory could not be updated.", ex);
+        }
     }
 
     // ------------------------------------------------------------------

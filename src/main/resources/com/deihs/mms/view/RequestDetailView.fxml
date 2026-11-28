@@ -63,6 +63,18 @@
             </VBox>
         </GridPane>
 
+        <!-- Parts used -->
+        <VBox styleClass="card" spacing="10" maxWidth="Infinity">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Parts Used" styleClass="card-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="partsCostLabel" styleClass="page-sub"/>
+                <Button fx:id="addPartButton" text="+  Add Part" styleClass="btn-ghost"
+                        onAction="#onAddPart"/>
+            </HBox>
+            <VBox fx:id="partsBox" spacing="8"/>
+        </VBox>
+
         <!-- Comments -->
         <VBox styleClass="card" spacing="10" maxWidth="Infinity">
             <Label text="Comments" styleClass="card-title"/>

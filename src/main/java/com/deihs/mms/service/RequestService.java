@@ -29,6 +29,7 @@ public class RequestService {
 
     private final RequestDao requestDao = new RequestDao();
     private final AuditDao auditDao = new AuditDao();
+    private final NotificationService notifications = new NotificationService();
 
     public CreatedRequest submit(RequestDraft draft, User user)
             throws ValidationException, SQLException {
@@ -39,6 +40,8 @@ public class RequestService {
             CreatedRequest created = requestDao.create(draft, user.id(), attachment);
             auditDao.log(user.id(), "CREATE_REQUEST", "maintenance_requests",
                     created.ticketNo(), draft.title().trim());
+            notifications.requestCreated(created.id(), created.ticketNo(),
+                    draft.title().trim(), user.fullName());
             return created;
         } catch (SQLException e) {
             deleteQuietly(attachment);

@@ -20,16 +20,24 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import javafx.util.Duration;
@@ -37,11 +45,19 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SchedulesController {
 
     @FXML private Button addButton;
+    @FXML private Button generateButton;
     @FXML private TextField searchField;
     @FXML private CheckBox dueOnlyBox;
     @FXML private CheckBox showInactiveBox;
@@ -55,6 +71,10 @@ public class SchedulesController {
     @FXML private TableColumn<Schedule, String> assignedCol;
     @FXML private TableColumn<Schedule, String> statusCol;
     @FXML private TableColumn<Schedule, Void> actionsCol;
+    @FXML private TabPane tabPane;
+    @FXML private GridPane calendarGrid;
+    @FXML private Label monthLabel;
+    @FXML private Label calendarLegendLabel;
 
     private final ScheduleDao scheduleDao = new ScheduleDao();
     private final ScheduleService scheduleService = new ScheduleService();
@@ -63,6 +83,7 @@ public class SchedulesController {
     private int generation;
     private boolean canManage;
     private boolean canMarkDone;
+    private YearMonth calendarMonth = YearMonth.now();
 
     @FXML
     private void initialize() {
@@ -71,6 +92,8 @@ public class SchedulesController {
         canMarkDone = canManage || user.role() == com.deihs.mms.model.Role.PERSONNEL;
         addButton.setVisible(canManage);
         addButton.setManaged(canManage);
+        generateButton.setVisible(canManage);
+        generateButton.setManaged(canManage);
 
         setupTable();
 
@@ -168,6 +191,60 @@ public class SchedulesController {
     @FXML
     private void onAdd() { openForm(null); }
 
+    @FXML
+    private void onGenerateWorkOrders() {
+        if (!AlertUtil.confirm(ownerWindow(), "Generate preventive work orders?",
+                "Create maintenance requests for all active schedules that are due and do not already have an open linked work order?")) {
+            return;
+        }
+        generateButton.setDisable(true);
+        Task<Integer> task = new Task<>() {
+            @Override
+            protected Integer call() throws Exception {
+                return scheduleService.generateDueWorkOrders(Session.get());
+            }
+        };
+        task.setOnSucceeded(e -> {
+            generateButton.setDisable(false);
+            int count = task.getValue() == null ? 0 : task.getValue();
+            AlertUtil.info(ownerWindow(), "Work orders generated",
+                    count == 0 ? "No due schedules needed a new work order."
+                            : count + (count == 1 ? " work order was created." : " work orders were created."));
+            refresh();
+        });
+        task.setOnFailed(e -> {
+            generateButton.setDisable(false);
+            Throwable ex = task.getException();
+            if (ex instanceof ValidationException ve) {
+                AlertUtil.warn(ownerWindow(), "Cannot generate work orders", ve.getMessage());
+            } else {
+                AlertUtil.error(ownerWindow(), "Could not generate work orders",
+                        ex == null ? "Unknown error." : ex.getMessage());
+            }
+        });
+        Thread t = new Thread(task, "generate-pm-work-orders");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    @FXML
+    private void onPrevMonth() {
+        calendarMonth = calendarMonth.minusMonths(1);
+        renderCalendar();
+    }
+
+    @FXML
+    private void onNextMonth() {
+        calendarMonth = calendarMonth.plusMonths(1);
+        renderCalendar();
+    }
+
+    @FXML
+    private void onTodayMonth() {
+        calendarMonth = YearMonth.now();
+        renderCalendar();
+    }
+
     private void refresh() {
         final int req = ++generation;
         String keyword = searchField.getText();
@@ -183,6 +260,7 @@ public class SchedulesController {
             if (req != generation) return;
             rows.setAll(task.getValue());
             countLabel.setText(rows.size() + (rows.size() == 1 ? " schedule" : " schedules"));
+            renderCalendar();
         });
         task.setOnFailed(e -> {
             if (req != generation) return;
@@ -268,6 +346,98 @@ public class SchedulesController {
         } catch (SQLException se) {
             AlertUtil.error(ownerWindow(), "Could not update schedule", se.getMessage());
         }
+    }
+
+    private void renderCalendar() {
+        if (calendarGrid == null) return;
+        calendarGrid.getChildren().clear();
+        calendarGrid.getColumnConstraints().clear();
+        calendarGrid.getRowConstraints().clear();
+
+        for (int i = 0; i < 7; i++) {
+            ColumnConstraints cc = new ColumnConstraints();
+            cc.setPercentWidth(100.0 / 7.0);
+            cc.setHgrow(Priority.ALWAYS);
+            calendarGrid.getColumnConstraints().add(cc);
+        }
+
+        monthLabel.setText(calendarMonth.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH)
+                + " " + calendarMonth.getYear());
+
+        String[] days = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+        for (int i = 0; i < days.length; i++) {
+            Label hdr = new Label(days[i]);
+            hdr.getStyleClass().add("calendar-head");
+            hdr.setMaxWidth(Double.MAX_VALUE);
+            hdr.setAlignment(Pos.CENTER);
+            calendarGrid.add(hdr, i, 0);
+        }
+
+        Map<LocalDate, List<Schedule>> byDate = rows.stream()
+                .filter(s -> s.active() && s.nextDueDate() != null)
+                .filter(s -> YearMonth.from(s.nextDueDate()).equals(calendarMonth))
+                .sorted(Comparator.comparing(Schedule::nextDueDate).thenComparing(Schedule::title))
+                .collect(Collectors.groupingBy(Schedule::nextDueDate));
+
+        LocalDate first = calendarMonth.atDay(1);
+        int shift = (first.getDayOfWeek().getValue() + 6) % 7; // Monday=0
+        LocalDate cursor = first.minusDays(shift);
+        LocalDate today = LocalDate.now();
+
+        int row = 1;
+        for (int week = 0; week < 6; week++) {
+            for (int col = 0; col < 7; col++) {
+                LocalDate date = cursor.plusDays((long) week * 7 + col);
+                VBox cell = new VBox(4);
+                cell.getStyleClass().add("calendar-cell");
+                cell.setMinHeight(92);
+                cell.setMaxWidth(Double.MAX_VALUE);
+                GridPane.setHgrow(cell, Priority.ALWAYS);
+                GridPane.setVgrow(cell, Priority.ALWAYS);
+
+                boolean inMonth = YearMonth.from(date).equals(calendarMonth);
+                if (!inMonth) cell.getStyleClass().add("calendar-cell-out");
+                if (date.equals(today)) cell.getStyleClass().add("calendar-cell-today");
+
+                Label day = new Label(String.valueOf(date.getDayOfMonth()));
+                day.getStyleClass().add("calendar-day");
+                cell.getChildren().add(day);
+
+                List<Schedule> items = byDate.getOrDefault(date, List.of());
+                int shown = 0;
+                for (Schedule s : items) {
+                    if (shown >= 3) break;
+                    Label item = new Label("• " + trim(s.title(), 28));
+                    item.getStyleClass().add("calendar-item");
+                    if (!s.nextDueDate().isAfter(today)) {
+                        item.getStyleClass().add("calendar-item-due");
+                    }
+                    item.setWrapText(true);
+                    cell.getChildren().add(item);
+                    shown++;
+                }
+                if (items.size() > shown) {
+                    Label more = new Label("+" + (items.size() - shown) + " more");
+                    more.getStyleClass().add("calendar-more");
+                    cell.getChildren().add(more);
+                }
+                calendarGrid.add(cell, col, row + week);
+            }
+        }
+
+        long dueCount = rows.stream()
+                .filter(Schedule::active)
+                .filter(s -> s.nextDueDate() != null && !s.nextDueDate().isAfter(today))
+                .count();
+        calendarLegendLabel.setText(dueCount == 0
+                ? "No due or overdue schedules right now."
+                : dueCount + " schedule(s) are due or overdue. Use Generate Work Orders to create requests.");
+    }
+
+    private static String trim(String value, int max) {
+        if (value == null) return "";
+        String v = value.trim();
+        return v.length() <= max ? v : v.substring(0, max - 1) + "…";
     }
 
     private static String targetLabel(Schedule s) {

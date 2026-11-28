@@ -153,6 +153,46 @@ public class ScheduleDao {
         }
     }
 
+    /**
+     * Active schedules that are due and either have no linked request or their
+     * linked request is already terminal/cancelled/rejected - meaning a new
+     * preventive work order should be created.
+     */
+    public List<Schedule> findDueForWorkOrderGeneration() throws SQLException {
+        String sql = BASE_SELECT + """
+                 AND s.is_active = 1
+                 AND s.next_due_date <= CURDATE()
+                 AND (
+                      s.last_request_id IS NULL
+                      OR EXISTS (
+                          SELECT 1 FROM maintenance_requests mr
+                           WHERE mr.request_id = s.last_request_id
+                             AND mr.status IN ('COMPLETED','CLOSED','REJECTED','CANCELLED')
+                      )
+                 )
+                 ORDER BY s.next_due_date ASC, s.schedule_id ASC
+                """;
+        List<Schedule> rows = new ArrayList<>();
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                rows.add(map(rs));
+            }
+        }
+        return rows;
+    }
+
+    public void setLastRequestId(int scheduleId, int requestId) throws SQLException {
+        String sql = "UPDATE maintenance_schedules SET last_request_id = ? WHERE schedule_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, requestId);
+            ps.setInt(2, scheduleId);
+            ps.executeUpdate();
+        }
+    }
+
     private static int bind(PreparedStatement ps, ScheduleDraft d, int start) throws SQLException {
         int i = start;
         if (d.facilityId() == null || d.facilityId() <= 0) ps.setNull(i++, Types.INTEGER);

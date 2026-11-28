@@ -10,6 +10,7 @@ import com.deihs.mms.service.Permissions;
 import com.deihs.mms.service.Session;
 import com.deihs.mms.service.ValidationException;
 import com.deihs.mms.util.AlertUtil;
+import com.deihs.mms.util.AssetTagDialog;
 import com.deihs.mms.util.Format;
 import com.deihs.mms.util.ViewLoader;
 import javafx.animation.PauseTransition;
@@ -136,14 +137,25 @@ public class FacilitiesController {
         });
 
         actionsCol.setCellFactory(col -> new TableCell<>() {
+            private final Button qr = new Button("QR Tag");
             private final Button edit = new Button("Edit");
             private final Button toggle = new Button();
-            private final HBox box = new HBox(6, edit, toggle);
+            private final HBox box = new HBox(6);
 
             {
                 box.getStyleClass().add("table-actions");
+                qr.getStyleClass().addAll("btn-ghost", "btn-table");
                 edit.getStyleClass().addAll("btn-ghost", "btn-table");
                 toggle.getStyleClass().addAll("btn-ghost", "btn-table");
+                qr.setOnAction(e -> {
+                    Facility f = rowFacility();
+                    if (f != null) {
+                        AssetTagDialog.show(ownerWindow(), "Facility", f.code(), f.name(),
+                                String.join(" / ", java.util.stream.Stream.of(f.building(), f.floor(), f.roomNumber())
+                                        .filter(v -> v != null && !v.isBlank()).toList()),
+                                f.type());
+                    }
+                });
                 edit.setOnAction(e -> {
                     Facility f = rowFacility();
                     if (f != null) openForm(f);
@@ -163,7 +175,7 @@ public class FacilitiesController {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || !canManage) {
+                if (empty) {
                     setGraphic(null);
                     return;
                 }
@@ -172,17 +184,22 @@ public class FacilitiesController {
                     setGraphic(null);
                     return;
                 }
-                toggle.setText(f.active() ? "Archive" : "Restore");
-                toggle.getStyleClass().removeAll("btn-warn");
-                if (f.active()) {
-                    toggle.getStyleClass().add("btn-warn");
+                box.getChildren().clear();
+                box.getChildren().add(qr);
+                if (canManage) {
+                    box.getChildren().add(edit);
+                    toggle.setText(f.active() ? "Archive" : "Restore");
+                    toggle.getStyleClass().removeAll("btn-warn");
+                    if (f.active()) {
+                        toggle.getStyleClass().add("btn-warn");
+                    }
+                    box.getChildren().add(toggle);
                 }
                 setGraphic(box);
             }
         });
 
-        // Hide actions column for roles that cannot manage (defensive).
-        actionsCol.setVisible(canManage);
+        actionsCol.setVisible(true);
     }
 
     @FXML

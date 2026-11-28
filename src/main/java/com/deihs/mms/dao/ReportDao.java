@@ -46,6 +46,11 @@ public class ReportDao {
                             "JOIN maintenance_requests r ON r.request_id = mr.request_id " +
                             "WHERE DATE(r.reported_at) BETWEEN ? AND ?",
                     start, end);
+            BigDecimal totalPartsCost = scalarDecimal(c,
+                    "SELECT COALESCE(SUM(mr.parts_cost),0) FROM maintenance_records mr " +
+                            "JOIN maintenance_requests r ON r.request_id = mr.request_id " +
+                            "WHERE DATE(r.reported_at) BETWEEN ? AND ?",
+                    start, end);
             BigDecimal downtime = scalarDecimal(c,
                     "SELECT COALESCE(SUM(mr.downtime_hours),0) FROM maintenance_records mr " +
                             "JOIN maintenance_requests r ON r.request_id = mr.request_id " +
@@ -71,10 +76,18 @@ public class ReportDao {
                             "LEFT JOIN facilities f ON f.facility_id = r.facility_id " +
                             "WHERE DATE(r.reported_at) BETWEEN ? AND ? GROUP BY label ORDER BY cnt DESC LIMIT 10",
                     start, end);
+            List<CountRow> byMonth = grouped(c,
+                    "SELECT DATE_FORMAT(reported_at, '%Y-%m') AS label, COUNT(*) AS cnt " +
+                            "FROM maintenance_requests " +
+                            "WHERE DATE(reported_at) BETWEEN ? AND ? " +
+                            "GROUP BY DATE_FORMAT(reported_at, '%Y-%m') " +
+                            "ORDER BY label ASC",
+                    start, end);
 
             return new ReportSummary(start, end, total, open, completed, overdue,
-                    totalCost, downtime == null ? 0.0 : downtime.doubleValue(),
-                    byStatus, byPriority, byCategory, byFacility);
+                    totalCost, totalPartsCost == null ? BigDecimal.ZERO : totalPartsCost,
+                    downtime == null ? 0.0 : downtime.doubleValue(),
+                    byStatus, byPriority, byCategory, byFacility, byMonth);
         }
     }
 

@@ -1,9 +1,17 @@
 package com.deihs.mms.service;
 
 import com.deihs.mms.dao.AuditDao;
+import com.deihs.mms.dao.LookupDao;
+import com.deihs.mms.dao.RequestDao;
 import com.deihs.mms.dao.ScheduleDao;
+import com.deihs.mms.model.CreatedRequest;
+import com.deihs.mms.model.LookupOption;
+import com.deihs.mms.model.RequestDraft;
+import com.deihs.mms.model.Schedule;
 import com.deihs.mms.model.ScheduleDraft;
 import com.deihs.mms.model.User;
+
+import java.util.List;
 
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -17,6 +25,10 @@ public class ScheduleService {
 
     private final ScheduleDao scheduleDao = new ScheduleDao();
     private final AuditDao auditDao = new AuditDao();
+    private final RequestDao requestDao = new RequestDao();
+    private final LookupDao lookupDao = new LookupDao();
+    private final RequestDetailService detailService = new RequestDetailService();
+    private final NotificationService notifications = new NotificationService();
 
     public int create(ScheduleDraft draft, User user) throws ValidationException, SQLException {
         requireManage(user);
@@ -54,6 +66,81 @@ public class ScheduleService {
         scheduleDao.markDone(id, done, next);
         auditDao.log(user.id(), "COMPLETE_SCHEDULE", "schedules", String.valueOf(id),
                 title + " done " + done + ", next " + next);
+    }
+
+    /**
+     * Creates preventive maintenance work orders for due active schedules that
+     * do not already have an open linked request. Returns the number created.
+     */
+    public int generateDueWorkOrders(User actor) throws ValidationException, SQLException {
+        requireManage(actor);
+        List<Schedule> due = scheduleDao.findDueForWorkOrderGeneration();
+        int categoryId = resolvePmCategoryId();
+        int created = 0;
+
+        for (Schedule s : due) {
+            RequestDraft draft = new RequestDraft(
+                    "PM: " + trimTo(s.title(), 140),
+                    categoryId,
+                    s.facilityId(),
+                    s.equipmentId(),
+                    "MEDIUM",
+                    buildPmDescription(s),
+                    s.nextDueDate(),
+                    null
+            );
+            CreatedRequest req = requestDao.create(draft, actor.id(), null);
+            scheduleDao.setLastRequestId(s.id(), req.id());
+            auditDao.log(actor.id(), "GENERATE_PM_WORK_ORDER", "maintenance_requests",
+                    req.ticketNo(), "From schedule #" + s.id() + " - " + s.title());
+            notifications.notifyRoles(java.util.List.of(com.deihs.mms.model.Role.ADMIN, com.deihs.mms.model.Role.MAINT_HEAD),
+                    "Preventive maintenance work order created",
+                    req.ticketNo() + " was generated from schedule \"" + s.title() + "\".",
+                    "request", req.id(), null);
+
+            if (s.assignedTo() != null && s.assignedTo() > 0) {
+                try {
+                    detailService.assign(req.id(), s.assignedTo(),
+                            "Auto-assigned from preventive maintenance schedule.", actor);
+                } catch (ValidationException | SQLException ignored) {
+                    // Work order was created; assignment can be fixed manually.
+                }
+            }
+            created++;
+        }
+        return created;
+    }
+
+    private int resolvePmCategoryId() throws SQLException {
+        List<LookupOption> categories = lookupDao.categories();
+        for (LookupOption c : categories) {
+            String name = c.label() == null ? "" : c.label().toLowerCase(Locale.ROOT);
+            if (name.contains("general")) {
+                return c.id();
+            }
+        }
+        if (!categories.isEmpty()) {
+            return categories.get(0).id();
+        }
+        throw new SQLException("No active maintenance category is available for PM work orders.");
+    }
+
+    private static String buildPmDescription(Schedule s) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Automatically generated from preventive maintenance schedule.\n\n");
+        sb.append("Schedule: ").append(s.title()).append('\n');
+        sb.append("Frequency: ").append(s.frequency() == null ? "MONTHLY" : s.frequency()).append('\n');
+        sb.append("Next due: ").append(s.nextDueDate() == null ? "-" : s.nextDueDate()).append('\n');
+        if (s.description() != null && !s.description().isBlank()) {
+            sb.append("\nSchedule notes:\n").append(s.description().trim());
+        }
+        return sb.toString();
+    }
+
+    private static String trimTo(String value, int max) {
+        if (value == null) return "";
+        String v = value.trim();
+        return v.length() <= max ? v : v.substring(0, max);
     }
 
     public static LocalDate advance(LocalDate from, String frequency) {

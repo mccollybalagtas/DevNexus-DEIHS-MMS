@@ -1,8 +1,11 @@
 package com.deihs.mms.controller;
 
 import com.deihs.mms.Main;
+import com.deihs.mms.model.Notification;
 import com.deihs.mms.model.Role;
 import com.deihs.mms.model.User;
+import com.deihs.mms.service.BackupService;
+import com.deihs.mms.service.NotificationService;
 import com.deihs.mms.service.Permissions;
 import com.deihs.mms.service.ProfileService;
 import com.deihs.mms.service.Session;
@@ -20,6 +23,7 @@ import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -34,6 +38,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
@@ -47,11 +52,15 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
+import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -87,6 +96,9 @@ public class ShellController {
     @FXML private Label scopeLabel;
     @FXML private Label versionLabel;
     @FXML private Button menuButton;
+    @FXML private StackPane bellHolder;
+    @FXML private Button bellButton;
+    @FXML private Label bellBadge;
     @FXML private Label pageTitle;
     @FXML private HBox userChip;
     @FXML private StackPane avatarHolder;
@@ -123,6 +135,9 @@ public class ShellController {
 
     private static final Preferences PREFS = Preferences.userNodeForPackage(ShellController.class);
 
+    private final NotificationService notifications = new NotificationService();
+    private Timeline notificationTimer;
+
     private record Nav(String key, String title, String icon) {
     }
 
@@ -153,8 +168,14 @@ public class ShellController {
 
         applyFontPreference();
         refreshIdentity();
+        refreshNotifications();
         buildMenu(user);
         navigate("dashboard");
+
+        notificationTimer = new Timeline(new KeyFrame(
+                Duration.seconds(45), e -> refreshNotifications()));
+        notificationTimer.setCycleCount(Timeline.INDEFINITE);
+        notificationTimer.play();
     }
 
     /** Keeps top-bar and drawer icons readable in light and dark themes. */
@@ -164,6 +185,9 @@ public class ShellController {
         String muted = dark ? "#9AA6B2" : "#6B7785";
         String danger = dark ? "#FF8A80" : "#B3261E";
         menuButton.setGraphic(Icons.of(Icons.MENU, 20, icon));
+        if (bellButton != null) {
+            bellButton.setGraphic(Icons.of(Icons.BELL, 19, icon));
+        }
         drawerCloseButton.setGraphic(Icons.of(Icons.CLOSE, 18, muted));
         drawerProfileButton.setGraphic(Icons.of(Icons.PROFILE, 18, icon));
         drawerSettingsButton.setGraphic(Icons.of(Icons.SETTINGS, 18, icon));
@@ -308,6 +332,9 @@ public class ShellController {
         if (u.role() != Role.STAFF) {
             list.add(new Nav("schedules", "Schedules", Icons.SCHEDULES));
         }
+        if (Permissions.canManageParts(u)) {
+            list.add(new Nav("parts", "Parts", Icons.PARTS));
+        }
         if (Permissions.canManageUsers(u)) {
             list.add(new Nav("users", "Users", Icons.USERS));
         }
@@ -388,6 +415,15 @@ public class ShellController {
         if ("schedules".equals(nav.key())) {
             try {
                 FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/SchedulesView.fxml");
+                Parent view = loader.load();
+                return view;
+            } catch (IOException | RuntimeException e) {
+                return errorView(nav.title(), e);
+            }
+        }
+        if ("parts".equals(nav.key())) {
+            try {
+                FXMLLoader loader = ViewLoader.loader("/com/deihs/mms/view/PartsView.fxml");
                 Parent view = loader.load();
                 return view;
             } catch (IOException | RuntimeException e) {
@@ -634,6 +670,171 @@ public class ShellController {
     }
 
     // ------------------------------------------------------------------
+    // Notification centre
+    // ------------------------------------------------------------------
+
+    private void refreshNotifications() {
+        User user = Session.get();
+        if (user == null || bellBadge == null) {
+            return;
+        }
+        int count = notifications.unreadCount(user.id());
+        boolean show = count > 0;
+        bellBadge.setText(count > 99 ? "99+" : String.valueOf(count));
+        bellBadge.setVisible(show);
+        bellBadge.setManaged(show);
+    }
+
+    @FXML
+    private void onOpenNotifications() {
+        if (drawerOpen) {
+            closeDrawer();
+        }
+        hidePopover();
+
+        User user = Session.get();
+        if (user == null) {
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        Window owner = shellRoot.getScene() == null ? null : shellRoot.getScene().getWindow();
+        if (owner != null) {
+            dialog.initOwner(owner);
+        }
+        dialog.setTitle("Notifications");
+        ButtonType close = new ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE);
+        dialog.getDialogPane().getButtonTypes().add(close);
+        ViewLoader.applyAppStyles(dialog.getDialogPane());
+        dialog.getDialogPane().getStyleClass().addAll(shellRoot.getStyleClass());
+        dialog.getDialogPane().setPrefWidth(540);
+
+        Label heading = new Label("Notifications");
+        heading.getStyleClass().add("page-h1");
+
+        Button markAll = new Button("Mark all as read");
+        markAll.getStyleClass().add("btn-ghost");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(10, heading, spacer, markAll);
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        VBox list = new VBox(8);
+        list.setPadding(new Insets(2));
+
+        Runnable reload = () -> {
+            list.getChildren().clear();
+            List<Notification> items = notifications.recent(user.id(), 40);
+            if (items.isEmpty()) {
+                Label empty = new Label("You're all caught up.");
+                empty.getStyleClass().add("empty-text");
+                empty.setPadding(new Insets(24));
+                list.getChildren().add(empty);
+            } else {
+                for (Notification item : items) {
+                    list.getChildren().add(notificationRow(dialog, item));
+                }
+            }
+            markAll.setDisable(notifications.unreadCount(user.id()) == 0);
+        };
+        reload.run();
+
+        ScrollPane scroll = new ScrollPane(list);
+        scroll.setFitToWidth(true);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setPrefViewportHeight(400);
+        scroll.getStyleClass().add("page-scroll");
+
+        VBox content = new VBox(12, header, scroll);
+        content.setPadding(new Insets(2, 4, 2, 4));
+        dialog.getDialogPane().setContent(content);
+
+        markAll.setOnAction(e -> {
+            notifications.markAllRead(user.id());
+            refreshNotifications();
+            reload.run();
+        });
+
+        dialog.showAndWait();
+        refreshNotifications();
+    }
+
+    private Node notificationRow(Dialog<?> dialog, Notification item) {
+        Region dot = new Region();
+        dot.getStyleClass().add("notif-dot");
+        dot.setMinSize(8, 8);
+        dot.setPrefSize(8, 8);
+        dot.setMaxSize(8, 8);
+        dot.setVisible(!item.read());
+        dot.setManaged(!item.read());
+
+        Label title = new Label(item.title());
+        title.getStyleClass().add("notif-title");
+        title.setWrapText(true);
+
+        Label message = new Label(item.message());
+        message.getStyleClass().add("notif-message");
+        message.setWrapText(true);
+
+        Label time = new Label(relativeTime(item.createdAt()));
+        time.getStyleClass().add("notif-time");
+
+        VBox text = new VBox(3, title, message, time);
+        HBox.setHgrow(text, Priority.ALWAYS);
+
+        HBox row = new HBox(10, dot, text);
+        row.getStyleClass().add("notif-row");
+        row.setAlignment(Pos.TOP_LEFT);
+        if (!item.read()) {
+            row.getStyleClass().add("notif-unread");
+        }
+
+        row.setOnMouseClicked(e -> {
+            notifications.markRead(item.id(), Session.get().id());
+            refreshNotifications();
+            dialog.close();
+            if (item.isRequestLink()) {
+                openNotificationRequest(item.linkId());
+            }
+        });
+        return row;
+    }
+
+    private void openNotificationRequest(int requestId) {
+        String key = navs.containsKey("requests") ? "requests" : "tasks";
+        Nav nav = navs.get(key);
+        if (nav == null) {
+            return;
+        }
+        navigate(key);
+        openRequest(nav, requestId);
+    }
+
+    private static String relativeTime(LocalDateTime createdAt) {
+        if (createdAt == null) {
+            return "";
+        }
+        java.time.Duration age = java.time.Duration.between(createdAt, LocalDateTime.now());
+        long minutes = age.toMinutes();
+        if (minutes < 1) {
+            return "Just now";
+        }
+        if (minutes < 60) {
+            return minutes + "m ago";
+        }
+        long hours = age.toHours();
+        if (hours < 24) {
+            return hours + "h ago";
+        }
+        long days = age.toDays();
+        if (days < 7) {
+            return days + "d ago";
+        }
+        return createdAt.toLocalDate().toString();
+    }
+
+    // ------------------------------------------------------------------
     // Settings dialog
     // ------------------------------------------------------------------
 
@@ -726,6 +927,9 @@ public class ShellController {
 
         VBox content = new VBox(12, grid, hint);
         content.setPadding(new Insets(4, 4, 2, 4));
+        if (Permissions.canManageUsers(user)) {
+            content.getChildren().add(buildBackupSection(owner));
+        }
         dialog.getDialogPane().setContent(content);
 
         String oldFont = fontPref();
@@ -758,6 +962,160 @@ public class ShellController {
             applyFontPreference();
             refreshChrome();
         }
+    }
+
+    // ------------------------------------------------------------------
+    // Backup & restore (administrators)
+    // ------------------------------------------------------------------
+
+    private Node buildBackupSection(Window owner) {
+        Label title = new Label("Backup & restore");
+        title.getStyleClass().add("card-title");
+
+        Label hint = new Label("Save a complete copy of the database, or restore a "
+                + "previous backup. Restoring replaces all current records.");
+        hint.getStyleClass().add("form-hint");
+        hint.setWrapText(true);
+        hint.setMaxWidth(340);
+
+        Label status = new Label(lastBackupText());
+        status.getStyleClass().add("form-hint");
+        status.setWrapText(true);
+        status.setMaxWidth(340);
+
+        ProgressBar progress = new ProgressBar();
+        progress.setMaxWidth(Double.MAX_VALUE);
+        progress.setVisible(false);
+        progress.setManaged(false);
+
+        Button backup = new Button("Back up now…");
+        backup.getStyleClass().add("btn-ghost");
+        Button restore = new Button("Restore from file…");
+        restore.getStyleClass().add("btn-ghost");
+
+        backup.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Save database backup");
+            chooser.setInitialDirectory(BackupService.defaultFolder().toFile());
+            chooser.setInitialFileName(BackupService.suggestedFileName());
+            chooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("SQL dump", "*.sql"));
+            File chosen = chooser.showSaveDialog(owner);
+            if (chosen == null) {
+                return;
+            }
+            Path target = chosen.toPath();
+            if (!target.getFileName().toString().toLowerCase().endsWith(".sql")) {
+                target = target.resolveSibling(target.getFileName() + ".sql");
+            }
+            runBackup(target, status, progress, backup, restore, owner);
+        });
+
+        restore.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Choose a backup to restore");
+            chooser.setInitialDirectory(BackupService.defaultFolder().toFile());
+            chooser.getExtensionFilters().add(
+                    new FileChooser.ExtensionFilter("SQL dump", "*.sql"));
+            File chosen = chooser.showOpenDialog(owner);
+            if (chosen == null) {
+                return;
+            }
+            boolean ok = AlertUtil.confirm(owner, "Restore database",
+                    "This will replace ALL current records with the contents of\n"
+                            + chosen.getName() + ".\n\nContinue?");
+            if (!ok) {
+                return;
+            }
+            runRestore(chosen.toPath(), status, progress, backup, restore, owner);
+        });
+
+        HBox buttons = new HBox(8, backup, restore);
+
+        VBox box = new VBox(6, title, hint, buttons, status, progress);
+        box.getStyleClass().add("settings-section");
+        return box;
+    }
+
+    private static String lastBackupText() {
+        String last = BackupService.lastBackupAt();
+        if (last == null || last.isBlank()) {
+            return "No backup has been taken from this PC yet.";
+        }
+        int split = last.indexOf('|');
+        String stamp = split < 0 ? last : last.substring(0, split);
+        String path = split < 0 ? "" : last.substring(split + 1);
+        return "Last backup: " + stamp + (path.isBlank() ? "" : "  ·  " + path);
+    }
+
+    private void runBackup(Path target, Label status, ProgressBar progress,
+                           Button backup, Button restore, Window owner) {
+        setBackupBusy(true, progress, backup, restore, status, "Preparing backup…");
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                new BackupService().backup(target, this::updateMessage);
+                return null;
+            }
+        };
+        task.messageProperty().addListener((obs, old, message) -> status.setText(message));
+        task.setOnSucceeded(e -> {
+            setBackupBusy(false, progress, backup, restore, status,
+                    "Backup saved to " + target);
+            AlertUtil.info(owner, "Backup complete",
+                    "The database was saved to:\n" + target.toAbsolutePath());
+        });
+        task.setOnFailed(e -> {
+            setBackupBusy(false, progress, backup, restore, status,
+                    "Backup failed. See the message for details.");
+            Throwable error = task.getException();
+            AlertUtil.error(owner, "Backup failed",
+                    error == null ? "Unknown error." : error.getMessage(), error);
+        });
+        Thread thread = new Thread(task, "deihs-backup");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void runRestore(Path source, Label status, ProgressBar progress,
+                            Button backup, Button restore, Window owner) {
+        setBackupBusy(true, progress, backup, restore, status, "Preparing restore…");
+        Task<Void> task = new Task<>() {
+            @Override
+            protected Void call() throws Exception {
+                new BackupService().restore(source, this::updateMessage);
+                return null;
+            }
+        };
+        task.messageProperty().addListener((obs, old, message) -> status.setText(message));
+        task.setOnSucceeded(e -> {
+            setBackupBusy(false, progress, backup, restore, status,
+                    "Restore finished. Sign out and back in to reload the data.");
+            AlertUtil.info(owner, "Restore complete",
+                    "The database was restored from " + source.getFileName()
+                            + ".\n\nSign out and sign in again so every screen reloads.");
+        });
+        task.setOnFailed(e -> {
+            setBackupBusy(false, progress, backup, restore, status,
+                    "Restore failed. See the message for details.");
+            Throwable error = task.getException();
+            AlertUtil.error(owner, "Restore failed",
+                    error == null ? "Unknown error." : error.getMessage(), error);
+        });
+        Thread thread = new Thread(task, "deihs-restore");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private static void setBackupBusy(boolean busy, ProgressBar progress,
+                                      Button backup, Button restore,
+                                      Label status, String message) {
+        backup.setDisable(busy);
+        restore.setDisable(busy);
+        progress.setVisible(busy);
+        progress.setManaged(busy);
+        progress.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+        status.setText(message);
     }
 
     private static int themeIndex(String theme) {

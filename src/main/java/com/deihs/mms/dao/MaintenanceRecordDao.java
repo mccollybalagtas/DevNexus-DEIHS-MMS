@@ -25,6 +25,48 @@ public class MaintenanceRecordDao {
         return BigDecimal.ZERO;
     }
 
+    public BigDecimal findPartsCostByRequest(int requestId) throws SQLException {
+        String sql = "SELECT COALESCE(SUM(parts_cost),0) FROM maintenance_records WHERE request_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, requestId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    BigDecimal v = rs.getBigDecimal(1);
+                    return v == null ? BigDecimal.ZERO : v;
+                }
+            }
+        }
+        return BigDecimal.ZERO;
+    }
+
+    /**
+     * Adds (or subtracts) the cost of parts consumed by a request. Runs on the
+     * caller's transaction so stock and cost stay in step.
+     */
+    public void addPartsCost(Connection c, int requestId, int actorId, BigDecimal delta)
+            throws SQLException {
+        Integer recordId = findLatestRecordId(c, requestId);
+        if (recordId != null) {
+            try (PreparedStatement ps = c.prepareStatement(
+                    "UPDATE maintenance_records SET parts_cost = parts_cost + ? WHERE record_id = ?")) {
+                ps.setBigDecimal(1, delta);
+                ps.setInt(2, recordId);
+                ps.executeUpdate();
+            }
+        } else {
+            try (PreparedStatement ps = c.prepareStatement(
+                    "INSERT INTO maintenance_records (request_id, personnel_id, actions_taken, parts_cost) "
+                            + "VALUES (?, ?, ?, ?)")) {
+                ps.setInt(1, requestId);
+                ps.setInt(2, actorId);
+                ps.setString(3, "Parts recorded");
+                ps.setBigDecimal(4, delta);
+                ps.executeUpdate();
+            }
+        }
+    }
+
     /**
      * Sets repair cost for a request. If a record exists, updates the most recent one;
      * otherwise creates a minimal record attributed to the actor.

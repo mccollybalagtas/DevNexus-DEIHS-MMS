@@ -72,6 +72,17 @@
                         <Label fx:id="userRoleLabel" styleClass="user-role" text="—"/>
                     </VBox>
                 </HBox>
+                <StackPane fx:id="bellHolder" styleClass="bell-holder">
+                    <Button fx:id="bellButton" styleClass="icon-btn"
+                            onAction="#onOpenNotifications" focusTraversable="false"/>
+                    <Label fx:id="bellBadge" styleClass="bell-badge" visible="false"
+                           managed="false" mouseTransparent="true"
+                           StackPane.alignment="TOP_RIGHT">
+                        <StackPane.margin>
+                            <Insets top="-3" right="-4"/>
+                        </StackPane.margin>
+                    </Label>
+                </StackPane>
                 <Button fx:id="menuButton" styleClass="icon-btn"
                         onAction="#onOpenDrawer" focusTraversable="false"/>
             </HBox>

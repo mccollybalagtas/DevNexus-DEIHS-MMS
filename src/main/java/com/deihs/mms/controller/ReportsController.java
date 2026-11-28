@@ -9,6 +9,9 @@ import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -21,6 +24,8 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+
+import java.math.BigDecimal;
 import org.apache.pdfbox.pdmodel.graphics.image.LosslessFactory;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
@@ -64,6 +69,9 @@ public class ReportsController {
     @FXML private TableView<CountRow> facilityTable;
     @FXML private TableColumn<CountRow, String> facilityNameCol;
     @FXML private TableColumn<CountRow, String> facilityCountCol;
+    @FXML private BarChart<String, Number> categoryChart;
+    @FXML private BarChart<String, Number> priorityChart;
+    @FXML private LineChart<String, Number> trendChart;
 
     private final ReportDao reportDao = new ReportDao();
     private ReportSummary current;
@@ -126,12 +134,14 @@ public class ReportsController {
         completedLabel.setText(String.valueOf(r.completedRequests()));
         overdueLabel.setText(String.valueOf(r.overdueRequests()));
         costLabel.setText(Format.peso(r.totalCost()));
-        downtimeLabel.setText(String.format(Locale.ROOT, "%.1f hrs downtime", r.totalDowntimeHours()));
+        downtimeLabel.setText(String.format(Locale.ROOT, "%.1f hrs downtime · parts %s",
+                r.totalDowntimeHours(), Format.peso(r.totalPartsCost() == null ? BigDecimal.ZERO : r.totalPartsCost())));
 
         statusTable.setItems(FXCollections.observableArrayList(r.byStatus()));
         priorityTable.setItems(FXCollections.observableArrayList(r.byPriority()));
         categoryTable.setItems(FXCollections.observableArrayList(r.byCategory()));
         facilityTable.setItems(FXCollections.observableArrayList(r.byFacility()));
+        renderCharts(r);
     }
 
     @FXML
@@ -157,12 +167,14 @@ public class ReportsController {
             csvLine(w, "Completed/Closed", String.valueOf(current.completedRequests()));
             csvLine(w, "Overdue (Open)", String.valueOf(current.overdueRequests()));
             csvLine(w, "Total Repair Cost", Format.peso(current.totalCost()));
+            csvLine(w, "Total Parts Cost", Format.peso(current.totalPartsCost() == null ? BigDecimal.ZERO : current.totalPartsCost()));
             csvLine(w, "Total Downtime (Hours)", String.format(Locale.ROOT, "%.1f", current.totalDowntimeHours()));
             csvLine(w);
             writeSectionCsv(w, "Requests by Status", current.byStatus(), true);
             writeSectionCsv(w, "Requests by Priority", current.byPriority(), true);
             writeSectionCsv(w, "Requests by Category", current.byCategory(), false);
             writeSectionCsv(w, "Top Facilities by Requests", current.byFacility(), false);
+            writeSectionCsv(w, "Requests by Month", current.byMonth(), false);
         } catch (IOException ex) {
             AlertUtil.error(ownerWindow(), "Export failed", ex.getMessage());
             return;
@@ -211,6 +223,7 @@ public class ReportsController {
             pdf.section("Requests by Priority", current.byPriority(), true);
             pdf.section("Requests by Category", current.byCategory(), false);
             pdf.section("Top Facilities by Requests", current.byFacility(), false);
+            pdf.section("Requests by Month", current.byMonth(), false);
             pdf.footerAll();
             doc.save(file);
         } catch (Exception ex) {
@@ -319,8 +332,10 @@ public class ReportsController {
             summaryBox(MARGIN + colW * 2, y, colW - 6, "Completed/Closed", String.valueOf(r.completedRequests()));
             y -= 52;
             summaryBox(MARGIN, y, colW - 6, "Overdue (Open)", String.valueOf(r.overdueRequests()));
-            summaryBox(MARGIN + colW, y, colW - 6, "Total Repair Cost", Format.peso(r.totalCost()));
-            summaryBox(MARGIN + colW * 2, y, colW - 6, "Downtime", String.format(Locale.ROOT, "%.1f hrs", r.totalDowntimeHours()));
+            summaryBox(MARGIN + colW, y, colW - 6, "Repair Cost", Format.peso(r.totalCost()));
+            summaryBox(MARGIN + colW * 2, y, colW - 6, "Parts Cost", Format.peso(r.totalPartsCost() == null ? BigDecimal.ZERO : r.totalPartsCost()));
+            y -= 52;
+            summaryBox(MARGIN, y, colW - 6, "Downtime", String.format(Locale.ROOT, "%.1f hrs", r.totalDowntimeHours()));
             y -= 62;
         }
 
@@ -449,6 +464,37 @@ public class ReportsController {
             else out.append('?');
         }
         return out.toString();
+    }
+
+    private void renderCharts(ReportSummary r) {
+        fillBarChart(categoryChart, r.byCategory(), false);
+        fillBarChart(priorityChart, r.byPriority(), true);
+        fillLineChart(trendChart, r.byMonth());
+    }
+
+    private void fillBarChart(BarChart<String, Number> chart, List<CountRow> rows, boolean pretty) {
+        if (chart == null) return;
+        chart.getData().clear();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        if (rows != null) {
+            for (CountRow row : rows) {
+                String label = pretty ? Format.pretty(row.label()) : blank(row.label());
+                series.getData().add(new XYChart.Data<>(label, row.count()));
+            }
+        }
+        chart.getData().add(series);
+    }
+
+    private void fillLineChart(LineChart<String, Number> chart, List<CountRow> rows) {
+        if (chart == null) return;
+        chart.getData().clear();
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        if (rows != null) {
+            for (CountRow row : rows) {
+                series.getData().add(new XYChart.Data<>(blank(row.label()), row.count()));
+            }
+        }
+        chart.getData().add(series);
     }
 
     private static String csv(String value) {

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.deihs.mms.controller.PartFormController"
+      styleClass="form-body" spacing="13" prefWidth="560">
+
+    <Label fx:id="errorLabel" styleClass="form-error" wrapText="true"
+           visible="false" managed="false"/>
+
+    <VBox spacing="5">
+        <Label text="Part name" styleClass="field-label"/>
+        <TextField fx:id="nameField" styleClass="input"
+                   promptText="e.g. LED bulb 18W"/>
+        <Label text="A unique, descriptive name for the item." styleClass="form-hint"/>
+    </VBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="SKU / code" styleClass="field-label"/>
+            <TextField fx:id="skuField" styleClass="input" promptText="e.g. LED-18W"/>
+        </VBox>
+        <VBox spacing="5" prefWidth="150">
+            <Label text="Unit" styleClass="field-label"/>
+            <TextField fx:id="unitField" styleClass="input" promptText="pc"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Quantity in stock" styleClass="field-label"/>
+            <TextField fx:id="quantityField" styleClass="input" promptText="0"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Reorder level" styleClass="field-label"/>
+            <TextField fx:id="reorderField" styleClass="input" promptText="0"/>
+            <Label text="Warn when stock reaches this level." styleClass="form-hint" wrapText="true"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Unit cost (PHP)" styleClass="field-label"/>
+            <TextField fx:id="costField" styleClass="input" promptText="0.00"/>
+        </VBox>
+    </HBox>
+</VBox>

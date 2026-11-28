@@ -19,11 +19,16 @@ Teachers report facility and equipment problems, the maintenance head assigns wo
 | **Equipment** | Same pattern as facilities, linked to a facility, with condition and archive/restore |
 | **Schedules** | Plan recurring maintenance; marking done advances the next due date |
 | **Dashboard** | Role-aware KPIs, monthly volume chart, status breakdown |
-| **Reports** | Date-range summaries, category/status breakdowns, cost and downtime, CSV and PDF export |
+| **Reports** | Date-range summaries, category/status breakdowns, cost and downtime, charts, CSV and PDF export |
 | **Audit log** | Append-only trail of logins, assignments, status changes, and account actions |
 | **Accounts** | Self-registration with admin approval, email verification code, user CRUD, activate/deactivate, password reset |
 | **Profile** | Self-service profile page with photo, details, password change, and appearance/theme preferences |
 | **Google sign-in** | Optional, config-gated OAuth 2.0 (desktop loopback + PKCE); verified email only |
+| **Notifications** | In-app notification center (bell) plus optional SMTP email alerts for request, assignment, status, comment, and stock events |
+| **Parts & Inventory** | Parts catalog, stock levels, reorder warnings, and request-level parts usage with cost tracking |
+| **QR Asset Tags** | Generate printable QR asset tags for facilities and equipment |
+| **PM Automation** | Generate preventive maintenance work orders from due schedules and review due dates on a calendar |
+| **Backup & Restore** | Admin-only database backup/restore from Settings (uses `mysqldump`/`mysql`) |
 
 ### Roles
 
@@ -108,7 +113,7 @@ deihs-mms/
 │   └── util/                        # ViewLoader, alerts, formatting, charts
 ├── src/main/resources/
 │   ├── db.properties                # blank template (no secrets)
-│   ├── com/deihs/mms/view/*.fxml    # 19 screens/dialogs (incl. profile)
+│   ├── com/deihs/mms/view/*.fxml    # FXML screens/dialogs (requests, inventory, reports, profile, etc.)
 │   ├── com/deihs/mms/css/styles.css # navy login + Green & Gold app shell
 │   └── com/deihs/mms/img/           # logo + login-building.jpg
 ├── docs/

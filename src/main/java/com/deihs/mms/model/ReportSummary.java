@@ -12,11 +12,13 @@ public record ReportSummary(
         int completedRequests,
         int overdueRequests,
         BigDecimal totalCost,
+        BigDecimal totalPartsCost,
         double totalDowntimeHours,
         List<CountRow> byStatus,
         List<CountRow> byPriority,
         List<CountRow> byCategory,
-        List<CountRow> byFacility
+        List<CountRow> byFacility,
+        List<CountRow> byMonth
 ) {
     public record CountRow(String label, int count, BigDecimal amount) {
         public CountRow(String label, int count) {
