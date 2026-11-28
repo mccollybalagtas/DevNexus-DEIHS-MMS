@@ -32,6 +32,10 @@ public class EquipmentFormController {
     @FXML private ComboBox<LookupOption> facilityBox;
     @FXML private ComboBox<Choice> conditionBox;
     @FXML private DatePicker acquiredPicker;
+    @FXML private DatePicker warrantyPicker;
+    @FXML private ComboBox<Choice> lifecycleBox;
+    @FXML private DatePicker disposalDatePicker;
+    @FXML private TextField disposalNotesField;
     @FXML private TextArea notesArea;
 
     private final LookupDao lookupDao = new LookupDao();
@@ -46,6 +50,14 @@ public class EquipmentFormController {
                 new Choice("OUT_OF_ORDER", Format.pretty("OUT_OF_ORDER"))
         ));
         conditionBox.getSelectionModel().selectFirst();
+
+        lifecycleBox.setItems(FXCollections.observableArrayList(
+                new Choice("IN_SERVICE", "In Service"),
+                new Choice("FOR_REPAIR", "For Repair"),
+                new Choice("RETIRED", "Retired"),
+                new Choice("DISPOSED", "Disposed")
+        ));
+        lifecycleBox.getSelectionModel().selectFirst();
 
         try {
             List<LookupOption> facilities = new ArrayList<>();
@@ -67,10 +79,16 @@ public class EquipmentFormController {
         modelField.setText(e.model());
         serialField.setText(e.serialNo());
         acquiredPicker.setValue(e.acquisitionDate());
+        warrantyPicker.setValue(e.warrantyUntil());
+        disposalDatePicker.setValue(e.disposalDate());
+        disposalNotesField.setText(e.disposalNotes());
         notesArea.setText(e.notes());
 
         for (Choice c : conditionBox.getItems()) {
             if (c.value().equals(e.condition())) { conditionBox.setValue(c); break; }
+        }
+        for (Choice c : lifecycleBox.getItems()) {
+            if (c.value().equals(e.lifecycleStatus())) { lifecycleBox.setValue(c); break; }
         }
         if (e.facilityId() == null) {
             facilityBox.getSelectionModel().select(NO_FACILITY);
@@ -85,6 +103,7 @@ public class EquipmentFormController {
         Choice cond = conditionBox.getValue();
         LookupOption fac = facilityBox.getValue();
         Integer facilityId = (fac == null || fac.id() == 0) ? null : fac.id();
+        Choice lifecycle = lifecycleBox.getValue();
         return new EquipmentDraft(
                 propertyNoField.getText(),
                 nameField.getText(),
@@ -95,7 +114,11 @@ public class EquipmentFormController {
                 facilityId,
                 cond == null ? null : cond.value(),
                 acquiredPicker.getValue(),
-                notesArea.getText()
+                notesArea.getText(),
+                warrantyPicker.getValue(),
+                lifecycle == null ? "IN_SERVICE" : lifecycle.value(),
+                disposalDatePicker.getValue(),
+                disposalNotesField.getText()
         );
     }
 

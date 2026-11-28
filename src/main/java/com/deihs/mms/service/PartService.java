@@ -3,6 +3,7 @@ package com.deihs.mms.service;
 import com.deihs.mms.dao.AuditDao;
 import com.deihs.mms.dao.MaintenanceRecordDao;
 import com.deihs.mms.dao.PartDao;
+import com.deihs.mms.dao.PartReceivingDao;
 import com.deihs.mms.model.PartDraft;
 import com.deihs.mms.model.RequestDetail;
 import com.deihs.mms.model.RequestPart;
@@ -29,6 +30,7 @@ public class PartService {
     private final AuditDao auditDao = new AuditDao();
     private final NotificationService notifications = new NotificationService();
     private final RequestDetailService detailService = new RequestDetailService();
+    private final PartReceivingDao receivingDao = new PartReceivingDao();
 
     // ------------------------------------------------------------------
     // Inventory
@@ -146,6 +148,30 @@ public class PartService {
         }
     }
 
+
+    // ------------------------------------------------------------------
+    // Receiving log
+    // ------------------------------------------------------------------
+
+    public int receive(int partId, int quantity, java.math.BigDecimal unitCost, String supplier,
+                       String referenceNo, String notes, User actor)
+            throws ValidationException, SQLException {
+        requireManage(actor);
+        if (quantity <= 0) throw new ValidationException("Quantity must be greater than zero.");
+        if (unitCost != null && unitCost.compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw new ValidationException("Unit cost cannot be negative.");
+        }
+        var part = partDao.findById(partId).orElseThrow(() -> new ValidationException("Part not found."));
+        int id = receivingDao.receive(partId, quantity, unitCost, supplier, referenceNo, notes, actor.id());
+        auditDao.log(actor.id(), "RECEIVE_PART", "parts", part.name(),
+                "Received " + quantity + " " + part.unit() + (supplier == null || supplier.isBlank() ? "" : " from " + supplier),
+                null, "quantity=" + quantity + ", supplier=" + (supplier == null ? "" : supplier));
+        return id;
+    }
+
+    public java.util.List<com.deihs.mms.model.PartReceiving> recentReceivings(int limit) throws SQLException {
+        return receivingDao.listRecent(limit);
+    }
     private void requireManage(User user) throws ValidationException {
         if (!Permissions.canManageParts(user)) {
             throw new ValidationException("Your role cannot change the parts inventory.");

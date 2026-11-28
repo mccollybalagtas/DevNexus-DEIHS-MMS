@@ -23,7 +23,8 @@ public class EquipmentDao {
     private static final String BASE_SELECT = """
             SELECT e.equipment_id, e.property_no, e.name, e.category, e.brand, e.model,
                    e.serial_no, e.facility_id, f.name AS facility_name,
-                   e.condition_status, e.acquisition_date, e.notes, e.is_active
+                   e.condition_status, e.acquisition_date, e.notes, e.is_active,
+                   e.warranty_until, e.lifecycle_status, e.disposal_date, e.disposal_notes
             FROM equipment e
             LEFT JOIN facilities f ON f.facility_id = e.facility_id
             WHERE 1 = 1
@@ -78,8 +79,11 @@ public class EquipmentDao {
 
     private Equipment map(ResultSet rs) throws SQLException {
         Date acq = rs.getDate("acquisition_date");
+        Date warranty = rs.getDate("warranty_until");
+        Date disposal = rs.getDate("disposal_date");
         int fid = rs.getInt("facility_id");
         Integer facilityId = rs.wasNull() ? null : fid;
+        String lifecycle = rs.getString("lifecycle_status");
         return new Equipment(
                 rs.getInt("equipment_id"),
                 rs.getString("property_no"),
@@ -93,7 +97,11 @@ public class EquipmentDao {
                 rs.getString("condition_status"),
                 acq == null ? null : acq.toLocalDate(),
                 rs.getString("notes"),
-                rs.getInt("is_active") == 1
+                rs.getInt("is_active") == 1,
+                warranty == null ? null : warranty.toLocalDate(),
+                lifecycle == null || lifecycle.isBlank() ? "IN_SERVICE" : lifecycle,
+                disposal == null ? null : disposal.toLocalDate(),
+                rs.getString("disposal_notes")
         );
     }
 
@@ -124,8 +132,9 @@ public class EquipmentDao {
         String sql = """
                 INSERT INTO equipment
                     (property_no, name, category, brand, model, serial_no,
-                     facility_id, condition_status, acquisition_date, notes)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     facility_id, condition_status, acquisition_date, notes,
+                     warranty_until, lifecycle_status, disposal_date, disposal_notes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (Connection c = Database.getConnection();
              PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -142,7 +151,8 @@ public class EquipmentDao {
                 UPDATE equipment
                    SET property_no = ?, name = ?, category = ?, brand = ?, model = ?,
                        serial_no = ?, facility_id = ?, condition_status = ?,
-                       acquisition_date = ?, notes = ?
+                       acquisition_date = ?, notes = ?,
+                       warranty_until = ?, lifecycle_status = ?, disposal_date = ?, disposal_notes = ?
                  WHERE equipment_id = ?
                 """;
         try (Connection c = Database.getConnection();
@@ -189,6 +199,12 @@ public class EquipmentDao {
         if (acq == null) ps.setNull(i++, Types.DATE);
         else ps.setDate(i++, Date.valueOf(acq));
         ps.setString(i++, d.notes());
+        LocalDate warranty = d.warrantyUntil();
+        if (warranty == null) ps.setNull(i++, Types.DATE); else ps.setDate(i++, Date.valueOf(warranty));
+        ps.setString(i++, d.lifecycleStatus() == null || d.lifecycleStatus().isBlank() ? "IN_SERVICE" : d.lifecycleStatus());
+        LocalDate disposal = d.disposalDate();
+        if (disposal == null) ps.setNull(i++, Types.DATE); else ps.setDate(i++, Date.valueOf(disposal));
+        ps.setString(i++, d.disposalNotes());
         return i;
     }
 }

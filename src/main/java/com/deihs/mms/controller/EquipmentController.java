@@ -68,6 +68,7 @@ public class EquipmentController {
     @FXML private TableColumn<Equipment, String> facilityCol;
     @FXML private TableColumn<Equipment, String> conditionCol;
     @FXML private TableColumn<Equipment, String> acquiredCol;
+    @FXML private TableColumn<Equipment, String> lifecycleCol;
     @FXML private TableColumn<Equipment, Void> actionsCol;
 
     private final EquipmentDao equipmentDao = new EquipmentDao();
@@ -135,6 +136,13 @@ public class EquipmentController {
         });
         facilityCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().facilityName())));
         acquiredCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(Format.date(c.getValue().acquisitionDate())));
+        lifecycleCol.setCellValueFactory(c -> {
+            Equipment e = c.getValue();
+            String life = Format.pretty(e.lifecycleStatus() == null ? "IN_SERVICE" : e.lifecycleStatus());
+            String war = e.warrantyUntil() == null ? "No warranty" : ("Warranty " + Format.date(e.warrantyUntil()));
+            if (e.warrantyExpired()) war += " (expired)";
+            return new ReadOnlyStringWrapper(life + " · " + war);
+        });
 
         conditionCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().condition()));
         conditionCol.setCellFactory(col -> new TableCell<>() {
@@ -329,7 +337,7 @@ public class EquipmentController {
         if (file == null) return;
         try {
             List<Equipment> all = equipmentDao.search(null, null, null, true);
-            List<String> headers = List.of("property_no","name","category","brand","model","serial_no","facility_code","condition","acquisition_date","notes","active");
+            List<String> headers = List.of("property_no","name","category","brand","model","serial_no","facility_code","condition","acquisition_date","warranty_until","lifecycle_status","disposal_date","disposal_notes","notes","active");
             List<List<String>> rows = new ArrayList<>();
             com.deihs.mms.dao.FacilityDao fdao = new com.deihs.mms.dao.FacilityDao();
             for (Equipment e : all) {
@@ -343,7 +351,10 @@ public class EquipmentController {
                     } catch (Exception ignored) {}
                 }
                 rows.add(List.of(nz(e.propertyNo()), nz(e.name()), nz(e.category()), nz(e.brand()), nz(e.model()), nz(e.serialNo()),
-                        facCode, nz(e.condition()), e.acquisitionDate() == null ? "" : e.acquisitionDate().toString(), nz(e.notes()), e.active() ? "1" : "0"));
+                        facCode, nz(e.condition()), e.acquisitionDate() == null ? "" : e.acquisitionDate().toString(),
+                        e.warrantyUntil() == null ? "" : e.warrantyUntil().toString(), nz(e.lifecycleStatus()),
+                        e.disposalDate() == null ? "" : e.disposalDate().toString(), nz(e.disposalNotes()),
+                        nz(e.notes()), e.active() ? "1" : "0"));
             }
             CsvUtil.write(file.toPath(), headers, rows);
             AlertUtil.info(ownerWindow(), "Export complete", "Exported " + rows.size() + " equipment items to\n" + file.getAbsolutePath());
@@ -390,9 +401,16 @@ public class EquipmentController {
                     if (!acqS.isBlank()) {
                         try { acq = LocalDate.parse(acqS); } catch (Exception e) { errors.add("Row " + rowNum + ": invalid acquisition_date (use YYYY-MM-DD)."); continue; }
                     }
+                    LocalDate warranty = parseDateOrNull(val(r, "warranty_until"), rowNum, "warranty_until", errors);
+                    if (warranty == null && !val(r,"warranty_until").isBlank() && hasDateError(errors, rowNum, "warranty_until")) continue;
+                    LocalDate disposal = parseDateOrNull(val(r, "disposal_date"), rowNum, "disposal_date", errors);
+                    if (disposal == null && !val(r,"disposal_date").isBlank() && hasDateError(errors, rowNum, "disposal_date")) continue;
+                    String lifecycle = val(r, "lifecycle_status");
+                    if (lifecycle.isBlank()) lifecycle = "IN_SERVICE";
                     EquipmentDraft draft = new EquipmentDraft(propertyNo, name, blankToNull(val(r,"category")),
                             blankToNull(val(r,"brand")), blankToNull(val(r,"model")), blankToNull(val(r,"serial_no")),
-                            facilityId, defaultCondition(val(r,"condition")), acq, blankToNull(val(r,"notes")));
+                            facilityId, defaultCondition(val(r,"condition")), acq, blankToNull(val(r,"notes")),
+                            warranty, lifecycle, disposal, blankToNull(val(r,"disposal_notes")));
                     Equipment existing = equipmentDao.findByPropertyNo(propertyNo);
                     User user = Session.get();
                     if (existing == null) { equipmentService.create(draft, user); created++; }
@@ -440,5 +458,15 @@ public class EquipmentController {
         if (v == null || v.isBlank()) return "GOOD";
         String u = v.trim().toUpperCase().replace(' ', '_');
         return switch (u) { case "GOOD","FAIR","POOR","NEEDS_REPAIR","OUT_OF_ORDER" -> u; default -> "GOOD"; };
+    }
+    private static LocalDate parseDateOrNull(String s, int rowNum, String field, List<String> errors) {
+        if (s == null || s.isBlank()) return null;
+        try { return LocalDate.parse(s.trim()); }
+        catch (Exception e) { errors.add("Row " + rowNum + ": invalid " + field + " (use YYYY-MM-DD)."); return null; }
+    }
+    private static boolean hasDateError(List<String> errors, int rowNum, String field) {
+        String prefix = "Row " + rowNum + ": invalid " + field;
+        for (int i = errors.size() - 1; i >= 0; i--) if (errors.get(i).startsWith(prefix)) return true;
+        return false;
     }
 }

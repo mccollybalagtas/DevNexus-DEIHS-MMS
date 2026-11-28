@@ -85,11 +85,14 @@ public class RequestDetailController {
     @FXML private VBox partsBox;
     @FXML private Label partsCostLabel;
     @FXML private Button addPartButton;
+    @FXML private VBox checklistBox;
+    @FXML private Button applyChecklistButton;
 
     private final RequestDetailService service = new RequestDetailService();
     private final PartService partService = new PartService();
     private final PartDao partDao = new PartDao();
     private final UserDao userDao = new UserDao();
+    private final com.deihs.mms.service.ChecklistService checklistService = new com.deihs.mms.service.ChecklistService();
 
     private User user;
     private int requestId;
@@ -108,7 +111,8 @@ public class RequestDetailController {
             List<LookupOption> personnel,
             BigDecimal repairCost,
             List<RequestPart> parts,
-            BigDecimal partsCost
+            BigDecimal partsCost,
+            List<com.deihs.mms.model.RequestChecklist> checklists
     ) {
     }
 
@@ -159,7 +163,8 @@ public class RequestDetailController {
                         people,
                         service.repairCost(requestId),
                         partService.partsForRequest(requestId),
-                        partService.partsCost(requestId));
+                        partService.partsCost(requestId),
+                        checklistService.requestChecklists(requestId));
             }
         };
 
@@ -214,6 +219,7 @@ public class RequestDetailController {
         renderInfo(detail, bundle.repairCost());
         renderActions(detail, bundle.repairCost());
         renderParts(bundle.parts(), bundle.partsCost());
+        renderChecklists(bundle.checklists());
         renderTimeline(bundle.history(), detail);
         renderComments(bundle.comments());
         renderAttachments(bundle.attachments());
@@ -324,6 +330,75 @@ public class RequestDetailController {
     // ------------------------------------------------------------------
     // Parts used
     // ------------------------------------------------------------------
+
+    private void renderChecklists(List<com.deihs.mms.model.RequestChecklist> checklists) {
+        checklistBox.getChildren().clear();
+        if (checklists == null || checklists.isEmpty()) {
+            Label empty = new Label("No checklist applied. Use a template for routine inspection steps.");
+            empty.getStyleClass().add("page-sub");
+            checklistBox.getChildren().add(empty);
+            return;
+        }
+        for (com.deihs.mms.model.RequestChecklist cl : checklists) {
+            VBox card = new VBox(6);
+            card.getStyleClass().add("detail-card");
+            long done = cl.items().stream().filter(com.deihs.mms.model.RequestChecklistItem::done).count();
+            Label head = new Label(cl.name() + " (" + done + "/" + cl.items().size() + " done)");
+            head.getStyleClass().add("form-label");
+            card.getChildren().add(head);
+            for (com.deihs.mms.model.RequestChecklistItem item : cl.items()) {
+                javafx.scene.control.CheckBox cb = new javafx.scene.control.CheckBox(item.text());
+                cb.setSelected(item.done());
+                cb.setWrapText(true);
+                cb.setOnAction(e -> {
+                    try {
+                        checklistService.setItemDone(requestId, item.id(), cb.isSelected(), user);
+                        load();
+                    } catch (Exception ex) {
+                        AlertUtil.error(window(), "Checklist update failed", ex.getMessage(), ex);
+                        load();
+                    }
+                });
+                if (item.done() && item.doneBy() != null) {
+                    cb.setText(item.text() + "  —  " + item.doneBy());
+                }
+                card.getChildren().add(cb);
+            }
+            checklistBox.getChildren().add(card);
+        }
+    }
+
+    @FXML
+    private void onApplyChecklistTemplate() {
+        try {
+            List<com.deihs.mms.model.ChecklistTemplate> templates = checklistService.templates(false);
+            if (templates.isEmpty()) {
+                AlertUtil.warn(window(), "No templates", "No active checklist templates found. Create one in Settings first.");
+                return;
+            }
+            javafx.scene.control.ChoiceDialog<com.deihs.mms.model.ChecklistTemplate> dlg = new javafx.scene.control.ChoiceDialog<>(templates.get(0), templates);
+            dlg.initOwner(window());
+            dlg.setTitle("Apply Checklist Template");
+            dlg.setHeaderText("Select a checklist template to apply to this request.");
+            dlg.setContentText("Template:");
+            // show template name in combo
+            javafx.scene.control.ComboBox<com.deihs.mms.model.ChecklistTemplate> box = (javafx.scene.control.ComboBox<com.deihs.mms.model.ChecklistTemplate>) dlg.getDialogPane().lookup(".combo-box");
+            if (box != null) {
+                box.setCellFactory(lv -> new javafx.scene.control.ListCell<>() { @Override protected void updateItem(com.deihs.mms.model.ChecklistTemplate item, boolean empty) { super.updateItem(item, empty); setText(empty||item==null?null:item.name()); } });
+                box.setButtonCell(new javafx.scene.control.ListCell<>() { @Override protected void updateItem(com.deihs.mms.model.ChecklistTemplate item, boolean empty) { super.updateItem(item, empty); setText(empty||item==null?null:item.name()); } });
+            }
+            dlg.showAndWait().ifPresent(t -> {
+                try {
+                    checklistService.applyTemplate(requestId, t.id(), user);
+                    load();
+                } catch (Exception ex) {
+                    AlertUtil.error(window(), "Could not apply template", ex.getMessage(), ex);
+                }
+            });
+        } catch (Exception ex) {
+            AlertUtil.error(window(), "Could not load templates", ex.getMessage(), ex);
+        }
+    }
 
     private void renderParts(List<RequestPart> parts, BigDecimal partsCost) {
         partsBox.getChildren().clear();

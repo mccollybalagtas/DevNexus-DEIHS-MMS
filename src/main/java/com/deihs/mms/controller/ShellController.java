@@ -981,6 +981,9 @@ public class ShellController {
             content.getChildren().add(buildSlaSection(owner));
             content.getChildren().add(buildLanWebSection(owner));
         }
+        if (user.role() == com.deihs.mms.model.Role.ADMIN || user.role() == com.deihs.mms.model.Role.MAINT_HEAD) {
+            content.getChildren().add(buildChecklistTemplatesSection(owner));
+        }
         dialog.getDialogPane().setContent(content);
 
         String oldFont = fontPref();
@@ -1191,6 +1194,84 @@ public class ShellController {
         VBox box = new VBox(6, title, hint, grid, buttons, status);
         box.getStyleClass().add("settings-section");
         return box;
+    }
+
+    private Node buildChecklistTemplatesSection(Window owner) {
+        Label title = new Label("Checklist templates");
+        title.getStyleClass().add("card-title");
+        Label hint = new Label("Create reusable maintenance checklists that can be applied to requests.");
+        hint.getStyleClass().add("form-hint");
+        hint.setWrapText(true); hint.setMaxWidth(340);
+        Button open = new Button("Manage templates");
+        open.getStyleClass().add("btn-ghost");
+        open.setOnAction(e -> openChecklistTemplatesDialog(owner));
+        VBox box = new VBox(6, title, hint, open);
+        box.getStyleClass().add("settings-section");
+        return box;
+    }
+
+    private void openChecklistTemplatesDialog(Window owner) {
+        com.deihs.mms.service.ChecklistService svc = new com.deihs.mms.service.ChecklistService();
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.initOwner(owner);
+        dialog.setTitle("Checklist Templates");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().getStyleClass().add("form-dialog");
+
+        javafx.scene.control.TableView<com.deihs.mms.model.ChecklistTemplate> table = new javafx.scene.control.TableView<>();
+        table.setColumnResizePolicy(javafx.scene.control.TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        javafx.scene.control.TableColumn<com.deihs.mms.model.ChecklistTemplate, String> nameCol = new javafx.scene.control.TableColumn<>("NAME");
+        nameCol.setCellValueFactory(c -> new javafx.beans.property.ReadOnlyStringWrapper(c.getValue().name()));
+        javafx.scene.control.TableColumn<com.deihs.mms.model.ChecklistTemplate, String> catCol = new javafx.scene.control.TableColumn<>("CATEGORY");
+        catCol.setCellValueFactory(c -> new javafx.beans.property.ReadOnlyStringWrapper(c.getValue().category() == null ? "" : c.getValue().category()));
+        javafx.scene.control.TableColumn<com.deihs.mms.model.ChecklistTemplate, String> itemsCol = new javafx.scene.control.TableColumn<>("ITEMS");
+        itemsCol.setCellValueFactory(c -> new javafx.beans.property.ReadOnlyStringWrapper(String.valueOf(c.getValue().items().size())));
+        javafx.scene.control.TableColumn<com.deihs.mms.model.ChecklistTemplate, String> activeCol = new javafx.scene.control.TableColumn<>("ACTIVE");
+        activeCol.setCellValueFactory(c -> new javafx.beans.property.ReadOnlyStringWrapper(c.getValue().active() ? "Yes" : "No"));
+        table.getColumns().addAll(nameCol, catCol, itemsCol, activeCol);
+        table.setPlaceholder(new Label("No checklist templates yet."));
+
+        javafx.scene.control.TextField nameField = new javafx.scene.control.TextField(); nameField.setPromptText("Template name");
+        javafx.scene.control.TextField catField = new javafx.scene.control.TextField(); catField.setPromptText("Category (optional)");
+        javafx.scene.control.TextField descField = new javafx.scene.control.TextField(); descField.setPromptText("Description (optional)");
+        javafx.scene.control.TextArea itemsArea = new javafx.scene.control.TextArea(); itemsArea.setPromptText("One checklist item per line"); itemsArea.setPrefRowCount(6);
+        javafx.scene.control.CheckBox activeBox = new javafx.scene.control.CheckBox("Active"); activeBox.setSelected(true);
+        Label err = new Label(); err.getStyleClass().add("form-error"); err.setVisible(false); err.setManaged(false);
+        Button newBtn = new Button("New"); newBtn.getStyleClass().add("btn-ghost");
+        Button saveBtn = new Button("Save Template"); saveBtn.getStyleClass().add("btn-primary");
+        final int[] editingId = {-1};
+
+        Runnable reload = () -> {
+            try { table.setItems(javafx.collections.FXCollections.observableArrayList(svc.templates(true))); }
+            catch (Exception ex) { err.setText(ex.getMessage()); err.setVisible(true); err.setManaged(true); }
+        };
+        newBtn.setOnAction(e -> { editingId[0] = -1; nameField.clear(); catField.clear(); descField.clear(); itemsArea.clear(); activeBox.setSelected(true); });
+        table.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
+            if (n == null) return;
+            editingId[0] = n.id(); nameField.setText(n.name()); catField.setText(n.category()==null?"":n.category()); descField.setText(n.description()==null?"":n.description()); activeBox.setSelected(n.active());
+            itemsArea.setText(String.join("\n", n.items()));
+        });
+        saveBtn.setOnAction(e -> {
+            err.setVisible(false); err.setManaged(false);
+            try {
+                java.util.List<String> items = new java.util.ArrayList<>();
+                for (String line : itemsArea.getText().split("\\R")) if (!line.trim().isEmpty()) items.add(line.trim());
+                Integer id = editingId[0] <= 0 ? null : editingId[0];
+                svc.saveTemplate(id, nameField.getText(), catField.getText(), descField.getText(), activeBox.isSelected(), items, Session.get());
+                reload.run();
+                newBtn.fire();
+            } catch (Exception ex) { err.setText(ex.getMessage()); err.setVisible(true); err.setManaged(true); }
+        });
+
+        VBox form = new VBox(8, new Label("Template details"), nameField, catField, descField, itemsArea, activeBox, err, new HBox(8, newBtn, saveBtn));
+        form.setPrefWidth(360);
+        HBox body = new HBox(12, table, form);
+        HBox.setHgrow(table, javafx.scene.layout.Priority.ALWAYS);
+        body.setPrefSize(980, 560);
+        dialog.getDialogPane().setContent(body);
+        ViewLoader.applyAppStyles(dialog.getDialogPane());
+        reload.run();
+        dialog.showAndWait();
     }
 
     // ------------------------------------------------------------------

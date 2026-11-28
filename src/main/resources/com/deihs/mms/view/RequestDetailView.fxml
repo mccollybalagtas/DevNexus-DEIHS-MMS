@@ -75,6 +75,17 @@
             <VBox fx:id="partsBox" spacing="8"/>
         </VBox>
 
+        <!-- Checklists -->
+        <VBox styleClass="card" spacing="10" maxWidth="Infinity">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Checklists" styleClass="card-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="applyChecklistButton" text="Apply Template" styleClass="btn-ghost"
+                        onAction="#onApplyChecklistTemplate"/>
+            </HBox>
+            <VBox fx:id="checklistBox" spacing="10"/>
+        </VBox>
+
         <!-- Comments -->
         <VBox styleClass="card" spacing="10" maxWidth="Infinity">
             <Label text="Comments" styleClass="card-title"/>

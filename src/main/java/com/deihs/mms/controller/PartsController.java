@@ -56,6 +56,7 @@ public class PartsController {
     @FXML private Button addButton;
     @FXML private Button exportButton;
     @FXML private Button importButton;
+    @FXML private Button receivingButton;
     @FXML private TextField searchField;
     @FXML private CheckBox lowOnlyBox;
     @FXML private CheckBox showArchivedBox;
@@ -86,6 +87,10 @@ public class PartsController {
         addButton.setManaged(canManage);
         importButton.setVisible(canManage);
         importButton.setManaged(canManage);
+        if (receivingButton != null) {
+            receivingButton.setVisible(canManage);
+            receivingButton.setManaged(canManage);
+        }
 
         setupTable();
 
@@ -335,6 +340,114 @@ public class PartsController {
 
     private Window ownerWindow() {
         return table.getScene() == null ? null : table.getScene().getWindow();
+    }
+
+    @FXML
+    private void onReceivingLog() {
+        if (!canManage) return;
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.initOwner(ownerWindow());
+        dialog.initModality(Modality.WINDOW_MODAL);
+        dialog.setTitle("Parts Receiving Log");
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.getDialogPane().getStyleClass().add("form-dialog");
+
+        javafx.scene.control.ComboBox<Part> partBox = new javafx.scene.control.ComboBox<>();
+        partBox.setMaxWidth(Double.MAX_VALUE);
+        TextField qtyField = new TextField();
+        qtyField.setPromptText("Quantity received");
+        TextField costField = new TextField();
+        costField.setPromptText("Unit cost");
+        TextField supplierField = new TextField();
+        supplierField.setPromptText("Supplier");
+        TextField refField = new TextField();
+        refField.setPromptText("Reference / PO #");
+        TextField notesField = new TextField();
+        notesField.setPromptText("Notes");
+        Label formError = new Label();
+        formError.getStyleClass().add("form-error");
+        formError.setVisible(false); formError.setManaged(false);
+        Button receiveBtn = new Button("Record Receiving");
+        receiveBtn.getStyleClass().add("btn-primary");
+
+        TableView<com.deihs.mms.model.PartReceiving> logTable = new TableView<>();
+        logTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
+        logTable.setPlaceholder(new Label("No receiving records yet."));
+        TableColumn<com.deihs.mms.model.PartReceiving, String> whenCol = new TableColumn<>("WHEN");
+        whenCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(Format.dateTime(c.getValue().receivedAt())));
+        TableColumn<com.deihs.mms.model.PartReceiving, String> partCol = new TableColumn<>("PART");
+        partCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().partName()));
+        TableColumn<com.deihs.mms.model.PartReceiving, String> qtyCol = new TableColumn<>("QTY");
+        qtyCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(String.valueOf(c.getValue().quantity())));
+        TableColumn<com.deihs.mms.model.PartReceiving, String> ucostCol = new TableColumn<>("UNIT COST");
+        ucostCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(Format.peso(c.getValue().unitCost() == null ? BigDecimal.ZERO : c.getValue().unitCost())));
+        TableColumn<com.deihs.mms.model.PartReceiving, String> supCol = new TableColumn<>("SUPPLIER");
+        supCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().supplier())));
+        TableColumn<com.deihs.mms.model.PartReceiving, String> refCol = new TableColumn<>("REFERENCE");
+        refCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().referenceNo())));
+        TableColumn<com.deihs.mms.model.PartReceiving, String> byCol = new TableColumn<>("RECEIVED BY");
+        byCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(blank(c.getValue().receivedBy())));
+        logTable.getColumns().addAll(whenCol, partCol, qtyCol, ucostCol, supCol, refCol, byCol);
+
+        Runnable reloadLog = () -> {
+            try {
+                logTable.setItems(FXCollections.observableArrayList(partService.recentReceivings(100)));
+                List<Part> activeParts = partDao.search(null, false, false);
+                Part sel = partBox.getValue();
+                partBox.setItems(FXCollections.observableArrayList(activeParts));
+                if (sel != null) {
+                    for (Part p : activeParts) if (p.id() == sel.id()) { partBox.setValue(p); break; }
+                }
+            } catch (Exception ex) {
+                formError.setText(ex.getMessage()); formError.setVisible(true); formError.setManaged(true);
+            }
+        };
+
+        partBox.setCellFactory(lv -> new javafx.scene.control.ListCell<>() {
+            @Override protected void updateItem(Part item, boolean empty) { super.updateItem(item, empty); setText(empty || item == null ? null : item.name() + " (" + item.quantity() + " " + item.unit() + ")"); }
+        });
+        partBox.setButtonCell(new javafx.scene.control.ListCell<>() {
+            @Override protected void updateItem(Part item, boolean empty) { super.updateItem(item, empty); setText(empty || item == null ? null : item.name()); }
+        });
+
+        receiveBtn.setOnAction(e -> {
+            formError.setVisible(false); formError.setManaged(false);
+            Part p = partBox.getValue();
+            if (p == null) { formError.setText("Select a part."); formError.setVisible(true); formError.setManaged(true); return; }
+            try {
+                int qty = Integer.parseInt(qtyField.getText().trim());
+                BigDecimal cost = costField.getText() == null || costField.getText().isBlank() ? BigDecimal.ZERO : new BigDecimal(costField.getText().trim());
+                partService.receive(p.id(), qty, cost, supplierField.getText(), refField.getText(), notesField.getText(), Session.get());
+                qtyField.clear(); costField.clear(); supplierField.clear(); refField.clear(); notesField.clear();
+                reloadLog.run();
+                refresh();
+            } catch (Exception ex) {
+                formError.setText(ex.getMessage()); formError.setVisible(true); formError.setManaged(true);
+            }
+        });
+
+        javafx.scene.layout.GridPane form = new javafx.scene.layout.GridPane();
+        form.setHgap(8); form.setVgap(8);
+        form.add(new Label("Part"), 0, 0); form.add(partBox, 1, 0);
+        form.add(new Label("Quantity"), 0, 1); form.add(qtyField, 1, 1);
+        form.add(new Label("Unit cost"), 0, 2); form.add(costField, 1, 2);
+        form.add(new Label("Supplier"), 0, 3); form.add(supplierField, 1, 3);
+        form.add(new Label("Reference"), 0, 4); form.add(refField, 1, 4);
+        form.add(new Label("Notes"), 0, 5); form.add(notesField, 1, 5);
+        form.add(receiveBtn, 1, 6);
+        javafx.scene.layout.ColumnConstraints c1 = new javafx.scene.layout.ColumnConstraints(); c1.setMinWidth(90);
+        javafx.scene.layout.ColumnConstraints c2 = new javafx.scene.layout.ColumnConstraints(); c2.setHgrow(javafx.scene.layout.Priority.ALWAYS);
+        form.getColumnConstraints().addAll(c1, c2);
+
+        javafx.scene.layout.VBox content = new javafx.scene.layout.VBox(10,
+                new Label("Record receiving"), form, formError,
+                new Label("Recent receiving log"), logTable);
+        content.setPrefSize(980, 640);
+        javafx.scene.layout.VBox.setVgrow(logTable, javafx.scene.layout.Priority.ALWAYS);
+        dialog.getDialogPane().setContent(content);
+        ViewLoader.applyAppStyles(dialog.getDialogPane());
+        reloadLog.run();
+        dialog.showAndWait();
     }
 
     @FXML

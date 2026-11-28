@@ -49,6 +49,7 @@
                 <TableColumn fx:id="facilityCol" text="FACILITY" prefWidth="170"/>
                 <TableColumn fx:id="conditionCol" text="CONDITION" prefWidth="120"/>
                 <TableColumn fx:id="acquiredCol" text="ACQUIRED" prefWidth="110"/>
+                <TableColumn fx:id="lifecycleCol" text="LIFECYCLE / WARRANTY" prefWidth="170"/>
                 <TableColumn fx:id="actionsCol" text="ACTIONS" prefWidth="170"/>
             </columns>
         </TableView>

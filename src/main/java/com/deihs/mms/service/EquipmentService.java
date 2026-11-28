@@ -15,6 +15,8 @@ public class EquipmentService {
 
     private static final Set<String> CONDITIONS =
             Set.of("GOOD", "FAIR", "POOR", "NEEDS_REPAIR", "OUT_OF_ORDER");
+    private static final Set<String> LIFECYCLE =
+            Set.of("IN_SERVICE", "FOR_REPAIR", "RETIRED", "DISPOSED");
 
     private final EquipmentDao equipmentDao = new EquipmentDao();
     private final AuditDao auditDao = new AuditDao();
@@ -51,6 +53,10 @@ public class EquipmentService {
                 .put("facilityId", old.facilityId(), clean.facilityId())
                 .put("condition", old.condition(), clean.condition())
                 .put("acquisitionDate", old.acquisitionDate(), clean.acquisitionDate())
+                .put("warrantyUntil", old.warrantyUntil(), clean.warrantyUntil())
+                .put("lifecycleStatus", old.lifecycleStatus(), clean.lifecycleStatus())
+                .put("disposalDate", old.disposalDate(), clean.disposalDate())
+                .put("disposalNotes", old.disposalNotes(), clean.disposalNotes())
                 .put("notes", old.notes(), clean.notes());
         }
         auditDao.log(user.id(), "UPDATE_EQUIPMENT", "equipment", clean.propertyNo(), clean.name(),
@@ -77,6 +83,7 @@ public class EquipmentService {
         if (d == null) return null;
         Integer fid = d.facilityId();
         if (fid != null && fid <= 0) fid = null;
+        String lifecycle = d.lifecycleStatus() == null ? "IN_SERVICE" : d.lifecycleStatus().trim().toUpperCase(Locale.ROOT);
         return new EquipmentDraft(
                 upper(d.propertyNo()),
                 text(d.name()),
@@ -87,7 +94,11 @@ public class EquipmentService {
                 fid,
                 d.condition() == null ? "GOOD" : d.condition().trim().toUpperCase(Locale.ROOT),
                 d.acquisitionDate(),
-                text(d.notes())
+                text(d.notes()),
+                d.warrantyUntil(),
+                lifecycle,
+                d.disposalDate(),
+                text(d.disposalNotes())
         );
     }
 
@@ -112,6 +123,11 @@ public class EquipmentService {
         if (d.brand() != null && d.brand().length() > 60) throw new ValidationException("Brand is too long.");
         if (d.model() != null && d.model().length() > 60) throw new ValidationException("Model is too long.");
         if (d.serialNo() != null && d.serialNo().length() > 60) throw new ValidationException("Serial number is too long.");
+        if (!LIFECYCLE.contains(d.lifecycleStatus())) throw new ValidationException("Choose a valid lifecycle status.");
+        if (d.disposalNotes() != null && d.disposalNotes().length() > 500) throw new ValidationException("Disposal notes are too long.");
+        if ("DISPOSED".equals(d.lifecycleStatus()) && d.disposalDate() == null) {
+            throw new ValidationException("Disposal date is required when lifecycle status is Disposed.");
+        }
     }
 
     private static String text(String v) {

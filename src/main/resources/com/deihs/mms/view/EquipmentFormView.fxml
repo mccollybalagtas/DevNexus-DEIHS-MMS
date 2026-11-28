@@ -64,6 +64,28 @@
         </VBox>
     </HBox>
 
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Warranty until" styleClass="field-label"/>
+            <DatePicker fx:id="warrantyPicker" maxWidth="Infinity"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Lifecycle status" styleClass="field-label"/>
+            <ComboBox fx:id="lifecycleBox" styleClass="combo-input" maxWidth="Infinity"/>
+        </VBox>
+    </HBox>
+
+    <HBox spacing="12">
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Disposal date" styleClass="field-label"/>
+            <DatePicker fx:id="disposalDatePicker" maxWidth="Infinity"/>
+        </VBox>
+        <VBox spacing="5" HBox.hgrow="ALWAYS">
+            <Label text="Disposal notes (optional)" styleClass="field-label"/>
+            <TextField fx:id="disposalNotesField" styleClass="input" promptText="Reason / recipient / reference"/>
+        </VBox>
+    </HBox>
+
     <VBox spacing="5">
         <Label text="Notes (optional)" styleClass="field-label"/>
         <TextArea fx:id="notesArea" styleClass="input" prefRowCount="3" wrapText="true"/>
