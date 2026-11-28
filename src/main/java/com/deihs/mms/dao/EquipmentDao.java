@@ -109,6 +109,17 @@ public class EquipmentDao {
         }
     }
 
+    public Equipment findByPropertyNo(String propertyNo) throws SQLException {
+        String sql = BASE_SELECT + " AND e.property_no = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, propertyNo);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        }
+    }
+
     public int create(EquipmentDraft d) throws SQLException {
         String sql = """
                 INSERT INTO equipment

@@ -12,6 +12,7 @@ import com.deihs.mms.service.ValidationException;
 import com.deihs.mms.util.AlertUtil;
 import com.deihs.mms.util.AssetTagDialog;
 import com.deihs.mms.util.Format;
+import com.deihs.mms.util.CsvUtil;
 import com.deihs.mms.util.ViewLoader;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -36,13 +37,19 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Facility registry: search, filter by condition, add/edit/archive/restore.
@@ -51,6 +58,8 @@ import java.util.List;
 public class FacilitiesController {
 
     @FXML private Button addButton;
+    @FXML private Button exportButton;
+    @FXML private Button importButton;
     @FXML private TextField searchField;
     @FXML private ComboBox<Choice> conditionBox;
     @FXML private CheckBox showArchivedBox;
@@ -80,6 +89,8 @@ public class FacilitiesController {
         canManage = Permissions.canManageFacilities(user);
         addButton.setVisible(canManage);
         addButton.setManaged(canManage);
+        importButton.setVisible(canManage);
+        importButton.setManaged(canManage);
 
         setupFilters();
         setupTable();
@@ -333,5 +344,123 @@ public class FacilitiesController {
 
     private Window ownerWindow() {
         return table.getScene() == null ? null : table.getScene().getWindow();
+    }
+
+    @FXML
+    private void onExportCsv() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Export Facilities CSV");
+        chooser.setInitialFileName("facilities.csv");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = chooser.showSaveDialog(ownerWindow());
+        if (file == null) return;
+        try {
+            List<Facility> all = facilityDao.search(null, null, true);
+            List<String> headers = List.of("code","name","building","floor","room_number","type","condition","notes","active");
+            List<List<String>> rows = new ArrayList<>();
+            for (Facility f : all) {
+                rows.add(List.of(
+                        nz(f.code()), nz(f.name()), nz(f.building()), nz(f.floor()), nz(f.roomNumber()),
+                        nz(f.type()), nz(f.condition()), nz(f.notes()), f.active() ? "1" : "0"));
+            }
+            CsvUtil.write(file.toPath(), headers, rows);
+            AlertUtil.info(ownerWindow(), "Export complete", "Exported " + rows.size() + " facilities to\n" + file.getAbsolutePath());
+        } catch (Exception ex) {
+            AlertUtil.error(ownerWindow(), "Export failed", ex.getMessage(), ex);
+        }
+    }
+
+    @FXML
+    private void onImportCsv() {
+        if (!canManage) return;
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Import Facilities CSV");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = chooser.showOpenDialog(ownerWindow());
+        if (file == null) return;
+        try {
+            List<Map<String, String>> in = CsvUtil.readWithHeaders(file.toPath());
+            int created = 0, updated = 0;
+            List<String> errors = new ArrayList<>();
+            for (int i = 0; i < in.size(); i++) {
+                int rowNum = i + 2;
+                Map<String, String> r = in.get(i);
+                try {
+                    String code = val(r, "code");
+                    String name = val(r, "name");
+                    if (code.isBlank() || name.isBlank()) {
+                        errors.add("Row " + rowNum + ": code and name are required.");
+                        continue;
+                    }
+                    FacilityDraft draft = new FacilityDraft(
+                            code, name,
+                            val(r, "building"), val(r, "floor"), val(r, "room_number"),
+                            blankToNull(val(r, "type")),
+                            defaultCondition(val(r, "condition")),
+                            blankToNull(val(r, "notes")));
+                    Facility existing = facilityDao.findByCode(code);
+                    User user = Session.get();
+                    if (existing == null) {
+                        facilityService.create(draft, user);
+                        created++;
+                    } else {
+                        facilityService.update(existing.id(), draft, user);
+                        updated++;
+                    }
+                    Facility after = facilityDao.findByCode(code);
+                    if (after != null) {
+                        String active = val(r, "active");
+                        if (!active.isBlank()) {
+                            boolean wantActive = !"0".equals(active) && !"false".equalsIgnoreCase(active);
+                            if (after.active() != wantActive) {
+                                facilityService.setActive(after.id(), after.code(), wantActive, user);
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    errors.add("Row " + rowNum + ": " + ex.getMessage());
+                }
+            }
+            refresh();
+            showImportResult("Facilities", created, updated, errors);
+        } catch (Exception ex) {
+            AlertUtil.error(ownerWindow(), "Import failed", ex.getMessage(), ex);
+        }
+    }
+
+    private void showImportResult(String what, int created, int updated, List<String> errors) {
+        StringBuilder msg = new StringBuilder();
+        msg.append("Created: ").append(created).append("\nUpdated: ").append(updated);
+        if (!errors.isEmpty()) {
+            msg.append("\n\nErrors (").append(errors.size()).append("):\n");
+            for (int i = 0; i < Math.min(errors.size(), 12); i++) {
+                msg.append("- ").append(errors.get(i)).append("\n");
+            }
+            if (errors.size() > 12) msg.append("- ...").append(errors.size() - 12).append(" more");
+            AlertUtil.warn(ownerWindow(), what + " import finished with errors", msg.toString());
+        } else {
+            AlertUtil.info(ownerWindow(), what + " import complete", msg.toString());
+        }
+    }
+
+    private static String nz(String v) { return v == null ? "" : v; }
+    private static String val(Map<String, String> r, String key) {
+        String v = r.get(key);
+        if (v == null) {
+            // try case-insensitive
+            for (Map.Entry<String, String> e : r.entrySet()) {
+                if (e.getKey() != null && e.getKey().equalsIgnoreCase(key)) { v = e.getValue(); break; }
+            }
+        }
+        return v == null ? "" : v.trim();
+    }
+    private static String blankToNull(String v) { return v == null || v.isBlank() ? null : v.trim(); }
+    private static String defaultCondition(String v) {
+        if (v == null || v.isBlank()) return "GOOD";
+        String u = v.trim().toUpperCase().replace(' ', '_');
+        return switch (u) {
+            case "GOOD","FAIR","POOR","NEEDS_REPAIR","OUT_OF_ORDER" -> u;
+            default -> "GOOD";
+        };
     }
 }

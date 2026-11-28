@@ -114,6 +114,17 @@ public class FacilityDao {
         }
     }
 
+    public Facility findByCode(String code) throws SQLException {
+        String sql = BASE_SELECT + " AND f.facility_code = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, code);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        }
+    }
+
     public int create(FacilityDraft draft) throws SQLException {
         String sql = """
                 INSERT INTO facilities

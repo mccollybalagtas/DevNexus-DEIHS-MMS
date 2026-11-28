@@ -10,6 +10,7 @@ import com.deihs.mms.service.Session;
 import com.deihs.mms.service.ValidationException;
 import com.deihs.mms.util.AlertUtil;
 import com.deihs.mms.util.Format;
+import com.deihs.mms.util.CsvUtil;
 import com.deihs.mms.util.ViewLoader;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -31,14 +32,19 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Parts inventory: search, filter low stock, add/edit/archive/restore.
@@ -48,6 +54,8 @@ import java.util.List;
 public class PartsController {
 
     @FXML private Button addButton;
+    @FXML private Button exportButton;
+    @FXML private Button importButton;
     @FXML private TextField searchField;
     @FXML private CheckBox lowOnlyBox;
     @FXML private CheckBox showArchivedBox;
@@ -76,6 +84,8 @@ public class PartsController {
         canManage = Permissions.canManageParts(user);
         addButton.setVisible(canManage);
         addButton.setManaged(canManage);
+        importButton.setVisible(canManage);
+        importButton.setManaged(canManage);
 
         setupTable();
 
@@ -326,4 +336,98 @@ public class PartsController {
     private Window ownerWindow() {
         return table.getScene() == null ? null : table.getScene().getWindow();
     }
+
+    @FXML
+    private void onExportCsv() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Export Parts CSV");
+        chooser.setInitialFileName("parts.csv");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = chooser.showSaveDialog(ownerWindow());
+        if (file == null) return;
+        try {
+            List<Part> all = partDao.search(null, true, false);
+            List<String> headers = List.of("name","sku","unit","quantity","reorder_level","unit_cost","active");
+            List<List<String>> rows = new ArrayList<>();
+            for (Part p : all) {
+                rows.add(List.of(nz(p.name()), nz(p.sku()), nz(p.unit()), String.valueOf(p.quantity()),
+                        String.valueOf(p.reorderLevel()), p.unitCost() == null ? "0" : p.unitCost().toPlainString(),
+                        p.active() ? "1" : "0"));
+            }
+            CsvUtil.write(file.toPath(), headers, rows);
+            AlertUtil.info(ownerWindow(), "Export complete", "Exported " + rows.size() + " parts to\n" + file.getAbsolutePath());
+        } catch (Exception ex) {
+            AlertUtil.error(ownerWindow(), "Export failed", ex.getMessage(), ex);
+        }
+    }
+
+    @FXML
+    private void onImportCsv() {
+        if (!canManage) return;
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Import Parts CSV");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = chooser.showOpenDialog(ownerWindow());
+        if (file == null) return;
+        try {
+            List<Map<String, String>> in = CsvUtil.readWithHeaders(file.toPath());
+            int created = 0, updated = 0;
+            List<String> errors = new ArrayList<>();
+            for (int i = 0; i < in.size(); i++) {
+                int rowNum = i + 2;
+                Map<String, String> r = in.get(i);
+                try {
+                    String name = val(r, "name");
+                    if (name.isBlank()) { errors.add("Row " + rowNum + ": name is required."); continue; }
+                    int qty = parseInt(val(r, "quantity"), 0);
+                    int reorder = parseInt(val(r, "reorder_level"), 0);
+                    BigDecimal cost = parseDecimal(val(r, "unit_cost"), BigDecimal.ZERO);
+                    PartDraft draft = new PartDraft(name, blankToNull(val(r,"sku")),
+                            val(r,"unit").isBlank() ? "pcs" : val(r,"unit"),
+                            qty, reorder, cost);
+                    Part existing = partDao.findByName(name);
+                    User user = Session.get();
+                    if (existing == null) { partService.create(draft, user); created++; }
+                    else { partService.update(existing.id(), draft, user); updated++; }
+                    Part after = partDao.findByName(name);
+                    if (after != null) {
+                        String active = val(r, "active");
+                        if (!active.isBlank()) {
+                            boolean wantActive = !"0".equals(active) && !"false".equalsIgnoreCase(active);
+                            if (after.active() != wantActive) partService.setActive(after.id(), after.name(), wantActive, user);
+                        }
+                    }
+                } catch (Exception ex) {
+                    errors.add("Row " + rowNum + ": " + ex.getMessage());
+                }
+            }
+            refresh();
+            showImportResult("Parts", created, updated, errors);
+        } catch (Exception ex) {
+            AlertUtil.error(ownerWindow(), "Import failed", ex.getMessage(), ex);
+        }
+    }
+
+    private void showImportResult(String what, int created, int updated, List<String> errors) {
+        StringBuilder msg = new StringBuilder();
+        msg.append("Created: ").append(created).append("\nUpdated: ").append(updated);
+        if (!errors.isEmpty()) {
+            msg.append("\n\nErrors (").append(errors.size()).append("):\n");
+            for (int i = 0; i < Math.min(errors.size(), 12); i++) msg.append("- ").append(errors.get(i)).append("\n");
+            if (errors.size() > 12) msg.append("- ...").append(errors.size() - 12).append(" more");
+            AlertUtil.warn(ownerWindow(), what + " import finished with errors", msg.toString());
+        } else {
+            AlertUtil.info(ownerWindow(), what + " import complete", msg.toString());
+        }
+    }
+
+    private static String nz(String v) { return v == null ? "" : v; }
+    private static String val(Map<String, String> r, String key) {
+        String v = r.get(key);
+        if (v == null) for (Map.Entry<String, String> e : r.entrySet()) if (e.getKey() != null && e.getKey().equalsIgnoreCase(key)) { v = e.getValue(); break; }
+        return v == null ? "" : v.trim();
+    }
+    private static String blankToNull(String v) { return v == null || v.isBlank() ? null : v.trim(); }
+    private static int parseInt(String v, int def) { try { return v == null || v.isBlank() ? def : Integer.parseInt(v.trim()); } catch (Exception e) { return def; } }
+    private static BigDecimal parseDecimal(String v, BigDecimal def) { try { return v == null || v.isBlank() ? def : new BigDecimal(v.trim()); } catch (Exception e) { return def; } }
 }

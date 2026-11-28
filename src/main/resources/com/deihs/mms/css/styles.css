@@ -2438,3 +2438,7 @@
 .asset-tag-key { -fx-font-size: 11px; -fx-text-fill: #6B7280; -fx-font-weight: bold; }
 .asset-tag-val { -fx-font-size: 11px; -fx-text-fill: #111827; }
 .theme-dark .asset-tag-card { -fx-background-color: #F8FAFC; }
+
+/* Clickable KPI cards */
+.kpi-clickable { -fx-cursor: hand; }
+.kpi-clickable:hover { -fx-opacity: 0.92; }

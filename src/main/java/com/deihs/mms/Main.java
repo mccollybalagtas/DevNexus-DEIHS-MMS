@@ -2,6 +2,7 @@ package com.deihs.mms;
 
 import com.deihs.mms.db.Database;
 import com.deihs.mms.db.SchemaUpgrade;
+import com.deihs.mms.service.LanWebServerService;
 import com.deihs.mms.util.ViewLoader;
 import javafx.application.Application;
 import javafx.scene.Parent;
@@ -51,10 +52,20 @@ public class Main extends Application {
         stage.setMinHeight(640);
         stage.setMaximized(true);
         stage.show();
+
+        if (LanWebServerService.isConfiguredEnabled()) {
+            try {
+                LanWebServerService.get().start();
+                System.out.println("LAN web portal: " + LanWebServerService.get().getLanUrl());
+            } catch (Exception e) {
+                System.err.println("Could not start LAN web portal: " + e.getMessage());
+            }
+        }
     }
 
     @Override
     public void stop() {
+        try { LanWebServerService.get().stop(); } catch (Exception ignored) {}
         Database.close();
     }
 

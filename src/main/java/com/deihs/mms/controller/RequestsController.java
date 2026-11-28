@@ -160,6 +160,7 @@ public class RequestsController {
 
     private void buildFilters() {
         statusFilter.getItems().add(new Choice(null, "All statuses"));
+        statusFilter.getItems().add(new Choice("OVERDUE", "Overdue (open)"));
         for (String s : List.of("PENDING", "ASSIGNED", "IN_PROGRESS", "ON_HOLD",
                 "COMPLETED", "CLOSED", "REJECTED", "CANCELLED")) {
             statusFilter.getItems().add(new Choice(s, Format.pretty(s)));
@@ -216,6 +217,27 @@ public class RequestsController {
     /** Called by the shell once the detail screen exists. */
     public void setOpenRequestHandler(IntConsumer handler) {
         this.openRequest = handler;
+    }
+
+    /** Applies a dashboard/chart drill-down filter and reloads the list. */
+    public void applyPresetFilter(String status, String priority) {
+        selectChoice(statusFilter, status);
+        selectChoice(priorityFilter, priority);
+        load();
+    }
+
+    private static void selectChoice(ComboBox<Choice> box, String value) {
+        if (value == null || value.isBlank()) {
+            box.getSelectionModel().selectFirst();
+            return;
+        }
+        for (Choice c : box.getItems()) {
+            if (value.equalsIgnoreCase(c.value())) {
+                box.getSelectionModel().select(c);
+                return;
+            }
+        }
+        box.getSelectionModel().selectFirst();
     }
 
     // ------------------------------------------------------------------

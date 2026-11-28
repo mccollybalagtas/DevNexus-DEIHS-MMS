@@ -127,6 +127,8 @@ public class ShellController {
     private final Map<String, Nav> navs = new LinkedHashMap<>();
     private final Map<String, NavRow> navRows = new LinkedHashMap<>();
     private String currentKey = "dashboard";
+    private String pendingRequestStatus;
+    private String pendingRequestPriority;
 
     private Timeline sidebarTimeline;
     private boolean sidebarExpanded;
@@ -348,8 +350,25 @@ public class ShellController {
     }
 
     public void navigate(String key) {
+        pendingRequestStatus = null;
+        pendingRequestPriority = null;
         Nav nav = navs.get(key);
         if (nav == null) {
+            return;
+        }
+        currentKey = key;
+        pageTitle.setText(nav.title());
+        setActiveNav(key);
+        contentArea.getChildren().setAll(loadView(nav));
+    }
+
+    public void navigateToRequests(String status, String priority) {
+        pendingRequestStatus = status;
+        pendingRequestPriority = priority;
+        String key = Session.get() != null && Session.get().role() == Role.PERSONNEL ? "tasks" : "requests";
+        Nav nav = navs.get(key);
+        if (nav == null) {
+            navigate("requests");
             return;
         }
         currentKey = key;
@@ -369,6 +388,7 @@ public class ShellController {
                 Parent view = loader.load();
                 DashboardController controller = loader.getController();
                 controller.setNavigator(this::navigate);
+                controller.setRequestNavigator(this::navigateToRequests);
                 return view;
             } catch (IOException | RuntimeException e) {
                 return errorView(nav.title(), e);
@@ -380,6 +400,11 @@ public class ShellController {
                 Parent view = loader.load();
                 RequestsController controller = loader.getController();
                 controller.setOpenRequestHandler(id -> openRequest(nav, id));
+                if (pendingRequestStatus != null || pendingRequestPriority != null) {
+                    controller.applyPresetFilter(pendingRequestStatus, pendingRequestPriority);
+                    pendingRequestStatus = null;
+                    pendingRequestPriority = null;
+                }
                 return view;
             } catch (IOException | RuntimeException e) {
                 return errorView(nav.title(), e);
@@ -929,6 +954,7 @@ public class ShellController {
         content.setPadding(new Insets(4, 4, 2, 4));
         if (Permissions.canManageUsers(user)) {
             content.getChildren().add(buildBackupSection(owner));
+            content.getChildren().add(buildLanWebSection(owner));
         }
         dialog.getDialogPane().setContent(content);
 
@@ -962,6 +988,81 @@ public class ShellController {
             applyFontPreference();
             refreshChrome();
         }
+    }
+
+    // ------------------------------------------------------------------
+    // LAN web portal / login QR
+    // ------------------------------------------------------------------
+
+    private Node buildLanWebSection(Window owner) {
+        Label title = new Label("LAN Login QR / Web Portal");
+        title.getStyleClass().add("card-title");
+
+        Label hint = new Label("Start the embedded LAN web page so phones on the same school network can scan a QR code and open the DEIHS MMS login portal.");
+        hint.getStyleClass().add("form-hint");
+        hint.setWrapText(true);
+        hint.setMaxWidth(340);
+
+        com.deihs.mms.service.LanWebServerService svc = com.deihs.mms.service.LanWebServerService.get();
+        Label urlLabel = new Label(svc.isRunning() ? svc.getLanUrl() : "Portal stopped. Default port: " + com.deihs.mms.service.LanWebServerService.getConfiguredPort());
+        urlLabel.getStyleClass().add("form-hint");
+        urlLabel.setWrapText(true);
+        urlLabel.setMaxWidth(340);
+
+        javafx.scene.image.ImageView qrView = new javafx.scene.image.ImageView();
+        qrView.setFitWidth(180);
+        qrView.setFitHeight(180);
+        qrView.setPreserveRatio(true);
+        qrView.setVisible(svc.isRunning());
+        qrView.setManaged(svc.isRunning());
+        if (svc.isRunning()) {
+            try { qrView.setImage(com.deihs.mms.util.QrCode.toFxImage(svc.getLanUrl(), 8, 2)); } catch (Exception ignored) {}
+        }
+
+        Button startStop = new Button(svc.isRunning() ? "Stop portal" : "Start portal");
+        startStop.getStyleClass().add("btn-ghost");
+        Button copy = new Button("Copy URL");
+        copy.getStyleClass().add("btn-ghost");
+        copy.setDisable(!svc.isRunning());
+
+        Runnable refresh = () -> {
+            boolean running = svc.isRunning();
+            startStop.setText(running ? "Stop portal" : "Start portal");
+            urlLabel.setText(running ? svc.getLanUrl() : "Portal stopped. Default port: " + com.deihs.mms.service.LanWebServerService.getConfiguredPort());
+            qrView.setVisible(running);
+            qrView.setManaged(running);
+            copy.setDisable(!running);
+            if (running) {
+                try { qrView.setImage(com.deihs.mms.util.QrCode.toFxImage(svc.getLanUrl(), 8, 2)); } catch (Exception ignored) {}
+            }
+        };
+
+        startStop.setOnAction(e -> {
+            try {
+                if (svc.isRunning()) {
+                    svc.stop();
+                    com.deihs.mms.service.LanWebServerService.setConfiguredEnabled(false);
+                } else {
+                    svc.start();
+                    com.deihs.mms.service.LanWebServerService.setConfiguredEnabled(true);
+                }
+                refresh.run();
+            } catch (Exception ex) {
+                AlertUtil.error(owner, "LAN web portal", ex.getMessage(), ex);
+            }
+        });
+        copy.setOnAction(e -> {
+            javafx.scene.input.Clipboard cb = javafx.scene.input.Clipboard.getSystemClipboard();
+            javafx.scene.input.ClipboardContent cc = new javafx.scene.input.ClipboardContent();
+            cc.putString(svc.getLanUrl());
+            cb.setContent(cc);
+            AlertUtil.info(owner, "Copied", "LAN portal URL copied to clipboard.");
+        });
+
+        HBox buttons = new HBox(8, startStop, copy);
+        VBox box = new VBox(6, title, hint, buttons, urlLabel, qrView);
+        box.getStyleClass().add("settings-section");
+        return box;
     }
 
     // ------------------------------------------------------------------

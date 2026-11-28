@@ -68,8 +68,13 @@ public class RequestDao {
             params.add(requesterId);
         }
         if (status != null && !status.isBlank()) {
-            sql.append(" AND r.status = ?");
-            params.add(status);
+            if ("OVERDUE".equalsIgnoreCase(status)) {
+                sql.append(" AND r.status IN ('PENDING','ASSIGNED','IN_PROGRESS','ON_HOLD')")
+                   .append(" AND r.target_date IS NOT NULL AND r.target_date < CURDATE()");
+            } else {
+                sql.append(" AND r.status = ?");
+                params.add(status);
+            }
         }
         if (priority != null && !priority.isBlank()) {
             sql.append(" AND r.priority = ?");

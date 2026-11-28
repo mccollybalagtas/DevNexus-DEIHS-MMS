@@ -20,8 +20,8 @@
 
         <!-- KPI row -->
         <HBox spacing="14">
-            <HBox styleClass="kpi-card, kpi-pending" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
-                  alignment="CENTER_LEFT">
+            <HBox fx:id="pendingCard" styleClass="kpi-card, kpi-pending, kpi-clickable" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
+                  alignment="CENTER_LEFT" onMouseClicked="#onPendingClick">
                 <VBox spacing="1">
                     <Label text="PENDING" styleClass="kpi-label"/>
                     <Label fx:id="kpiPending" text="—" styleClass="kpi-value"/>
@@ -29,8 +29,8 @@
                 </VBox>
             </HBox>
 
-            <HBox styleClass="kpi-card, kpi-progress" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
-                  alignment="CENTER_LEFT">
+            <HBox fx:id="progressCard" styleClass="kpi-card, kpi-progress, kpi-clickable" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
+                  alignment="CENTER_LEFT" onMouseClicked="#onProgressClick">
                 <VBox spacing="1">
                     <Label text="IN PROGRESS" styleClass="kpi-label"/>
                     <Label fx:id="kpiInProgress" text="—" styleClass="kpi-value"/>
@@ -38,8 +38,8 @@
                 </VBox>
             </HBox>
 
-            <HBox styleClass="kpi-card, kpi-overdue" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
-                  alignment="CENTER_LEFT">
+            <HBox fx:id="overdueCard" styleClass="kpi-card, kpi-overdue, kpi-clickable" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
+                  alignment="CENTER_LEFT" onMouseClicked="#onOverdueClick">
                 <VBox spacing="1">
                     <Label text="OVERDUE" styleClass="kpi-label"/>
                     <Label fx:id="kpiOverdue" text="—" styleClass="kpi-value"/>
@@ -47,8 +47,8 @@
                 </VBox>
             </HBox>
 
-            <HBox styleClass="kpi-card, kpi-completed" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
-                  alignment="CENTER_LEFT">
+            <HBox fx:id="completedCard" styleClass="kpi-card, kpi-completed, kpi-clickable" HBox.hgrow="ALWAYS" maxWidth="Infinity" spacing="12"
+                  alignment="CENTER_LEFT" onMouseClicked="#onCompletedClick">
                 <VBox spacing="1">
                     <Label text="COMPLETED" styleClass="kpi-label"/>
                     <Label fx:id="kpiCompleted" text="—" styleClass="kpi-value"/>

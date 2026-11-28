@@ -104,6 +104,17 @@ public class PartDao {
         }
     }
 
+    public Part findByName(String name) throws SQLException {
+        String sql = BASE_SELECT + " AND name = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, name);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        }
+    }
+
     public int create(PartDraft draft) throws SQLException {
         String sql = """
                 INSERT INTO parts (name, sku, unit, quantity, reorder_level, unit_cost)

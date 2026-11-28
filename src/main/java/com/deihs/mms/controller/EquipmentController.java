@@ -14,6 +14,7 @@ import com.deihs.mms.service.ValidationException;
 import com.deihs.mms.util.AlertUtil;
 import com.deihs.mms.util.AssetTagDialog;
 import com.deihs.mms.util.Format;
+import com.deihs.mms.util.CsvUtil;
 import com.deihs.mms.util.ViewLoader;
 import javafx.animation.PauseTransition;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -35,18 +36,25 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EquipmentController {
 
     @FXML private Button addButton;
+    @FXML private Button exportButton;
+    @FXML private Button importButton;
     @FXML private TextField searchField;
     @FXML private ComboBox<Choice> conditionBox;
     @FXML private ComboBox<LookupOption> facilityBox;
@@ -76,6 +84,8 @@ public class EquipmentController {
         canManage = Permissions.canManageEquipment(user);
         addButton.setVisible(canManage);
         addButton.setManaged(canManage);
+        importButton.setVisible(canManage);
+        importButton.setManaged(canManage);
 
         setupFilters();
         setupTable();
@@ -307,5 +317,128 @@ public class EquipmentController {
 
     private Window ownerWindow() {
         return table.getScene() == null ? null : table.getScene().getWindow();
+    }
+
+    @FXML
+    private void onExportCsv() {
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Export Equipment CSV");
+        chooser.setInitialFileName("equipment.csv");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = chooser.showSaveDialog(ownerWindow());
+        if (file == null) return;
+        try {
+            List<Equipment> all = equipmentDao.search(null, null, null, true);
+            List<String> headers = List.of("property_no","name","category","brand","model","serial_no","facility_code","condition","acquisition_date","notes","active");
+            List<List<String>> rows = new ArrayList<>();
+            com.deihs.mms.dao.FacilityDao fdao = new com.deihs.mms.dao.FacilityDao();
+            for (Equipment e : all) {
+                String facCode = "";
+                if (e.facilityId() != null && e.facilityId() > 0) {
+                    try {
+                        // facilityName is available, but CSV should use stable code; lookup via facility list is cheap enough here
+                        for (com.deihs.mms.model.Facility f : fdao.search(null, null, true)) {
+                            if (f.id() == e.facilityId()) { facCode = nz(f.code()); break; }
+                        }
+                    } catch (Exception ignored) {}
+                }
+                rows.add(List.of(nz(e.propertyNo()), nz(e.name()), nz(e.category()), nz(e.brand()), nz(e.model()), nz(e.serialNo()),
+                        facCode, nz(e.condition()), e.acquisitionDate() == null ? "" : e.acquisitionDate().toString(), nz(e.notes()), e.active() ? "1" : "0"));
+            }
+            CsvUtil.write(file.toPath(), headers, rows);
+            AlertUtil.info(ownerWindow(), "Export complete", "Exported " + rows.size() + " equipment items to\n" + file.getAbsolutePath());
+        } catch (Exception ex) {
+            AlertUtil.error(ownerWindow(), "Export failed", ex.getMessage(), ex);
+        }
+    }
+
+    @FXML
+    private void onImportCsv() {
+        if (!canManage) return;
+        FileChooser chooser = new FileChooser();
+        chooser.setTitle("Import Equipment CSV");
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
+        File file = chooser.showOpenDialog(ownerWindow());
+        if (file == null) return;
+        try {
+            List<Map<String, String>> in = CsvUtil.readWithHeaders(file.toPath());
+            com.deihs.mms.dao.FacilityDao facilityDao = new com.deihs.mms.dao.FacilityDao();
+            int created = 0, updated = 0;
+            List<String> errors = new ArrayList<>();
+            for (int i = 0; i < in.size(); i++) {
+                int rowNum = i + 2;
+                Map<String, String> r = in.get(i);
+                try {
+                    String propertyNo = val(r, "property_no");
+                    String name = val(r, "name");
+                    if (propertyNo.isBlank() || name.isBlank()) {
+                        errors.add("Row " + rowNum + ": property_no and name are required.");
+                        continue;
+                    }
+                    Integer facilityId = null;
+                    String facilityCode = val(r, "facility_code");
+                    if (!facilityCode.isBlank()) {
+                        com.deihs.mms.model.Facility fac = facilityDao.findByCode(facilityCode);
+                        if (fac == null) {
+                            errors.add("Row " + rowNum + ": facility_code '" + facilityCode + "' not found.");
+                            continue;
+                        }
+                        facilityId = fac.id();
+                    }
+                    LocalDate acq = null;
+                    String acqS = val(r, "acquisition_date");
+                    if (!acqS.isBlank()) {
+                        try { acq = LocalDate.parse(acqS); } catch (Exception e) { errors.add("Row " + rowNum + ": invalid acquisition_date (use YYYY-MM-DD)."); continue; }
+                    }
+                    EquipmentDraft draft = new EquipmentDraft(propertyNo, name, blankToNull(val(r,"category")),
+                            blankToNull(val(r,"brand")), blankToNull(val(r,"model")), blankToNull(val(r,"serial_no")),
+                            facilityId, defaultCondition(val(r,"condition")), acq, blankToNull(val(r,"notes")));
+                    Equipment existing = equipmentDao.findByPropertyNo(propertyNo);
+                    User user = Session.get();
+                    if (existing == null) { equipmentService.create(draft, user); created++; }
+                    else { equipmentService.update(existing.id(), draft, user); updated++; }
+                    Equipment after = equipmentDao.findByPropertyNo(propertyNo);
+                    if (after != null) {
+                        String active = val(r, "active");
+                        if (!active.isBlank()) {
+                            boolean wantActive = !"0".equals(active) && !"false".equalsIgnoreCase(active);
+                            if (after.active() != wantActive) equipmentService.setActive(after.id(), after.propertyNo(), wantActive, user);
+                        }
+                    }
+                } catch (Exception ex) {
+                    errors.add("Row " + rowNum + ": " + ex.getMessage());
+                }
+            }
+            refresh();
+            showImportResult("Equipment", created, updated, errors);
+        } catch (Exception ex) {
+            AlertUtil.error(ownerWindow(), "Import failed", ex.getMessage(), ex);
+        }
+    }
+
+    private void showImportResult(String what, int created, int updated, List<String> errors) {
+        StringBuilder msg = new StringBuilder();
+        msg.append("Created: ").append(created).append("\nUpdated: ").append(updated);
+        if (!errors.isEmpty()) {
+            msg.append("\n\nErrors (").append(errors.size()).append("):\n");
+            for (int i = 0; i < Math.min(errors.size(), 12); i++) msg.append("- ").append(errors.get(i)).append("\n");
+            if (errors.size() > 12) msg.append("- ...").append(errors.size() - 12).append(" more");
+            AlertUtil.warn(ownerWindow(), what + " import finished with errors", msg.toString());
+        } else {
+            AlertUtil.info(ownerWindow(), what + " import complete", msg.toString());
+        }
+    }
+
+    private static String nz(String v) { return v == null ? "" : v; }
+    private static String val(Map<String, String> r, String key) {
+        String v = r.get(key);
+        if (v == null) for (Map.Entry<String, String> e : r.entrySet()) if (e.getKey() != null && e.getKey().equalsIgnoreCase(key)) { v = e.getValue(); break; }
+        return v == null ? "" : v.trim();
+    }
+    private static String blankToNull(String v) { return v == null || v.isBlank() ? null : v.trim(); }
+    private static String defaultCondition(String v) {
+        if (v == null || v.isBlank()) return "GOOD";
+        String u = v.trim().toUpperCase().replace(' ', '_');
+        return switch (u) { case "GOOD","FAIR","POOR","NEEDS_REPAIR","OUT_OF_ORDER" -> u; default -> "GOOD"; };
     }
 }

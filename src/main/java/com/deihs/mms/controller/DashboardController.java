@@ -67,6 +67,7 @@ public class DashboardController {
 
     private Consumer<String> navigator = key -> {
     };
+    private java.util.function.BiConsumer<String, String> requestNavigator = (status, priority) -> navigator.accept("requests");
     private boolean scoped;
 
     @FXML
@@ -111,6 +112,10 @@ public class DashboardController {
     public void setNavigator(Consumer<String> navigator) {
         this.navigator = navigator == null ? key -> {
         } : navigator;
+    }
+
+    public void setRequestNavigator(java.util.function.BiConsumer<String, String> requestNavigator) {
+        this.requestNavigator = requestNavigator == null ? (s, p) -> navigator.accept("requests") : requestNavigator;
     }
 
     // ------------------------------------------------------------------
@@ -202,6 +207,17 @@ public class DashboardController {
 
             HBox row = new HBox(8, dot, label);
             row.setAlignment(Pos.CENTER_LEFT);
+            row.setStyle("-fx-cursor: hand;");
+            row.setOnMouseClicked(e -> {
+                String status = switch (slice.label()) {
+                    case "Pending" -> "PENDING";
+                    case "In Progress" -> "IN_PROGRESS";
+                    case "Completed" -> "COMPLETED";
+                    case "On Hold / Other" -> "ON_HOLD";
+                    default -> null;
+                };
+                if (status != null) requestNavigator.accept(status, null);
+            });
             legendBox.getChildren().add(row);
         }
         if (legendBox.getChildren().isEmpty()) {
@@ -229,5 +245,25 @@ public class DashboardController {
     @FXML
     private void onViewAllRequests() {
         navigator.accept(Session.get().role() == Role.PERSONNEL ? "tasks" : "requests");
+    }
+
+    @FXML
+    private void onPendingClick() {
+        requestNavigator.accept("PENDING", null);
+    }
+
+    @FXML
+    private void onProgressClick() {
+        requestNavigator.accept("IN_PROGRESS", null);
+    }
+
+    @FXML
+    private void onOverdueClick() {
+        requestNavigator.accept("OVERDUE", null);
+    }
+
+    @FXML
+    private void onCompletedClick() {
+        requestNavigator.accept("COMPLETED", null);
     }
 }
