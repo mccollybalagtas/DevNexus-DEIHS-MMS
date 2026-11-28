@@ -45,7 +45,8 @@ public class RequestDetailDao {
                    CASE WHEN r.status IN ('PENDING','ASSIGNED','IN_PROGRESS','ON_HOLD')
                              AND r.target_date IS NOT NULL
                              AND r.target_date < CURDATE()
-                        THEN 1 ELSE 0 END AS is_overdue
+                        THEN 1 ELSE 0 END AS is_overdue,
+                   r.sla_due_at, r.sla_breached_at, r.escalated_at
             FROM maintenance_requests r
             JOIN users req ON req.user_id = r.requester_id
             LEFT JOIN users asg ON asg.user_id = r.assigned_to
@@ -85,7 +86,10 @@ public class RequestDetailDao {
                         toLocal(rs.getTimestamp("completed_at")),
                         toLocal(rs.getTimestamp("closed_at")),
                         rs.getString("resolution_notes"),
-                        rs.getInt("is_overdue") == 1
+                        rs.getInt("is_overdue") == 1,
+                        toLocal(rs.getTimestamp("sla_due_at")),
+                        toLocal(rs.getTimestamp("sla_breached_at")),
+                        toLocal(rs.getTimestamp("escalated_at"))
                 );
             }
         }

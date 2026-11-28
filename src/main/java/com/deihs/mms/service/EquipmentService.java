@@ -2,8 +2,10 @@ package com.deihs.mms.service;
 
 import com.deihs.mms.dao.AuditDao;
 import com.deihs.mms.dao.EquipmentDao;
+import com.deihs.mms.model.Equipment;
 import com.deihs.mms.model.EquipmentDraft;
 import com.deihs.mms.model.User;
+import com.deihs.mms.util.AuditDiff;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -36,16 +38,33 @@ public class EquipmentService {
         if (equipmentDao.existsPropertyNo(clean.propertyNo(), id)) {
             throw new ValidationException("Property number " + clean.propertyNo() + " is already in use.");
         }
+        Equipment old = equipmentDao.findById(id);
         equipmentDao.update(id, clean);
-        auditDao.log(user.id(), "UPDATE_EQUIPMENT", "equipment", clean.propertyNo(), clean.name());
+        AuditDiff diff = AuditDiff.builder();
+        if (old != null) {
+            diff.put("propertyNo", old.propertyNo(), clean.propertyNo())
+                .put("name", old.name(), clean.name())
+                .put("category", old.category(), clean.category())
+                .put("brand", old.brand(), clean.brand())
+                .put("model", old.model(), clean.model())
+                .put("serialNo", old.serialNo(), clean.serialNo())
+                .put("facilityId", old.facilityId(), clean.facilityId())
+                .put("condition", old.condition(), clean.condition())
+                .put("acquisitionDate", old.acquisitionDate(), clean.acquisitionDate())
+                .put("notes", old.notes(), clean.notes());
+        }
+        auditDao.log(user.id(), "UPDATE_EQUIPMENT", "equipment", clean.propertyNo(), clean.name(),
+                diff.oldValues(), diff.newValues());
     }
 
     public void setActive(int id, String propertyNo, boolean active, User user)
             throws ValidationException, SQLException {
         requireManage(user);
+        Equipment old = equipmentDao.findById(id);
         equipmentDao.setActive(id, active);
+        AuditDiff diff = AuditDiff.builder().put("active", old != null && old.active(), active);
         auditDao.log(user.id(), active ? "RESTORE_EQUIPMENT" : "ARCHIVE_EQUIPMENT",
-                "equipment", propertyNo, active ? "Restored" : "Archived");
+                "equipment", propertyNo, active ? "Restored" : "Archived", diff.oldValues(), diff.newValues());
     }
 
     private void requireManage(User user) throws ValidationException {

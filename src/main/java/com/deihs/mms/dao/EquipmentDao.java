@@ -163,6 +163,17 @@ public class EquipmentDao {
         }
     }
 
+    public Equipment findById(int id) throws SQLException {
+        String sql = BASE_SELECT + " AND e.equipment_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        }
+    }
+
     private static int bind(PreparedStatement ps, EquipmentDraft d, int start) throws SQLException {
         int i = start;
         ps.setString(i++, d.propertyNo());

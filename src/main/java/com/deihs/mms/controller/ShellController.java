@@ -178,6 +178,30 @@ public class ShellController {
                 Duration.seconds(45), e -> refreshNotifications()));
         notificationTimer.setCycleCount(Timeline.INDEFINITE);
         notificationTimer.play();
+
+        runBackgroundChecks();
+    }
+
+    private void runBackgroundChecks() {
+        User user = Session.get();
+        Task<Void> task = new Task<>() {
+            @Override protected Void call() {
+                try {
+                    new com.deihs.mms.service.SlaService().checkAndEscalate();
+                } catch (Exception e) {
+                    System.err.println("SLA check failed: " + e.getMessage());
+                }
+                return null;
+            }
+        };
+        task.setOnSucceeded(e -> {
+            if (user != null && user.role() == com.deihs.mms.model.Role.ADMIN && BackupService.isBackupStale(7)) {
+                System.err.println("Backup check: " + BackupService.backupHealthMessage(7));
+            }
+        });
+        Thread t = new Thread(task, "deihs-bg-checks");
+        t.setDaemon(true);
+        t.start();
     }
 
     /** Keeps top-bar and drawer icons readable in light and dark themes. */
@@ -954,6 +978,7 @@ public class ShellController {
         content.setPadding(new Insets(4, 4, 2, 4));
         if (Permissions.canManageUsers(user)) {
             content.getChildren().add(buildBackupSection(owner));
+            content.getChildren().add(buildSlaSection(owner));
             content.getChildren().add(buildLanWebSection(owner));
         }
         dialog.getDialogPane().setContent(content);
@@ -1066,6 +1091,109 @@ public class ShellController {
     }
 
     // ------------------------------------------------------------------
+    // SLA / escalation rules (administrators)
+    // ------------------------------------------------------------------
+
+    private Node buildSlaSection(Window owner) {
+        Label title = new Label("SLA / escalation rules");
+        title.getStyleClass().add("card-title");
+        Label hint = new Label("Set target resolution hours by priority. Breached active requests are escalated automatically and admins/maintenance heads are notified.");
+        hint.getStyleClass().add("form-hint");
+        hint.setWrapText(true);
+        hint.setMaxWidth(340);
+
+        javafx.scene.layout.GridPane grid = new javafx.scene.layout.GridPane();
+        grid.setHgap(8);
+        grid.setVgap(8);
+        grid.add(new Label("Priority"), 0, 0);
+        grid.add(new Label("Target hours"), 1, 0);
+        grid.add(new Label("Active"), 2, 0);
+
+        java.util.List<com.deihs.mms.model.SlaPolicy> policies = new java.util.ArrayList<>();
+        try {
+            policies = new com.deihs.mms.dao.SlaPolicyDao().findAll();
+        } catch (Exception e) {
+            grid.add(new Label("Could not load SLA policies: " + e.getMessage()), 0, 1, 3, 1);
+        }
+
+        java.util.List<javafx.scene.control.TextField> hourFields = new java.util.ArrayList<>();
+        java.util.List<javafx.scene.control.CheckBox> activeBoxes = new java.util.ArrayList<>();
+        int row = 1;
+        for (com.deihs.mms.model.SlaPolicy p : policies) {
+            Label pr = new Label(p.priority());
+            pr.setStyle("-fx-font-weight:bold;");
+            javafx.scene.control.TextField hrs = new javafx.scene.control.TextField(String.valueOf(p.targetHours()));
+            hrs.setPrefWidth(90);
+            javafx.scene.control.CheckBox active = new javafx.scene.control.CheckBox();
+            active.setSelected(p.active());
+            grid.add(pr, 0, row);
+            grid.add(hrs, 1, row);
+            grid.add(active, 2, row);
+            hourFields.add(hrs);
+            activeBoxes.add(active);
+            row++;
+        }
+
+        Button save = new Button("Save SLA rules");
+        save.getStyleClass().add("btn-ghost");
+        Button checkNow = new Button("Run SLA check now");
+        checkNow.getStyleClass().add("btn-ghost");
+        Label status = new Label("");
+        status.getStyleClass().add("form-hint");
+        status.setWrapText(true);
+        status.setMaxWidth(340);
+
+        final java.util.List<com.deihs.mms.model.SlaPolicy> loaded = policies;
+        save.setOnAction(e -> {
+            try {
+                com.deihs.mms.dao.SlaPolicyDao dao = new com.deihs.mms.dao.SlaPolicyDao();
+                for (int i = 0; i < loaded.size(); i++) {
+                    com.deihs.mms.model.SlaPolicy p = loaded.get(i);
+                    int hrs;
+                    try { hrs = Integer.parseInt(hourFields.get(i).getText().trim()); }
+                    catch (Exception ex) { throw new IllegalArgumentException("Target hours for " + p.priority() + " must be a number."); }
+                    if (hrs < 1 || hrs > 8760) throw new IllegalArgumentException("Target hours for " + p.priority() + " must be between 1 and 8760.");
+                    dao.update(p.id(), hrs, activeBoxes.get(i).isSelected());
+                }
+                status.setText("SLA rules saved.");
+                AlertUtil.info(owner, "SLA rules", "SLA rules saved.");
+            } catch (Exception ex) {
+                AlertUtil.error(owner, "SLA rules", ex.getMessage(), ex);
+            }
+        });
+
+        checkNow.setOnAction(e -> {
+            checkNow.setDisable(true);
+            status.setText("Checking SLA breaches...");
+            Task<java.util.List<com.deihs.mms.service.SlaService.Escalation>> task = new Task<>() {
+                @Override protected java.util.List<com.deihs.mms.service.SlaService.Escalation> call() throws Exception {
+                    return new com.deihs.mms.service.SlaService().checkAndEscalate();
+                }
+            };
+            task.setOnSucceeded(ev -> {
+                checkNow.setDisable(false);
+                int n = task.getValue().size();
+                status.setText(n == 0 ? "SLA check complete. No new escalations." : "SLA check complete. Escalated " + n + " request(s).");
+                refreshNotifications();
+            });
+            task.setOnFailed(ev -> {
+                checkNow.setDisable(false);
+                Throwable ex = task.getException();
+                status.setText("SLA check failed.");
+                AlertUtil.error(owner, "SLA check", ex == null ? "Unknown error" : ex.getMessage(), ex);
+            });
+            Thread t = new Thread(task, "sla-check-now");
+            t.setDaemon(true);
+            t.start();
+        });
+
+        HBox buttons = new HBox(8, save, checkNow);
+        VBox box = new VBox(6, title, hint, grid, buttons, status);
+        box.getStyleClass().add("settings-section");
+        return box;
+    }
+
+    // ------------------------------------------------------------------
     // Backup & restore (administrators)
     // ------------------------------------------------------------------
 
@@ -1078,6 +1206,14 @@ public class ShellController {
         hint.getStyleClass().add("form-hint");
         hint.setWrapText(true);
         hint.setMaxWidth(340);
+
+        Label health = new Label(BackupService.backupHealthMessage(7));
+        health.getStyleClass().add("form-hint");
+        health.setWrapText(true);
+        health.setMaxWidth(340);
+        health.setStyle(BackupService.isBackupStale(7)
+                ? "-fx-text-fill:#b45309; -fx-font-weight:bold;"
+                : "-fx-text-fill:#166534;");
 
         Label status = new Label(lastBackupText());
         status.getStyleClass().add("form-hint");
@@ -1093,6 +1229,16 @@ public class ShellController {
         backup.getStyleClass().add("btn-ghost");
         Button restore = new Button("Restore from file…");
         restore.getStyleClass().add("btn-ghost");
+        Button verify = new Button("Verify backup");
+        verify.getStyleClass().add("btn-ghost");
+
+        Runnable refreshHealth = () -> {
+            health.setText(BackupService.backupHealthMessage(7));
+            health.setStyle(BackupService.isBackupStale(7)
+                    ? "-fx-text-fill:#b45309; -fx-font-weight:bold;"
+                    : "-fx-text-fill:#166534;");
+            status.setText(lastBackupText());
+        };
 
         backup.setOnAction(e -> {
             FileChooser chooser = new FileChooser();
@@ -1109,7 +1255,7 @@ public class ShellController {
             if (!target.getFileName().toString().toLowerCase().endsWith(".sql")) {
                 target = target.resolveSibling(target.getFileName() + ".sql");
             }
-            runBackup(target, status, progress, backup, restore, owner);
+            runBackup(target, status, progress, backup, restore, owner, refreshHealth);
         });
 
         restore.setOnAction(e -> {
@@ -1128,12 +1274,19 @@ public class ShellController {
             if (!ok) {
                 return;
             }
-            runRestore(chosen.toPath(), status, progress, backup, restore, owner);
+            runRestore(chosen.toPath(), status, progress, backup, restore, owner, refreshHealth);
         });
 
-        HBox buttons = new HBox(8, backup, restore);
+        verify.setOnAction(e -> {
+            String result = BackupService.verifyLastBackup();
+            AlertUtil.info(owner, "Backup verification", result);
+            refreshHealth.run();
+        });
 
-        VBox box = new VBox(6, title, hint, buttons, status, progress);
+        HBox buttons = new HBox(8, backup, restore, verify);
+        buttons.setFillHeight(true);
+
+        VBox box = new VBox(6, title, hint, health, buttons, status, progress);
         box.getStyleClass().add("settings-section");
         return box;
     }
@@ -1150,7 +1303,7 @@ public class ShellController {
     }
 
     private void runBackup(Path target, Label status, ProgressBar progress,
-                           Button backup, Button restore, Window owner) {
+                           Button backup, Button restore, Window owner, Runnable after) {
         setBackupBusy(true, progress, backup, restore, status, "Preparing backup…");
         Task<Void> task = new Task<>() {
             @Override
@@ -1163,6 +1316,7 @@ public class ShellController {
         task.setOnSucceeded(e -> {
             setBackupBusy(false, progress, backup, restore, status,
                     "Backup saved to " + target);
+            if (after != null) after.run();
             AlertUtil.info(owner, "Backup complete",
                     "The database was saved to:\n" + target.toAbsolutePath());
         });
@@ -1179,7 +1333,7 @@ public class ShellController {
     }
 
     private void runRestore(Path source, Label status, ProgressBar progress,
-                            Button backup, Button restore, Window owner) {
+                            Button backup, Button restore, Window owner, Runnable after) {
         setBackupBusy(true, progress, backup, restore, status, "Preparing restore…");
         Task<Void> task = new Task<>() {
             @Override
@@ -1192,6 +1346,7 @@ public class ShellController {
         task.setOnSucceeded(e -> {
             setBackupBusy(false, progress, backup, restore, status,
                     "Restore finished. Sign out and back in to reload the data.");
+            if (after != null) after.run();
             AlertUtil.info(owner, "Restore complete",
                     "The database was restored from " + source.getFileName()
                             + ".\n\nSign out and sign in again so every screen reloads.");

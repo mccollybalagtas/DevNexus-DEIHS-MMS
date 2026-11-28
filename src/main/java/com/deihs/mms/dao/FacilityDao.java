@@ -168,6 +168,17 @@ public class FacilityDao {
         }
     }
 
+    public Facility findById(int id) throws SQLException {
+        String sql = BASE_SELECT + " AND f.facility_id = ?";
+        try (Connection c = Database.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? map(rs) : null;
+            }
+        }
+    }
+
     /** Number of active equipment items installed in a facility. */
     public int equipmentCount(int facilityId) throws SQLException {
         String sql = "SELECT COUNT(*) FROM equipment WHERE facility_id = ? AND is_active = 1";

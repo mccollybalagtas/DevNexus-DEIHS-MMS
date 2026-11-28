@@ -36,7 +36,13 @@ public class RequestDao {
                    CASE WHEN r.status IN ('PENDING','ASSIGNED','IN_PROGRESS','ON_HOLD')
                              AND r.target_date IS NOT NULL
                              AND r.target_date < CURDATE()
-                        THEN 1 ELSE 0 END AS is_overdue
+                        THEN 1 ELSE 0 END AS is_overdue,
+                   r.sla_due_at,
+                   CASE WHEN r.sla_breached_at IS NOT NULL THEN 1
+                        WHEN r.sla_due_at IS NOT NULL
+                         AND r.status IN ('PENDING','ASSIGNED','IN_PROGRESS','ON_HOLD')
+                         AND r.sla_due_at < NOW() THEN 1
+                        ELSE 0 END AS is_sla_breached
             FROM maintenance_requests r
             JOIN users req ON req.user_id = r.requester_id
             LEFT JOIN users asg ON asg.user_id = r.assigned_to
@@ -119,7 +125,9 @@ public class RequestDao {
                             rs.getString("assignee_name"),
                             toLocal(rs.getTimestamp("reported_at")),
                             toLocalDate(rs.getDate("target_date")),
-                            rs.getInt("is_overdue") == 1
+                            rs.getInt("is_overdue") == 1,
+                            toLocal(rs.getTimestamp("sla_due_at")),
+                            rs.getInt("is_sla_breached") == 1
                     ));
                 }
             }
@@ -175,6 +183,7 @@ public class RequestDao {
                 if (attachment != null) {
                     insertAttachment(c, requestId, attachment, requesterId);
                 }
+                applySlaDueAt(c, requestId, draft.priority());
 
                 c.commit();
                 return new CreatedRequest(requestId, ticketNo);
@@ -220,6 +229,28 @@ public class RequestDao {
         }
     }
 
+
+    private void applySlaDueAt(Connection c, int requestId, String priority) throws SQLException {
+        String sql = """
+                UPDATE maintenance_requests r
+                SET r.sla_due_at = DATE_ADD(r.reported_at, INTERVAL (
+                    SELECT p.target_hours FROM sla_policies p
+                    WHERE p.priority = ? AND p.is_active = 1
+                    ORDER BY p.policy_id LIMIT 1
+                ) HOUR)
+                WHERE r.request_id = ?
+                  AND EXISTS (
+                    SELECT 1 FROM sla_policies p2
+                    WHERE p2.priority = ? AND p2.is_active = 1
+                  )
+                """;
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, priority);
+            ps.setInt(2, requestId);
+            ps.setString(3, priority);
+            ps.executeUpdate();
+        }
+    }
     private void insertHistory(Connection c, int requestId, int userId) throws SQLException {
         String sql = """
                 INSERT INTO request_status_history

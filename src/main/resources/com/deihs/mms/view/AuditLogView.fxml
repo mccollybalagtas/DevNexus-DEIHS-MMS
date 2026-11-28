@@ -36,7 +36,8 @@
                 <TableColumn fx:id="actionCol" text="ACTION" prefWidth="170"/>
                 <TableColumn fx:id="entityCol" text="ENTITY" prefWidth="150"/>
                 <TableColumn fx:id="entityIdCol" text="ID" prefWidth="90"/>
-                <TableColumn fx:id="detailsCol" text="DETAILS" prefWidth="320"/>
+                <TableColumn fx:id="detailsCol" text="DETAILS" prefWidth="280"/>
+                <TableColumn fx:id="diffCol" text="CHANGES" prefWidth="110"/>
             </columns>
         </TableView>
     </VBox>

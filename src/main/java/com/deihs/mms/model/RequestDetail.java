@@ -29,11 +29,20 @@ public record RequestDetail(
         LocalDateTime completedAt,
         LocalDateTime closedAt,
         String resolutionNotes,
-        boolean overdue
+        boolean overdue,
+        LocalDateTime slaDueAt,
+        LocalDateTime slaBreachedAt,
+        LocalDateTime escalatedAt
 ) {
 
     public boolean isTerminal() {
         return "CLOSED".equals(status) || "REJECTED".equals(status)
                 || "CANCELLED".equals(status);
+    }
+
+    public boolean slaBreached() {
+        if (slaBreachedAt != null) return true;
+        return slaDueAt != null && !isTerminal()
+                && slaDueAt.isBefore(java.time.LocalDateTime.now());
     }
 }

@@ -79,6 +79,91 @@ public final class BackupService {
         PREFS.put(LAST_BACKUP, LocalDateTime.now().format(STAMP) + "|" + file.toAbsolutePath());
     }
 
+    public static Path lastBackupPath() {
+        String last = lastBackupAt();
+        if (last == null || last.isBlank()) return null;
+        int split = last.indexOf('|');
+        String path = split < 0 ? "" : last.substring(split + 1).trim();
+        if (path.isBlank()) return null;
+        return Path.of(path);
+    }
+
+    public static LocalDateTime lastBackupTime() {
+        String last = lastBackupAt();
+        if (last == null || last.isBlank()) return null;
+        int split = last.indexOf('|');
+        String stamp = split < 0 ? last : last.substring(0, split);
+        try {
+            return LocalDateTime.parse(stamp, STAMP);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** True when no backup exists or the last backup is older than maxDays. */
+    public static boolean isBackupStale(int maxDays) {
+        LocalDateTime t = lastBackupTime();
+        if (t == null) return true;
+        return t.isBefore(LocalDateTime.now().minusDays(Math.max(1, maxDays)));
+    }
+
+    public static String backupHealthMessage(int maxDays) {
+        LocalDateTime t = lastBackupTime();
+        Path p = lastBackupPath();
+        if (t == null) {
+            return "WARNING: No database backup has been recorded on this PC.";
+        }
+        String age = ageLabel(t);
+        if (p != null && !Files.exists(p)) {
+            return "WARNING: Last backup was " + age + ", but the file is missing: " + p;
+        }
+        if (p != null && Files.exists(p)) {
+            try {
+                if (Files.size(p) < 64) {
+                    return "WARNING: Last backup file looks too small: " + p;
+                }
+            } catch (IOException ignored) { }
+        }
+        if (isBackupStale(maxDays)) {
+            return "WARNING: Last backup is stale (" + age + "). Create a fresh backup.";
+        }
+        return "Backup OK: last backup " + age + (p == null ? "" : " (" + p.getFileName() + ")");
+    }
+
+    public static String verifyLastBackup() {
+        LocalDateTime t = lastBackupTime();
+        Path p = lastBackupPath();
+        if (t == null || p == null) {
+            return "No backup file recorded. Create a backup first.";
+        }
+        if (!Files.exists(p)) {
+            return "Backup file is missing: " + p;
+        }
+        if (!Files.isReadable(p)) {
+            return "Backup file is not readable: " + p;
+        }
+        try {
+            long size = Files.size(p);
+            if (size < 64) return "Backup file is suspiciously small (" + size + " bytes): " + p;
+            String head = Files.readString(p, StandardCharsets.UTF_8).substring(0, (int) Math.min(512, size));
+            boolean looksSql = head.contains("--") || head.toLowerCase().contains("create") || head.toLowerCase().contains("insert") || head.toLowerCase().contains("drop");
+            if (!looksSql) return "Backup file does not look like a SQL dump: " + p;
+            return "Backup verified: " + p.getFileName() + " (" + size + " bytes, " + ageLabel(t) + ").";
+        } catch (IOException e) {
+            return "Could not verify backup: " + e.getMessage();
+        }
+    }
+
+    private static String ageLabel(LocalDateTime t) {
+        long minutes = java.time.Duration.between(t, LocalDateTime.now()).toMinutes();
+        if (minutes < 1) return "just now";
+        if (minutes < 60) return minutes + " minute(s) ago";
+        long hours = minutes / 60;
+        if (hours < 24) return hours + " hour(s) ago";
+        long days = hours / 24;
+        return days + " day(s) ago";
+    }
+
     /**
      * Writes a full logical dump of the configured database to {@code target}.
      * Blocks; call from a background thread.

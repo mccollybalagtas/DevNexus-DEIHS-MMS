@@ -4,6 +4,7 @@ import com.deihs.mms.dao.AuditDao;
 import com.deihs.mms.dao.MaintenanceRecordDao;
 import com.deihs.mms.dao.RequestDetailDao;
 import com.deihs.mms.dao.UserDao;
+import com.deihs.mms.util.AuditDiff;
 import com.deihs.mms.model.AttachmentEntry;
 import com.deihs.mms.model.CommentEntry;
 import com.deihs.mms.model.HistoryEntry;
@@ -116,8 +117,11 @@ public class RequestDetailService {
 
         String details = "Assigned to " + assignee.fullName()
                 + (note == null ? "" : " - " + note);
+        AuditDiff diff = AuditDiff.builder()
+                .put("assignee", detail.assignee(), assignee.fullName())
+                .put("status", detail.status(), "ASSIGNED");
         auditDao.log(actor.id(), "ASSIGN_REQUEST", "maintenance_requests",
-                detail.ticketNo(), details);
+                detail.ticketNo(), details, diff.oldValues(), diff.newValues());
         notifications.requestAssigned(requestId, detail.ticketNo(), assigneeId,
                 actor.fullName(), detail.title());
     }
@@ -183,8 +187,11 @@ public class RequestDetailService {
 
         String details = pretty(detail.status()) + " -> " + pretty(toStatus)
                 + (note == null ? "" : " - " + note);
+        AuditDiff diff = AuditDiff.builder()
+                .put("status", detail.status(), toStatus)
+                .put("remarks", detail.resolutionNotes(), note);
         auditDao.log(actor.id(), "UPDATE_REQUEST_STATUS", "maintenance_requests",
-                detail.ticketNo(), details);
+                detail.ticketNo(), details, diff.oldValues(), diff.newValues());
         notifications.requestStatusChanged(requestId, detail.ticketNo(), detail.title(),
                 toStatus, detail.requesterId(), detail.assigneeId(), actor.id());
     }
@@ -254,9 +261,11 @@ public class RequestDetailService {
         if (cost.scale() > 2) {
             cost = cost.setScale(2, java.math.RoundingMode.HALF_UP);
         }
+        java.math.BigDecimal oldCost = recordDao.findTotalCostByRequest(requestId);
         recordDao.upsertCost(requestId, actor.id(), cost);
+        AuditDiff diff = AuditDiff.builder().put("repairCost", oldCost, cost);
         auditDao.log(actor.id(), "UPDATE_REPAIR_COST", "maintenance_requests",
-                detail.ticketNo(), "Repair cost set to " + cost.toPlainString());
+                detail.ticketNo(), "Repair cost set to " + cost.toPlainString(), diff.oldValues(), diff.newValues());
     }
 
     private static String pretty(String status) {

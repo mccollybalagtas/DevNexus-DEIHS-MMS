@@ -2,8 +2,10 @@ package com.deihs.mms.service;
 
 import com.deihs.mms.dao.AuditDao;
 import com.deihs.mms.dao.FacilityDao;
+import com.deihs.mms.model.Facility;
 import com.deihs.mms.model.FacilityDraft;
 import com.deihs.mms.model.User;
+import com.deihs.mms.util.AuditDiff;
 
 import java.sql.SQLException;
 import java.util.Locale;
@@ -50,17 +52,31 @@ public class FacilityService {
                     "Facility code " + clean.code() + " is already in use. Choose another.");
         }
 
+        Facility old = facilityDao.findById(id);
         facilityDao.update(id, clean);
+        AuditDiff diff = AuditDiff.builder();
+        if (old != null) {
+            diff.put("code", old.code(), clean.code())
+                .put("name", old.name(), clean.name())
+                .put("building", old.building(), clean.building())
+                .put("floor", old.floor(), clean.floor())
+                .put("roomNumber", old.roomNumber(), clean.roomNumber())
+                .put("type", old.type(), clean.type())
+                .put("condition", old.condition(), clean.condition())
+                .put("notes", old.notes(), clean.notes());
+        }
         auditDao.log(user.id(), "UPDATE_FACILITY", "facilities", clean.code(),
-                clean.name());
+                clean.name(), diff.oldValues(), diff.newValues());
     }
 
     public void setActive(int id, String code, boolean active, User user)
             throws ValidationException, SQLException {
         requireManage(user);
+        Facility old = facilityDao.findById(id);
         facilityDao.setActive(id, active);
+        AuditDiff diff = AuditDiff.builder().put("active", old != null && old.active(), active);
         auditDao.log(user.id(), active ? "RESTORE_FACILITY" : "ARCHIVE_FACILITY",
-                "facilities", code, active ? "Restored" : "Archived");
+                "facilities", code, active ? "Restored" : "Archived", diff.oldValues(), diff.newValues());
     }
 
     // ------------------------------------------------------------------

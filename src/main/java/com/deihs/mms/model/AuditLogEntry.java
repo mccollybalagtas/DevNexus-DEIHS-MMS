@@ -10,6 +10,8 @@ public record AuditLogEntry(
         String entityId,
         String details,
         String ipAddress,
+        String oldValues,
+        String newValues,
         LocalDateTime createdAt
 ) {
 }

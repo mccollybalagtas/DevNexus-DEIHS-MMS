@@ -18,12 +18,20 @@ public record RequestRow(
         String assignee,
         LocalDateTime reportedAt,
         LocalDate targetDate,
-        boolean overdue
+        boolean overdue,
+        LocalDateTime slaDueAt,
+        boolean slaBreached
 ) {
 
     /** Short form used by the dashboard, which does not show the assignee. */
     public RequestRow(int id, String ticketNo, String requester, String asset, String title,
                       String priority, String status, LocalDateTime reportedAt, boolean overdue) {
-        this(id, ticketNo, requester, asset, title, priority, status, null, reportedAt, null, overdue);
+        this(id, ticketNo, requester, asset, title, priority, status, null, reportedAt, null, overdue, null, false);
+    }
+
+    public RequestRow(int id, String ticketNo, String requester, String asset, String title,
+                      String priority, String status, String assignee, LocalDateTime reportedAt,
+                      LocalDate targetDate, boolean overdue) {
+        this(id, ticketNo, requester, asset, title, priority, status, assignee, reportedAt, targetDate, overdue, null, false);
     }
 }

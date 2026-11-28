@@ -88,8 +88,46 @@ public final class SchemaUpgrade {
             // The parts actually used by a request are stored separately from the
             // free-text field so the inventory and the repair cost stay in sync.
             addColumn(c, "maintenance_records", "parts_cost", "DECIMAL(10,2) NOT NULL DEFAULT 0.00");
+
+            // SLA / escalation tracking.
+            addColumn(c, "maintenance_requests", "sla_due_at", "DATETIME NULL");
+            addColumn(c, "maintenance_requests", "sla_breached_at", "DATETIME NULL");
+            addColumn(c, "maintenance_requests", "escalated_at", "DATETIME NULL");
+            createTable(c, "sla_policies", """
+                    CREATE TABLE IF NOT EXISTS sla_policies (
+                        policy_id INT NOT NULL AUTO_INCREMENT,
+                        priority VARCHAR(20) NOT NULL,
+                        target_hours INT NOT NULL,
+                        is_active TINYINT(1) NOT NULL DEFAULT 1,
+                        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                        PRIMARY KEY (policy_id),
+                        UNIQUE KEY uk_sla_priority (priority)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                    """);
+            seedSlaPolicies(c);
+
+            // Granular audit diffs.
+            addColumn(c, "audit_logs", "old_values", "TEXT NULL");
+            addColumn(c, "audit_logs", "new_values", "TEXT NULL");
         }
         done = true;
+    }
+
+    private static void seedSlaPolicies(Connection c) throws SQLException {
+        String check = "SELECT COUNT(*) FROM sla_policies";
+        try (Statement s = c.createStatement(); ResultSet rs = s.executeQuery(check)) {
+            if (rs.next() && rs.getInt(1) > 0) return;
+        }
+        String ins = "INSERT INTO sla_policies (priority, target_hours, is_active) VALUES (?, ?, 1)";
+        Object[][] defaults = {{"CRITICAL", 24}, {"HIGH", 72}, {"MEDIUM", 168}, {"LOW", 336}};
+        try (PreparedStatement ps = c.prepareStatement(ins)) {
+            for (Object[] d : defaults) {
+                ps.setString(1, (String) d[0]);
+                ps.setInt(2, (Integer) d[1]);
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        }
     }
 
     private static void addColumn(Connection c, String table, String column, String definition)

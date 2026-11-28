@@ -181,6 +181,9 @@ CREATE TABLE maintenance_requests (
     completed_at     DATETIME     NULL,
     closed_at        DATETIME     NULL,
     resolution_notes TEXT         NULL,
+    sla_due_at       DATETIME     NULL,
+    sla_breached_at  DATETIME     NULL,
+    escalated_at     DATETIME     NULL,
     created_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT fk_req_requester FOREIGN KEY (requester_id) REFERENCES users(user_id),
@@ -325,6 +328,25 @@ VALUES
 (8, NULL,'Comfort Room 1 deep cleaning',             'Descale fixtures, check drainage and ventilation.',      'WEEKLY',  '2026-11-16', '2026-11-09', 4, 2),
 (10, NULL,'Covered court lighting inspection',       'Check all lamps, ballasts and wiring.',                  'SEMI_ANNUAL','2027-04-01','2026-10-01', 4, 2);
 
+
+-- ---------------------------------------------------------------------
+-- SLA policies
+-- ---------------------------------------------------------------------
+CREATE TABLE sla_policies (
+    policy_id    INT NOT NULL AUTO_INCREMENT,
+    priority     VARCHAR(20) NOT NULL,
+    target_hours INT NOT NULL,
+    is_active    TINYINT(1) NOT NULL DEFAULT 1,
+    updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (policy_id),
+    UNIQUE KEY uk_sla_priority (priority)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO sla_policies (priority, target_hours, is_active) VALUES
+('CRITICAL', 24, 1),
+('HIGH', 72, 1),
+('MEDIUM', 168, 1),
+('LOW', 336, 1);
 -- ---------------------------------------------------------------------
 -- 11. audit_logs
 -- ---------------------------------------------------------------------
@@ -336,6 +358,8 @@ CREATE TABLE audit_logs (
     entity_id   VARCHAR(40)  NULL,
     details     TEXT         NULL,
     ip_address  VARCHAR(45)  NULL,
+    old_values  TEXT         NULL,
+    new_values  TEXT         NULL,
     created_at  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_log_user FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL,
     INDEX idx_log_user (user_id),
